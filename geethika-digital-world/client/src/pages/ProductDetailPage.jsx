@@ -1,0 +1,290 @@
+import { useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { ShoppingCart, Upload, Heart } from 'lucide-react';
+import { getProductById } from '../data/products';
+import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
+
+const ProductDetailPage = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const product = getProductById(id);
+  const { addToCart } = useCart();
+  const { isAuthenticated } = useAuth();
+
+  const [quantity, setQuantity] = useState(1);
+  const [customization, setCustomization] = useState({
+    image: null,
+    imagePreview: null,
+    textInputs: {},
+    selectedSize: null,
+  });
+
+  if (!product) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-4">Product not found</h2>
+          <button onClick={() => navigate('/shop')} className="btn-primary">
+            Back to Shop
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const finalPrice = product.discount 
+    ? product.price - (product.price * product.discount / 100)
+    : product.price;
+
+  const calculatePrice = () => {
+    let price = finalPrice;
+    if (customization.selectedSize) {
+      const sizeOption = product.customizationOptions.sizes.find(
+        s => s.name === customization.selectedSize
+      );
+      if (sizeOption) {
+        price = product.discount
+          ? sizeOption.price - (sizeOption.price * product.discount / 100)
+          : sizeOption.price;
+      }
+    }
+    return price;
+  };
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setCustomization({
+        ...customization,
+        image: file,
+        imagePreview: URL.createObjectURL(file),
+      });
+    }
+  };
+
+  const handleTextInput = (label, value) => {
+    setCustomization({
+      ...customization,
+      textInputs: {
+        ...customization.textInputs,
+        [label]: value,
+      },
+    });
+  };
+
+  const handleAddToCart = () => {
+    // Check if user is logged in
+    if (!isAuthenticated()) {
+      // Redirect to login with return path
+      navigate('/login', { state: { from: { pathname: `/product/${product.id}` } } });
+      return;
+    }
+
+    const cartItem = {
+      id: product.id,
+      name: product.name,
+      image: product.image,
+      basePrice: product.price,
+      finalPrice: calculatePrice(),
+      quantity,
+      customization: product.customizable ? {
+        image: customization.imagePreview,
+        textInputs: customization.textInputs,
+        size: customization.selectedSize,
+      } : null,
+    };
+
+    const success = addToCart(cartItem);
+    if (success) {
+      // Show success message or navigate to cart
+      navigate('/cart');
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-background py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-valentine-pink/20">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Product Image */}
+            <div className="relative">
+              <img
+                src={product.image}
+                alt={product.name}
+                className="w-full h-96 lg:h-full object-cover"
+              />
+              {product.valentineSpecial && (
+                <div className="absolute top-4 left-4 bg-valentine-red text-white px-4 py-2 rounded-full font-semibold">
+                  💝 Valentine Special
+                </div>
+              )}
+              {product.discount && (
+                <div className="absolute top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-full font-semibold">
+                  {product.discount}% OFF
+                </div>
+              )}
+            </div>
+
+            {/* Product Details */}
+            <div className="p-8">
+              <h1 className="text-3xl font-display font-bold mb-4">{product.name}</h1>
+              <p className="text-gray-600 mb-6">{product.description}</p>
+
+              {/* Price */}
+              <div className="mb-6">
+                {product.discount ? (
+                  <div className="flex items-center space-x-3">
+                    <span className="text-3xl font-bold text-valentine-red">
+                      ₹{calculatePrice()}
+                    </span>
+                    <span className="text-xl text-gray-500 line-through">
+                      ₹{product.price}
+                    </span>
+                    <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-semibold">
+                      Save {product.discount}%
+                    </span>
+                  </div>
+                ) : (
+                  <span className="text-3xl font-bold text-valentine-red">
+                    ₹{calculatePrice()}
+                  </span>
+                )}
+              </div>
+
+              {/* Customization Options */}
+              {product.customizable && (
+                <div className="mb-6 space-y-4">
+                  <h3 className="text-xl font-bold mb-4">Customize Your Product</h3>
+
+                  {/* Image Upload */}
+                  {product.customizationOptions.imageUpload && (
+                    <div>
+                      <label className="block text-sm font-semibold mb-2">
+                        Upload Your Image
+                      </label>
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                        {customization.imagePreview ? (
+                          <div className="relative">
+                            <img
+                              src={customization.imagePreview}
+                              alt="Preview"
+                              className="max-h-40 mx-auto rounded"
+                            />
+                            <button
+                              onClick={() => setCustomization({ ...customization, image: null, imagePreview: null })}
+                              className="mt-2 text-sm text-red-500 hover:underline"
+                            >
+                              Remove Image
+                            </button>
+                          </div>
+                        ) : (
+                          <label className="cursor-pointer">
+                            <Upload className="w-12 h-12 mx-auto text-gray-400 mb-2" />
+                            <p className="text-sm text-gray-600">Click to upload image</p>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleImageUpload}
+                              className="hidden"
+                            />
+                          </label>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Text Inputs */}
+                  {product.customizationOptions.textInput && (
+                    <div className="space-y-3">
+                      {product.customizationOptions.textInput.map((label) => (
+                        <div key={label}>
+                          <label className="block text-sm font-semibold mb-1">
+                            {label}
+                          </label>
+                          <input
+                            type="text"
+                            value={customization.textInputs[label] || ''}
+                            onChange={(e) => handleTextInput(label, e.target.value)}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-valentine-red focus:border-transparent"
+                            placeholder={`Enter ${label.toLowerCase()}`}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Size Selection */}
+                  {product.customizationOptions.sizes && (
+                    <div>
+                      <label className="block text-sm font-semibold mb-2">
+                        Select Size
+                      </label>
+                      <div className="grid grid-cols-3 gap-2">
+                        {product.customizationOptions.sizes.map((size) => (
+                          <button
+                            key={size.name}
+                            onClick={() => setCustomization({ ...customization, selectedSize: size.name })}
+                            className={`px-4 py-2 rounded-lg border-2 transition-colors ${
+                              customization.selectedSize === size.name
+                                ? 'border-valentine-red bg-valentine-red text-white'
+                                : 'border-gray-300 hover:border-valentine-red'
+                            }`}
+                          >
+                            <div className="text-sm font-semibold">{size.name}</div>
+                            <div className="text-xs">₹{size.price}</div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Quantity */}
+              <div className="mb-6">
+                <label className="block text-sm font-semibold mb-2">Quantity</label>
+                <div className="flex items-center space-x-4">
+                  <button
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    className="w-10 h-10 rounded-full border-2 border-gray-300 hover:border-valentine-red transition-colors"
+                  >
+                    -
+                  </button>
+                  <span className="text-xl font-semibold w-12 text-center">{quantity}</span>
+                  <button
+                    onClick={() => setQuantity(quantity + 1)}
+                    className="w-10 h-10 rounded-full border-2 border-gray-300 hover:border-valentine-red transition-colors"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+
+              {/* Total Price */}
+              <div className="mb-6 bg-gray-50 p-4 rounded-lg">
+                <div className="flex justify-between items-center">
+                  <span className="text-lg font-semibold">Total Price:</span>
+                  <span className="text-2xl font-bold text-valentine-red">
+                    ₹{calculatePrice() * quantity}
+                  </span>
+                </div>
+              </div>
+
+              {/* Add to Cart Button */}
+              <button
+                onClick={handleAddToCart}
+                className="w-full btn-primary flex items-center justify-center space-x-2"
+              >
+                <ShoppingCart className="w-5 h-5" />
+                <span>Add to Cart</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ProductDetailPage;

@@ -1,0 +1,36 @@
+{
+  "name": "geethika-digital-world",
+  "version": "1.0.0",
+  "description": "Full Stack E-Commerce Platform for Geethika Digital World",
+  "private": true,
+  "workspaces": [
+    "client",
+    "backend"
+  ],
+  "scripts": {
+    "client": "cd client && npm run dev",
+    "backend": "cd backend && npm run dev",
+    "dev": "concurrently \"npm run client\" \"npm run backend\"",
+    "install:client": "cd client && npm install",
+    "install:backend": "cd backend && npm install",
+    "install:all": "npm run install:client && npm run install:backend",
+    "build:client": "cd client && npm run build",
+    "build:backend": "cd backend && npm run build",
+    "migrate": "cd backend && npm run migrate",
+    "start:client": "cd client && npm run preview",
+    "start:backend": "cd backend && npm start"
+  },
+  "keywords": [
+    "ecommerce",
+    "react",
+    "nodejs",
+    "express",
+    "postgresql",
+    "full-stack"
+  ],
+  "author": "Geethika Digital World",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
