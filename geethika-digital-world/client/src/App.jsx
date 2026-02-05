@@ -13,7 +13,8 @@ import ContactPage from './pages/ContactPage';
 import CartPage from './pages/CartPage';
 import LoginPage from './pages/LoginPage';
 import SignUpPage from './pages/SignUpPage';
-import AdminLogin from './pages/admin/AdminLogin';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import ProductManagement from './pages/admin/ProductManagement';
 import ServiceManagement from './pages/admin/ServiceManagement';
@@ -30,7 +31,6 @@ function App() {
         <Router>
           <Routes>
             {/* Admin Routes */}
-            <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin/*" element={
               <AdminLayout>
                 <PageTransition>
@@ -64,6 +64,8 @@ function App() {
                       <Route path="/cart" element={<CartPage />} />
                       <Route path="/login" element={<LoginPage />} />
                       <Route path="/signup" element={<SignUpPage />} />
+                      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                      <Route path="/reset-password" element={<ResetPasswordPage />} />
                       <Route path="*" element={<Navigate to="/" replace />} />
                     </Routes>
                   </PageTransition>

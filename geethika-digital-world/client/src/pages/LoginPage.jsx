@@ -69,13 +69,19 @@ const LoginPage = () => {
       const demoAdminPassword = 'Admin@123';
       
       if (formData.emailOrPhone === demoAdminEmail && formData.password === demoAdminPassword) {
-        // Demo admin login
+        // Demo admin login - create a demo token
+        const demoToken = 'demo-admin-token-' + Date.now();
         const userData = {
           id: 'admin-1',
           email: demoAdminEmail,
           fullName: 'Admin User',
-          role: 'admin'
+          role: 'admin',
+          token: demoToken
         };
+        
+        // Save token to localStorage
+        localStorage.setItem('token', demoToken);
+        localStorage.setItem('user', JSON.stringify(userData));
         
         login(userData);
         navigate('/admin/dashboard', { replace: true });
@@ -102,6 +108,9 @@ const LoginPage = () => {
         }
 
         // Save user data and token
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        
         const userData = {
           id: data.user.id,
           email: data.user.email,

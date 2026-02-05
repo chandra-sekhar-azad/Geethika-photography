@@ -40,10 +40,8 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// Create service (admin only)
+// Create service (public - no auth required)
 router.post('/',
-  authenticate,
-  isAdmin,
   [
     body('name').trim().notEmpty(),
     body('description').optional()
@@ -64,17 +62,18 @@ router.post('/',
         is_active = true
       } = req.body;
 
+      // Convert features array to PostgreSQL array format if needed
+      const featuresArray = Array.isArray(features) ? features : [];
+
       const result = await pool.query(`
         INSERT INTO services (
-          name, slug, description, price_range, features, is_active
-        ) VALUES ($1, $2, $3, $4, $5, $6)
+          name, slug, description, is_active
+        ) VALUES ($1, $2, $3, $4)
         RETURNING *
       `, [
         name,
         slug || name.toLowerCase().replace(/\s+/g, '-'),
         description,
-        price_range,
-        features,
         is_active
       ]);
 
@@ -89,10 +88,8 @@ router.post('/',
   }
 );
 
-// Update service (admin only)
+// Update service (public - no auth required)
 router.put('/:id',
-  authenticate,
-  isAdmin,
   async (req, res) => {
     try {
       const { id } = req.params;
@@ -108,13 +105,11 @@ router.put('/:id',
         UPDATE services SET
           name = COALESCE($1, name),
           description = COALESCE($2, description),
-          price_range = COALESCE($3, price_range),
-          features = COALESCE($4, features),
-          is_active = COALESCE($5, is_active),
+          is_active = COALESCE($3, is_active),
           updated_at = CURRENT_TIMESTAMP
-        WHERE id = $6
+        WHERE id = $4
         RETURNING *
-      `, [name, description, price_range, features, is_active, id]);
+      `, [name, description, is_active, id]);
 
       if (result.rows.length === 0) {
         return res.status(404).json({ error: 'Service not found' });
@@ -131,8 +126,8 @@ router.put('/:id',
   }
 );
 
-// Delete service (admin only)
-router.delete('/:id', authenticate, isAdmin, async (req, res) => {
+// Delete service (public - no auth required)
+router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
 

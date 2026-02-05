@@ -34,7 +34,6 @@ const ServiceManagement = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem('token');
 
     try {
       const serviceData = {
@@ -49,8 +48,7 @@ const ServiceManagement = () => {
       const response = await fetch(url, {
         method: editingService ? 'PUT' : 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(serviceData)
       });
@@ -67,12 +65,9 @@ const ServiceManagement = () => {
   const handleDelete = async (id) => {
     if (!confirm('Are you sure you want to delete this service?')) return;
 
-    const token = localStorage.getItem('token');
-
     try {
       const response = await fetch(`http://localhost:5000/api/services/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
+        method: 'DELETE'
       });
 
       if (response.ok) {
