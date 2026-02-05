@@ -16,6 +16,7 @@ const Navbar = () => {
     { path: '/shop', label: 'Shop' },
     { path: '/services', label: 'Services' },
     { path: '/gallery', label: 'Gallery' },
+    { path: '/about', label: 'About' },
     { path: '/contact', label: 'Contact' },
   ];
 
@@ -58,10 +59,19 @@ const Navbar = () => {
             
             {isAuthenticated() ? (
               <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2 text-gray-700">
+                <Link
+                  to="/my-orders"
+                  className="font-medium text-gray-700 hover:text-valentine-red transition-colors"
+                >
+                  My Orders
+                </Link>
+                <Link
+                  to="/profile"
+                  className="flex items-center space-x-2 text-gray-700 hover:text-valentine-red transition-colors"
+                >
                   <User className="w-5 h-5" />
-                  <span className="font-medium">{user?.fullName || user?.email}</span>
-                </div>
+                  <span className="font-medium">{user?.name || user?.email}</span>
+                </Link>
                 <button
                   onClick={handleLogout}
                   className="flex items-center space-x-1 text-gray-700 hover:text-valentine-red transition-colors"
@@ -135,9 +145,20 @@ const Navbar = () => {
             ))}
             {isAuthenticated() ? (
               <>
-                <div className="py-2 font-medium text-gray-700">
-                  {user?.fullName || user?.email}
-                </div>
+                <Link
+                  to="/my-orders"
+                  onClick={() => setIsOpen(false)}
+                  className="block py-2 font-medium text-gray-700"
+                >
+                  My Orders
+                </Link>
+                <Link
+                  to="/profile"
+                  onClick={() => setIsOpen(false)}
+                  className="block py-2 font-medium text-gray-700"
+                >
+                  Profile ({user?.name || user?.email})
+                </Link>
                 <button
                   onClick={handleLogout}
                   className="block py-2 font-medium text-gray-700"

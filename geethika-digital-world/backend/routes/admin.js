@@ -1,6 +1,9 @@
 import express from 'express';
+import bcrypt from 'bcryptjs';
+import { body, validationResult } from 'express-validator';
 import pool from '../config/database.js';
 import { authenticate, isAdmin } from '../middleware/auth.js';
+import { logAdminAction, getChanges } from '../middleware/auditLog.js';
 
 const router = express.Router();
 
@@ -130,8 +133,8 @@ router.get('/customers', async (req, res) => {
         u.email,
         u.phone,
         u.created_at,
-        COUNT(DISTINCT o.id) as total_orders,
-        COALESCE(SUM(o.total), 0) as total_spent
+        COUNT(DISTINCT CASE WHEN o.payment_status = 'paid' THEN o.id END) as total_orders,
+        COALESCE(SUM(CASE WHEN o.payment_status = 'paid' THEN o.total ELSE 0 END), 0) as total_spent
       FROM users u
       LEFT JOIN orders o ON u.email = o.customer_email OR u.phone = o.customer_phone
       WHERE u.role = 'customer'
@@ -161,6 +164,66 @@ router.get('/customers', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch customers' });
   }
 });
+
+// Create customer manually (admin only)
+router.post('/customers',
+  [
+    body('name').trim().notEmpty().withMessage('Name is required'),
+    body('email').isEmail().withMessage('Valid email is required'),
+    body('phone').optional().isMobilePhone(),
+    body('password').optional().isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
+  ],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      const { name, email, phone, password } = req.body;
+
+      // Check if email already exists
+      const existing = await pool.query(
+        'SELECT id FROM users WHERE email = $1',
+        [email]
+      );
+
+      if (existing.rows.length > 0) {
+        return res.status(400).json({ error: 'Email already exists' });
+      }
+
+      // Hash password (use default if not provided)
+      const defaultPassword = password || 'Customer@123';
+      const hashedPassword = await bcrypt.hash(defaultPassword, 10);
+
+      // Create customer
+      const result = await pool.query(`
+        INSERT INTO users (name, email, password, phone, role)
+        VALUES ($1, $2, $3, $4, 'customer')
+        RETURNING id, name, email, phone, role, created_at
+      `, [name, email, hashedPassword, phone || null]);
+
+      // Log the action
+      await logAdminAction(
+        req,
+        'CREATE',
+        'customer',
+        result.rows[0].id,
+        result.rows[0].name,
+        { created: result.rows[0] }
+      );
+
+      res.status(201).json({
+        message: 'Customer created successfully',
+        customer: result.rows[0],
+        defaultPassword: password ? undefined : defaultPassword
+      });
+    } catch (error) {
+      console.error('Create customer error:', error);
+      res.status(500).json({ error: 'Failed to create customer' });
+    }
+  }
+);
 
 // Recent Activities
 router.get('/recent-activities', async (req, res) => {

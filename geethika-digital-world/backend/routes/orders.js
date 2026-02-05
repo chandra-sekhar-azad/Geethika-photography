@@ -4,6 +4,7 @@ import pool from '../config/database.js';
 import razorpay from '../config/razorpay.js';
 import crypto from 'crypto';
 import { authenticate, isAdmin } from '../middleware/auth.js';
+import { logAdminAction, getChanges } from '../middleware/auditLog.js';
 
 const router = express.Router();
 
@@ -85,56 +86,84 @@ router.post('/',
         customer_email,
         customer_phone,
         shipping_address,
-        city,
-        state,
-        pincode,
         items,
         subtotal,
-        discount = 0,
+        shipping_cost = 0,
         total,
         payment_method = 'razorpay',
-        razorpay_order_id,
-        razorpay_payment_id,
-        order_type = 'online',
-        notes
+        shipping_info // New: accept shipping_info object
       } = req.body;
 
       const orderNumber = generateOrderNumber();
+      console.log('📦 Creating order:', orderNumber);
+      console.log('Customer:', customer_name, customer_email, customer_phone);
+      console.log('Items count:', items.length);
+      console.log('Total:', total);
+
+      // Store shipping address as JSON if shipping_info is provided
+      const shippingAddressJson = shipping_info ? JSON.stringify(shipping_info) : null;
+      const shippingAddressText = shipping_address || 
+        (shipping_info ? `${shipping_info.address}, ${shipping_info.city}, ${shipping_info.state} - ${shipping_info.pincode}` : null);
+
+      // Create Razorpay order (optional - continue even if it fails)
+      let razorpayOrderId = null;
+      try {
+        if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_ID !== 'rzp_test_demo') {
+          const razorpayOrder = await razorpay.orders.create({
+            amount: Math.round(total * 100), // Convert to paise
+            currency: 'INR',
+            receipt: orderNumber,
+          });
+          razorpayOrderId = razorpayOrder.id;
+          console.log('✅ Razorpay order created:', razorpayOrderId);
+        } else {
+          console.log('⚠️ Skipping Razorpay order creation (demo keys)');
+        }
+      } catch (razorpayError) {
+        console.error('⚠️ Razorpay order creation failed (continuing anyway):', razorpayError.message);
+        // Continue without Razorpay order ID - order will still be created
+      }
 
       // Create order
+      console.log('💾 Inserting order into database...');
       const orderResult = await client.query(`
         INSERT INTO orders (
           order_number, customer_name, customer_email, customer_phone,
-          shipping_address, city, state, pincode, subtotal, discount, total,
-          payment_method, razorpay_order_id, razorpay_payment_id,
-          payment_status, order_status, order_type, notes
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
+          shipping_address, shipping_info, subtotal, shipping_cost, total,
+          payment_method, razorpay_order_id,
+          payment_status, order_status
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
         RETURNING *
       `, [
         orderNumber,
         customer_name,
         customer_email,
         customer_phone,
-        shipping_address,
-        city,
-        state,
-        pincode,
+        shippingAddressText,
+        shippingAddressJson,
         subtotal,
-        discount,
+        shipping_cost,
         total,
         payment_method,
-        razorpay_order_id,
-        razorpay_payment_id,
-        razorpay_payment_id ? 'paid' : 'pending',
+        razorpayOrderId,
         'pending',
-        order_type,
-        notes
+        'pending'
       ]);
 
       const order = orderResult.rows[0];
+      console.log('✅ Order created with ID:', order.id);
 
       // Create order items
       for (const item of items) {
+        console.log('Inserting order item:', {
+          order_id: order.id,
+          product_id: item.product_id || item.id,
+          name: item.name,
+          image: item.image || item.image_url,
+          quantity: item.quantity,
+          price: item.price || item.finalPrice
+        });
+
         await client.query(`
           INSERT INTO order_items (
             order_id, product_id, product_name, product_image,
@@ -144,42 +173,86 @@ router.post('/',
           order.id,
           item.product_id || item.id,
           item.name,
-          item.image,
+          item.image || item.image_url,
           item.quantity,
-          item.finalPrice || item.price,
+          item.price || item.finalPrice,
           item.customization ? JSON.stringify(item.customization) : null
         ]);
 
-        // Update product stock
+        // Update product stock if product_id exists
         if (item.product_id || item.id) {
           await client.query(`
             UPDATE products
-            SET stock_quantity = stock_quantity - $1
-            WHERE id = $2 AND stock_quantity >= $1
+            SET stock_quantity = GREATEST(0, stock_quantity - $1)
+            WHERE id = $2
           `, [item.quantity, item.product_id || item.id]);
         }
       }
 
       await client.query('COMMIT');
+      console.log('✅ Order committed successfully!');
 
       res.status(201).json({
         message: 'Order created successfully',
         order: {
           id: order.id,
-          orderNumber: order.order_number,
+          order_number: order.order_number,
           total: order.total,
           status: order.order_status
-        }
+        },
+        razorpay_order_id: razorpayOrderId
       });
     } catch (error) {
       await client.query('ROLLBACK');
       console.error('Create order error:', error);
-      res.status(500).json({ error: 'Failed to create order' });
+      console.error('Error details:', error.message);
+      console.error('Error stack:', error.stack);
+      res.status(500).json({ 
+        error: 'Failed to create order', 
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined 
+      });
     } finally {
       client.release();
     }
   }
 );
+
+// Get user's orders (authenticated user)
+router.get('/my-orders', authenticate, async (req, res) => {
+  try {
+    const { limit = 50, offset = 0 } = req.query;
+    const userEmail = req.user.email;
+
+    const ordersResult = await pool.query(`
+      SELECT * FROM orders 
+      WHERE customer_email = $1
+      ORDER BY created_at DESC 
+      LIMIT $2 OFFSET $3
+    `, [userEmail, limit, offset]);
+
+    // Fetch items for each order
+    const ordersWithItems = await Promise.all(
+      ordersResult.rows.map(async (order) => {
+        const itemsResult = await pool.query(
+          'SELECT * FROM order_items WHERE order_id = $1',
+          [order.id]
+        );
+        return {
+          ...order,
+          items: itemsResult.rows
+        };
+      })
+    );
+
+    res.json({
+      orders: ordersWithItems,
+      count: ordersWithItems.length
+    });
+  } catch (error) {
+    console.error('Get user orders error:', error);
+    res.status(500).json({ error: 'Failed to fetch orders' });
+  }
+});
 
 // Get all orders (admin only)
 router.get('/', authenticate, isAdmin, async (req, res) => {
@@ -210,7 +283,7 @@ router.get('/', authenticate, isAdmin, async (req, res) => {
 });
 
 // Get single order
-router.get('/:id', async (req, res) => {
+router.get('/:id', authenticate, async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -225,8 +298,9 @@ router.get('/:id', async (req, res) => {
       [id]
     );
 
+    // Return flat structure with items included
     res.json({
-      order: orderResult.rows[0],
+      ...orderResult.rows[0],
       items: itemsResult.rows
     });
   } catch (error) {
@@ -235,11 +309,48 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+// Update payment status
+router.patch('/:id/payment', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { razorpay_payment_id, razorpay_signature } = req.body;
+
+    const result = await pool.query(`
+      UPDATE orders SET
+        razorpay_payment_id = $1,
+        razorpay_signature = $2,
+        payment_status = 'paid',
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = $3
+      RETURNING *
+    `, [razorpay_payment_id, razorpay_signature, id]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    res.json({
+      message: 'Payment updated successfully',
+      order: result.rows[0]
+    });
+  } catch (error) {
+    console.error('Update payment error:', error);
+    res.status(500).json({ error: 'Failed to update payment' });
+  }
+});
+
 // Update order status (admin only)
 router.patch('/:id/status', authenticate, isAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     const { order_status, payment_status } = req.body;
+
+    // Get old data for audit log
+    const oldData = await pool.query('SELECT * FROM orders WHERE id = $1', [id]);
+    
+    if (oldData.rows.length === 0) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
 
     const result = await pool.query(`
       UPDATE orders SET
@@ -250,9 +361,16 @@ router.patch('/:id/status', authenticate, isAdmin, async (req, res) => {
       RETURNING *
     `, [order_status, payment_status, id]);
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Order not found' });
-    }
+    // Log the action
+    const changes = getChanges(oldData.rows[0], result.rows[0]);
+    await logAdminAction(
+      req,
+      'UPDATE',
+      'order',
+      result.rows[0].id,
+      result.rows[0].order_number,
+      changes
+    );
 
     res.json({
       message: 'Order status updated successfully',

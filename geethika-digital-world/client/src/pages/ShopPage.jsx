@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Filter } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
-import { products, getProductsByCategory } from '../data/products';
 import { categories } from '../data/categories';
 
 const ShopPage = () => {

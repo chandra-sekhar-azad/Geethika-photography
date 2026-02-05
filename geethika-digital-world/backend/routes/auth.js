@@ -276,4 +276,133 @@ router.post('/reset-password',
   }
 );
 
+// Get Profile
+router.get('/profile',
+  async (req, res) => {
+    try {
+      const token = req.headers.authorization?.split(' ')[1];
+      
+      if (!token) {
+        return res.status(401).json({ error: 'No token provided' });
+      }
+
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      
+      const result = await pool.query(
+        'SELECT id, email, name, phone, role, created_at FROM users WHERE id = $1',
+        [decoded.id]
+      );
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      res.json({ user: result.rows[0] });
+    } catch (error) {
+      console.error('Get profile error:', error);
+      res.status(500).json({ error: 'Failed to get profile' });
+    }
+  }
+);
+
+// Update Profile
+router.put('/profile',
+  [
+    body('name').trim().notEmpty(),
+    body('phone').optional()
+  ],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      const token = req.headers.authorization?.split(' ')[1];
+      
+      if (!token) {
+        return res.status(401).json({ error: 'No token provided' });
+      }
+
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const { name, phone } = req.body;
+
+      const result = await pool.query(
+        'UPDATE users SET name = $1, phone = $2 WHERE id = $3 RETURNING id, email, name, phone, role',
+        [name, phone, decoded.id]
+      );
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      res.json({
+        message: 'Profile updated successfully',
+        user: result.rows[0]
+      });
+    } catch (error) {
+      console.error('Update profile error:', error);
+      res.status(500).json({ error: 'Failed to update profile' });
+    }
+  }
+);
+
+// Change Password
+router.put('/change-password',
+  [
+    body('currentPassword').notEmpty(),
+    body('newPassword').isLength({ min: 6 })
+  ],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      const token = req.headers.authorization?.split(' ')[1];
+      
+      if (!token) {
+        return res.status(401).json({ error: 'No token provided' });
+      }
+
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const { currentPassword, newPassword } = req.body;
+
+      // Get user
+      const userResult = await pool.query(
+        'SELECT * FROM users WHERE id = $1',
+        [decoded.id]
+      );
+
+      if (userResult.rows.length === 0) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      const user = userResult.rows[0];
+
+      // Verify current password
+      const isValidPassword = await bcrypt.compare(currentPassword, user.password);
+
+      if (!isValidPassword) {
+        return res.status(401).json({ error: 'Current password is incorrect' });
+      }
+
+      // Hash new password
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+      // Update password
+      await pool.query(
+        'UPDATE users SET password = $1 WHERE id = $2',
+        [hashedPassword, decoded.id]
+      );
+
+      res.json({ message: 'Password changed successfully' });
+    } catch (error) {
+      console.error('Change password error:', error);
+      res.status(500).json({ error: 'Failed to change password' });
+    }
+  }
+);
+
 export default router;

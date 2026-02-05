@@ -4,6 +4,7 @@ import pool from '../config/database.js';
 import { authenticate, isAdmin } from '../middleware/auth.js';
 import { upload } from '../middleware/upload.js';
 import { uploadToCloudinary, deleteFromCloudinary } from '../config/cloudinary.js';
+import { logAdminAction, getChanges } from '../middleware/auditLog.js';
 
 const router = express.Router();
 
@@ -136,6 +137,16 @@ router.post('/',
         stock_quantity
       ]);
 
+      // Log the action
+      await logAdminAction(
+        req,
+        'CREATE',
+        'product',
+        result.rows[0].id,
+        result.rows[0].name,
+        { created: result.rows[0] }
+      );
+
       res.status(201).json({
         message: 'Product created successfully',
         product: result.rows[0]
@@ -232,7 +243,7 @@ router.put('/:id',
   }
 );
 
-// Delete product (admin only)
+// Delete product (admin only) - Actually deactivates if referenced in orders
 router.delete('/:id', authenticate, isAdmin, async (req, res) => {
   try {
     const { id } = req.params;
@@ -242,17 +253,52 @@ router.delete('/:id', authenticate, isAdmin, async (req, res) => {
       return res.status(404).json({ error: 'Product not found' });
     }
 
-    // Delete image from Cloudinary
-    if (product.rows[0].image_public_id) {
-      await deleteFromCloudinary(product.rows[0].image_public_id);
+    // Check if product is referenced in orders
+    const orderItems = await pool.query(
+      'SELECT COUNT(*) FROM order_items WHERE product_id = $1',
+      [id]
+    );
+
+    const isReferenced = parseInt(orderItems.rows[0].count) > 0;
+
+    if (isReferenced) {
+      // Product is in orders, so deactivate instead of delete
+      await pool.query(
+        'UPDATE products SET is_active = false WHERE id = $1',
+        [id]
+      );
+      
+      res.json({ 
+        message: 'Product deactivated successfully (cannot delete as it exists in orders)',
+        deactivated: true
+      });
+    } else {
+      // Product not in orders, safe to delete
+      
+      // Try to delete image from Cloudinary (don't fail if it doesn't exist)
+      if (product.rows[0].image_public_id) {
+        try {
+          await deleteFromCloudinary(product.rows[0].image_public_id);
+        } catch (cloudinaryError) {
+          console.warn('Failed to delete image from Cloudinary:', cloudinaryError.message);
+        }
+      }
+
+      await pool.query('DELETE FROM products WHERE id = $1', [id]);
+
+      res.json({ 
+        message: 'Product deleted successfully',
+        deleted: true
+      });
     }
-
-    await pool.query('DELETE FROM products WHERE id = $1', [id]);
-
-    res.json({ message: 'Product deleted successfully' });
   } catch (error) {
     console.error('Delete product error:', error);
-    res.status(500).json({ error: 'Failed to delete product' });
+    console.error('Error details:', error.message);
+    console.error('Error stack:', error.stack);
+    res.status(500).json({ 
+      error: 'Failed to delete product', 
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined 
+    });
   }
 });
 

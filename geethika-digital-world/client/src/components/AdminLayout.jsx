@@ -1,13 +1,15 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, Package, ShoppingCart, Users, 
-  TrendingUp, LogOut, Menu, X 
+  TrendingUp, LogOut, Menu, X, Shield, FileText, MessageSquare, Send 
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
 
 const AdminLayout = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleLogout = () => {
@@ -22,8 +24,18 @@ const AdminLayout = ({ children }) => {
     { path: '/admin/services', icon: Package, label: 'Services' },
     { path: '/admin/orders', icon: ShoppingCart, label: 'Orders' },
     { path: '/admin/customers', icon: Users, label: 'Customers' },
-    { path: '/admin/sales-report', icon: TrendingUp, label: 'Sales Report' }
+    { path: '/admin/sales-report', icon: TrendingUp, label: 'Sales Report' },
+    { path: '/admin/whatsapp-templates', icon: MessageSquare, label: 'WhatsApp Templates' },
+    { path: '/admin/whatsapp-campaigns', icon: Send, label: 'WhatsApp Campaigns' }
   ];
+
+  // Add super admin only menu items
+  if (user?.role === 'super_admin') {
+    menuItems.push(
+      { path: '/admin/admin-management', icon: Shield, label: 'Admin Management' },
+      { path: '/admin/audit-log', icon: FileText, label: 'Audit Log' }
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-100">

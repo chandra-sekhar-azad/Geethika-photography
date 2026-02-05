@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Trash2, Plus, Minus, ShoppingBag, ArrowRight } from 'lucide-react';
 import { useCart } from '../context/CartContext';
@@ -8,36 +7,6 @@ const CartPage = () => {
   const navigate = useNavigate();
   const { cart, removeFromCart, updateQuantity, getCartTotal } = useCart();
   const { isAuthenticated } = useAuth();
-  const [showCheckout, setShowCheckout] = useState(false);
-  const [shippingInfo, setShippingInfo] = useState({
-    name: '',
-    phone: '',
-    email: '',
-    address: '',
-    city: '',
-    state: '',
-    pincode: '',
-  });
-
-  const handleCheckout = (e) => {
-    e.preventDefault();
-    
-    const orderDetails = {
-      items: cart,
-      total: getCartTotal(),
-      shipping: shippingInfo,
-      orderDate: new Date().toISOString(),
-    };
-
-    console.log('Order Details:', orderDetails);
-
-    const message = `New Order!\n\nTotal: ₹${getCartTotal()}\nItems: ${cart.length}\n\nCustomer Details:\nName: ${shippingInfo.name}\nPhone: ${shippingInfo.phone}\nAddress: ${shippingInfo.address}, ${shippingInfo.city}, ${shippingInfo.state} - ${shippingInfo.pincode}`;
-    
-    const whatsappUrl = `https://wa.me/917416111271?text=${encodeURIComponent(message)}`;
-    window.open(whatsappUrl, '_blank');
-    
-    navigate('/');
-  };
 
   // Show login prompt if not authenticated
   if (!isAuthenticated()) {
@@ -191,7 +160,7 @@ const CartPage = () => {
                   if (!isAuthenticated()) {
                     navigate('/login', { state: { from: { pathname: '/cart' } } });
                   } else {
-                    setShowCheckout(true);
+                    navigate('/checkout');
                   }
                 }}
                 className="w-full btn-primary flex items-center justify-center space-x-2"
@@ -210,137 +179,6 @@ const CartPage = () => {
           </div>
         </div>
       </div>
-
-      {showCheckout && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="valentine-gradient text-white p-6">
-              <h2 className="text-2xl font-display font-bold">
-                Shipping Information
-              </h2>
-            </div>
-
-            <form onSubmit={handleCheckout} className="p-6 space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold mb-2">
-                    Full Name *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={shippingInfo.name}
-                    onChange={(e) => setShippingInfo({ ...shippingInfo, name: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-valentine-red focus:border-transparent"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold mb-2">
-                    Phone Number *
-                  </label>
-                  <input
-                    type="tel"
-                    required
-                    value={shippingInfo.phone}
-                    onChange={(e) => setShippingInfo({ ...shippingInfo, phone: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-valentine-red focus:border-transparent"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold mb-2">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  value={shippingInfo.email}
-                  onChange={(e) => setShippingInfo({ ...shippingInfo, email: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-valentine-red focus:border-transparent"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold mb-2">
-                  Address *
-                </label>
-                <textarea
-                  required
-                  value={shippingInfo.address}
-                  onChange={(e) => setShippingInfo({ ...shippingInfo, address: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-valentine-red focus:border-transparent"
-                  rows="3"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold mb-2">
-                    City *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={shippingInfo.city}
-                    onChange={(e) => setShippingInfo({ ...shippingInfo, city: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-valentine-red focus:border-transparent"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold mb-2">
-                    State *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={shippingInfo.state}
-                    onChange={(e) => setShippingInfo({ ...shippingInfo, state: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-valentine-red focus:border-transparent"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold mb-2">
-                    Pincode *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={shippingInfo.pincode}
-                    onChange={(e) => setShippingInfo({ ...shippingInfo, pincode: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-valentine-red focus:border-transparent"
-                  />
-                </div>
-              </div>
-
-              <div className="bg-valentine-red/10 p-4 rounded-lg">
-                <p className="font-semibold mb-2">Order Total: ₹{getCartTotal()}</p>
-                <p className="text-sm text-gray-600">
-                  Payment will be processed through Razorpay
-                </p>
-              </div>
-
-              <div className="flex space-x-4">
-                <button
-                  type="button"
-                  onClick={() => setShowCheckout(false)}
-                  className="flex-1 px-6 py-3 border-2 border-gray-300 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 btn-primary"
-                >
-                  Place Order
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

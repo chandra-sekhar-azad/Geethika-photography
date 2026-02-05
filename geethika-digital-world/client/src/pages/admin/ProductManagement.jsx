@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Search, X } from 'lucide-react';
+import { getAuthHeaders, isAuthenticated, isAdmin } from '../../utils/api';
 
 const ProductManagement = () => {
   const [products, setProducts] = useState([]);
@@ -18,13 +19,25 @@ const ProductManagement = () => {
     stock_quantity: 0,
     valentine_special: false,
     customizable: false,
-    is_active: true
+    is_active: true,
+    customization_options: {
+      imageUpload: false,
+      textInput: [],
+      sizes: []
+    }
   });
 
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
 
   useEffect(() => {
+    // Check authentication on mount
+    if (!isAuthenticated() || !isAdmin()) {
+      alert('Please login as admin to access this page');
+      window.location.href = '/admin/login';
+      return;
+    }
+    
     fetchProducts();
     fetchCategories();
   }, []);
@@ -65,7 +78,23 @@ const ProductManagement = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Check authentication before submitting
+    if (!isAuthenticated() || !isAdmin()) {
+      alert('Your session has expired. Please login again.');
+      window.location.href = '/admin/login';
+      return;
+    }
+
     const token = localStorage.getItem('token');
+    
+    if (!token) {
+      alert('No authentication token found. Please login again.');
+      window.location.href = '/admin/login';
+      return;
+    }
+
+    console.log('Submitting with token:', token.substring(0, 20) + '...');
 
     try {
       const url = editingProduct
@@ -76,13 +105,21 @@ const ProductManagement = () => {
       
       // Append all form fields
       Object.keys(formData).forEach(key => {
-        formDataToSend.append(key, formData[key]);
+        if (key === 'customization_options') {
+          // Send customization_options as JSON string
+          formDataToSend.append(key, JSON.stringify(formData[key]));
+        } else {
+          formDataToSend.append(key, formData[key]);
+        }
       });
 
       // Append image if selected
       if (imageFile) {
         formDataToSend.append('image', imageFile);
       }
+
+      console.log('Making request to:', url);
+      console.log('Method:', editingProduct ? 'PUT' : 'POST');
 
       const response = await fetch(url, {
         method: editingProduct ? 'PUT' : 'POST',
@@ -92,23 +129,43 @@ const ProductManagement = () => {
         body: formDataToSend
       });
 
+      console.log('Response status:', response.status);
+
+      if (response.status === 401) {
+        alert('Authentication failed. Please login again.');
+        localStorage.clear();
+        window.location.href = '/admin/login';
+        return;
+      }
+
       if (response.ok) {
         fetchProducts();
         handleCloseModal();
+        alert('Product saved successfully!');
       } else {
         const error = await response.json();
+        console.error('Server error:', error);
         alert(error.error || 'Failed to save product');
       }
     } catch (error) {
       console.error('Failed to save product:', error);
-      alert('Failed to save product');
+      alert('Failed to save product: ' + error.message);
     }
   };
 
   const handleDelete = async (id) => {
     if (!confirm('Are you sure you want to delete this product?')) return;
 
+    // Check authentication
+    if (!isAuthenticated() || !isAdmin()) {
+      alert('Your session has expired. Please login again.');
+      window.location.href = '/admin/login';
+      return;
+    }
+
     const token = localStorage.getItem('token');
+    console.log('Deleting product ID:', id);
+    console.log('Using token:', token ? token.substring(0, 20) + '...' : 'NO TOKEN');
 
     try {
       const response = await fetch(`http://localhost:5000/api/products/${id}`, {
@@ -116,11 +173,32 @@ const ProductManagement = () => {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
+      console.log('Delete response status:', response.status);
+
+      if (response.status === 401) {
+        alert('Authentication failed. Please login again.');
+        localStorage.clear();
+        window.location.href = '/admin/login';
+        return;
+      }
+
       if (response.ok) {
+        const result = await response.json();
         fetchProducts();
+        
+        if (result.deactivated) {
+          alert('Product deactivated successfully!\n\nNote: This product exists in orders and cannot be permanently deleted. It has been deactivated instead.');
+        } else {
+          alert('Product deleted successfully!');
+        }
+      } else {
+        const error = await response.json();
+        console.error('Delete error response:', error);
+        alert(error.error || 'Failed to delete product');
       }
     } catch (error) {
       console.error('Failed to delete product:', error);
+      alert('Failed to delete product: ' + error.message);
     }
   };
 
@@ -135,7 +213,12 @@ const ProductManagement = () => {
       stock_quantity: product.stock_quantity || 0,
       valentine_special: product.valentine_special || false,
       customizable: product.customizable || false,
-      is_active: product.is_active
+      is_active: product.is_active,
+      customization_options: product.customization_options || {
+        imageUpload: false,
+        textInput: [],
+        sizes: []
+      }
     });
     setImagePreview(product.image_url);
     setImageFile(null);
@@ -156,7 +239,12 @@ const ProductManagement = () => {
       stock_quantity: 0,
       valentine_special: false,
       customizable: false,
-      is_active: true
+      is_active: true,
+      customization_options: {
+        imageUpload: false,
+        textInput: [],
+        sizes: []
+      }
     });
   };
 
@@ -405,6 +493,37 @@ const ProductManagement = () => {
                       <span className="text-sm text-gray-700">Active</span>
                     </label>
                   </div>
+
+                  {/* Customization Options */}
+                  {formData.customizable && (
+                    <div className="border-2 border-valentine-pink/30 rounded-lg p-4 bg-valentine-pink/5">
+                      <h3 className="text-lg font-semibold mb-4 text-valentine-red">Customization Options</h3>
+                      
+                      <div className="space-y-4">
+                        {/* Image Upload Option */}
+                        <label className="flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={formData.customization_options.imageUpload}
+                            onChange={(e) => setFormData({
+                              ...formData,
+                              customization_options: {
+                                ...formData.customization_options,
+                                imageUpload: e.target.checked
+                              }
+                            })}
+                            className="mr-2"
+                          />
+                          <span className="text-sm text-gray-700 font-medium">
+                            📸 Require Customer Image Upload
+                          </span>
+                        </label>
+                        <p className="text-xs text-gray-500 ml-6">
+                          Customer must upload an image to customize this product
+                        </p>
+                      </div>
+                    </div>
+                  )}
 
                   <div className="flex justify-end space-x-4 pt-4">
                     <button

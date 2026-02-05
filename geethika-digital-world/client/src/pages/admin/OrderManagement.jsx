@@ -6,6 +6,7 @@ const OrderManagement = () => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [filterPayment, setFilterPayment] = useState('all');
   const [showOfflineModal, setShowOfflineModal] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -69,7 +70,8 @@ const OrderManagement = () => {
     const matchesSearch = order.order_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          order.customer_name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = filterStatus === 'all' || order.order_status === filterStatus;
-    return matchesSearch && matchesStatus;
+    const matchesPayment = filterPayment === 'all' || order.payment_status === filterPayment;
+    return matchesSearch && matchesStatus && matchesPayment;
   });
 
   const statusColors = {
@@ -100,7 +102,7 @@ const OrderManagement = () => {
         </div>
 
         {/* Filters */}
-        <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
@@ -124,6 +126,17 @@ const OrderManagement = () => {
             <option value="delivered">Delivered</option>
             <option value="completed">Completed</option>
             <option value="cancelled">Cancelled</option>
+          </select>
+
+          <select
+            value={filterPayment}
+            onChange={(e) => setFilterPayment(e.target.value)}
+            className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-valentine-red focus:border-transparent"
+          >
+            <option value="all">All Payments</option>
+            <option value="paid">Paid Only</option>
+            <option value="pending">Pending Payment</option>
+            <option value="failed">Failed Payment</option>
           </select>
         </div>
 

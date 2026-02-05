@@ -1,21 +1,17 @@
 import { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Search, X } from 'lucide-react';
+import { Plus, Edit2, Trash2, Image as ImageIcon, Save, X } from 'lucide-react';
 
 const ServiceManagement = () => {
   const [services, setServices] = useState([]);
-  const [showModal, setShowModal] = useState(false);
-  const [editingService, setEditingService] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
-
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [editingService, setEditingService] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     price_range: '',
-    features: '',
     is_active: true
   });
-
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
 
@@ -30,6 +26,7 @@ const ServiceManagement = () => {
       setServices(data.services || []);
     } catch (error) {
       console.error('Failed to fetch services:', error);
+      alert('Failed to load services');
     } finally {
       setLoading(false);
     }
@@ -51,58 +48,46 @@ const ServiceManagement = () => {
     e.preventDefault();
 
     try {
-      const serviceData = new FormData();
-      
-      // Append all form fields
-      serviceData.append('name', formData.name);
-      serviceData.append('description', formData.description);
-      serviceData.append('price_range', formData.price_range);
-      serviceData.append('is_active', formData.is_active);
-      
-      // Convert features to array
-      const featuresArray = formData.features ? formData.features.split('\n').filter(f => f.trim()) : [];
-      serviceData.append('features', JSON.stringify(featuresArray));
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('Please login to continue');
+        return;
+      }
 
-      // Append image if selected
+      const formDataToSend = new FormData();
+      formDataToSend.append('name', formData.name);
+      formDataToSend.append('description', formData.description);
+      formDataToSend.append('price_range', formData.price_range);
+      formDataToSend.append('is_active', formData.is_active);
+      
       if (imageFile) {
-        serviceData.append('image', imageFile);
+        formDataToSend.append('image', imageFile);
       }
 
       const url = editingService
         ? `http://localhost:5000/api/services/${editingService.id}`
         : 'http://localhost:5000/api/services';
 
+      const method = editingService ? 'PUT' : 'POST';
+
       const response = await fetch(url, {
-        method: editingService ? 'PUT' : 'POST',
-        body: serviceData
+        method,
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formDataToSend
       });
 
-      if (response.ok) {
-        fetchServices();
-        handleCloseModal();
-      } else {
-        const error = await response.json();
-        alert(error.error || 'Failed to save service');
+      if (!response.ok) {
+        throw new Error('Failed to save service');
       }
+
+      alert(editingService ? 'Service updated successfully!' : 'Service added successfully!');
+      resetForm();
+      fetchServices();
     } catch (error) {
-      console.error('Failed to save service:', error);
+      console.error('Error saving service:', error);
       alert('Failed to save service');
-    }
-  };
-
-  const handleDelete = async (id) => {
-    if (!confirm('Are you sure you want to delete this service?')) return;
-
-    try {
-      const response = await fetch(`http://localhost:5000/api/services/${id}`, {
-        method: 'DELETE'
-      });
-
-      if (response.ok) {
-        fetchServices();
-      }
-    } catch (error) {
-      console.error('Failed to delete service:', error);
     }
   };
 
@@ -112,249 +97,319 @@ const ServiceManagement = () => {
       name: service.name,
       description: service.description || '',
       price_range: service.price_range || '',
-      features: Array.isArray(service.features) ? service.features.join('\n') : '',
       is_active: service.is_active
     });
     setImagePreview(service.image_url);
-    setImageFile(null);
-    setShowModal(true);
+    setShowAddForm(true);
   };
 
-  const handleCloseModal = () => {
-    setShowModal(false);
-    setEditingService(null);
-    setImageFile(null);
-    setImagePreview(null);
+  const handleDelete = async (id) => {
+    if (!confirm('Are you sure you want to delete this service?')) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('Please login to continue');
+        return;
+      }
+
+      const response = await fetch(`http://localhost:5000/api/services/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete service');
+      }
+
+      alert('Service deleted successfully!');
+      fetchServices();
+    } catch (error) {
+      console.error('Error deleting service:', error);
+      alert('Failed to delete service');
+    }
+  };
+
+  const resetForm = () => {
     setFormData({
       name: '',
       description: '',
       price_range: '',
-      features: '',
       is_active: true
     });
+    setImageFile(null);
+    setImagePreview(null);
+    setEditingService(null);
+    setShowAddForm(false);
   };
 
-  const filteredServices = services.filter(service =>
-    service.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
   if (loading) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-valentine-red"></div>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Service Management</h1>
-          <button
-            onClick={() => setShowModal(true)}
-            className="bg-valentine-red text-white px-6 py-3 rounded-lg flex items-center space-x-2 hover:bg-valentine-darkRed transition-colors"
-          >
-            <Plus className="w-5 h-5" />
-            <span>Add Service</span>
-          </button>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Service Management</h2>
+          <p className="text-gray-600 mt-1">Manage your services and offerings</p>
         </div>
+        <button
+          onClick={() => setShowAddForm(true)}
+          className="flex items-center space-x-2 bg-valentine-red text-white px-4 py-2 rounded-lg hover:bg-valentine-red/90 transition-colors"
+        >
+          <Plus className="w-5 h-5" />
+          <span>Add Service</span>
+        </button>
+      </div>
 
-        {/* Search */}
-        <div className="mb-6">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search services..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-valentine-red focus:border-transparent"
-            />
-          </div>
-        </div>
+      {showAddForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <h3 className="text-xl font-bold text-gray-900">
+                  {editingService ? 'Edit Service' : 'Add New Service'}
+                </h3>
+                <button
+                  onClick={resetForm}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
 
-        {/* Services Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredServices.map((service) => (
-            <div key={service.id} className="bg-white rounded-lg shadow overflow-hidden">
-              {service.image_url && (
-                <img
-                  src={service.image_url}
-                  alt={service.name}
-                  className="w-full h-48 object-cover"
+            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Service Name *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-valentine-red focus:border-transparent"
+                  placeholder="e.g., Photography, Event Decor"
                 />
-              )}
-              <div className="p-6">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="text-xl font-bold text-gray-900">{service.name}</h3>
-                    {service.price_range && (
-                      <p className="text-valentine-red font-semibold mt-1">{service.price_range}</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Description
+                </label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  rows="4"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-valentine-red focus:border-transparent"
+                  placeholder="Describe your service..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Price Range
+                </label>
+                <input
+                  type="text"
+                  value={formData.price_range}
+                  onChange={(e) => setFormData({ ...formData, price_range: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-valentine-red focus:border-transparent"
+                  placeholder="e.g., ₹5,000 - ₹50,000"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Service Image
+                </label>
+                <div className="space-y-2">
+                  {imagePreview && (
+                    <div className="relative w-full h-48 rounded-lg overflow-hidden border border-gray-300">
+                      <img
+                        src={imagePreview}
+                        alt="Preview"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                  <div className="flex items-center space-x-2">
+                    <label className="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors">
+                      <ImageIcon className="w-5 h-5" />
+                      <span>Choose Image</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageChange}
+                        className="hidden"
+                      />
+                    </label>
+                    {imagePreview && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setImageFile(null);
+                          setImagePreview(null);
+                        }}
+                        className="px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      >
+                        Remove
+                      </button>
                     )}
                   </div>
-                  <span className={`px-2 py-1 text-xs rounded-full ${
-                    service.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                  }`}>
-                    {service.is_active ? 'Active' : 'Inactive'}
-                  </span>
-                </div>
-
-                <p className="text-gray-600 text-sm mb-4 line-clamp-3">{service.description}</p>
-
-                {service.features && service.features.length > 0 && (
-                  <div className="mb-4">
-                    <p className="text-sm font-semibold text-gray-700 mb-2">Features:</p>
-                    <ul className="text-sm text-gray-600 space-y-1">
-                      {service.features.slice(0, 3).map((feature, index) => (
-                        <li key={index} className="flex items-start">
-                          <span className="text-valentine-red mr-2">•</span>
-                          <span className="line-clamp-1">{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                <div className="flex justify-end space-x-2 pt-4 border-t">
-                  <button
-                    onClick={() => handleEdit(service)}
-                    className="text-blue-600 hover:text-blue-900 p-2"
-                  >
-                    <Edit className="w-5 h-5" />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(service.id)}
-                    className="text-red-600 hover:text-red-900 p-2"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                  </button>
                 </div>
               </div>
-            </div>
-          ))}
+
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="is_active"
+                  checked={formData.is_active}
+                  onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
+                  className="w-4 h-4 text-valentine-red border-gray-300 rounded focus:ring-valentine-red"
+                />
+                <label htmlFor="is_active" className="text-sm font-medium text-gray-700">
+                  Active (visible to customers)
+                </label>
+              </div>
+
+              <div className="flex space-x-4 pt-4">
+                <button
+                  type="button"
+                  onClick={resetForm}
+                  className="flex-1 px-6 py-3 border-2 border-gray-300 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 flex items-center justify-center space-x-2 bg-valentine-red text-white px-6 py-3 rounded-lg font-semibold hover:bg-valentine-red/90 transition-colors"
+                >
+                  <Save className="w-5 h-5" />
+                  <span>{editingService ? 'Update Service' : 'Add Service'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
+      )}
 
-        {filteredServices.length === 0 && (
-          <div className="text-center py-12 bg-white rounded-lg">
-            <p className="text-gray-500">No services found</p>
-          </div>
-        )}
-
-        {/* Modal */}
-        {showModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-bold text-gray-900">
-                    {editingService ? 'Edit Service' : 'Add New Service'}
-                  </h2>
-                  <button onClick={handleCloseModal} className="text-gray-400 hover:text-gray-600">
-                    <X className="w-6 h-6" />
-                  </button>
-                </div>
-
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  {/* Image Upload */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Service Image</label>
-                    <div className="flex items-center space-x-4">
-                      {imagePreview && (
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Image
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Service Name
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Description
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Price Range
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {services.length === 0 ? (
+                <tr>
+                  <td colSpan="6" className="px-6 py-8 text-center text-gray-500">
+                    No services found. Add your first service to get started!
+                  </td>
+                </tr>
+              ) : (
+                services.map((service) => (
+                  <tr key={service.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {service.image_url ? (
                         <img
-                          src={imagePreview}
-                          alt="Preview"
-                          className="w-24 h-24 object-cover rounded-lg border-2 border-gray-200"
+                          src={service.image_url}
+                          alt={service.name}
+                          className="w-16 h-16 object-cover rounded-lg"
                         />
+                      ) : (
+                        <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
+                          <ImageIcon className="w-8 h-8 text-gray-400" />
+                        </div>
                       )}
-                      <div className="flex-1">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleImageChange}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-valentine-red focus:border-transparent"
-                        />
-                        <p className="text-xs text-gray-500 mt-1">Upload service image (JPG, PNG, max 5MB)</p>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm font-medium text-gray-900">{service.name}</div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm text-gray-600 max-w-xs truncate">
+                        {service.description || 'No description'}
                       </div>
-                    </div>
-                  </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">
+                        {service.price_range || 'Contact for pricing'}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span
+                        className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                          service.is_active
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-red-100 text-red-800'
+                        }`}
+                      >
+                        {service.is_active ? 'Active' : 'Inactive'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => handleEdit(service)}
+                          className="text-blue-600 hover:text-blue-900"
+                          title="Edit"
+                        >
+                          <Edit2 className="w-5 h-5" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(service.id)}
+                          className="text-red-600 hover:text-red-900"
+                          title="Delete"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Service Name *</label>
-                    <input
-                      type="text"
-                      required
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-valentine-red focus:border-transparent"
-                      placeholder="e.g., Photography Services"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                    <textarea
-                      value={formData.description}
-                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                      rows="4"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-valentine-red focus:border-transparent"
-                      placeholder="Describe your service..."
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Price Range</label>
-                    <input
-                      type="text"
-                      value={formData.price_range}
-                      onChange={(e) => setFormData({ ...formData, price_range: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-valentine-red focus:border-transparent"
-                      placeholder="e.g., ₹5,000 - ₹15,000"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Features (one per line)
-                    </label>
-                    <textarea
-                      value={formData.features}
-                      onChange={(e) => setFormData({ ...formData, features: e.target.value })}
-                      rows="6"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-valentine-red focus:border-transparent"
-                      placeholder="Professional equipment&#10;Experienced team&#10;Same-day delivery&#10;Free consultation"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Enter each feature on a new line</p>
-                  </div>
-
-                  <div className="flex items-center">
-                    <label className="flex items-center">
-                      <input
-                        type="checkbox"
-                        checked={formData.is_active}
-                        onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                        className="mr-2"
-                      />
-                      <span className="text-sm text-gray-700">Active</span>
-                    </label>
-                  </div>
-
-                  <div className="flex justify-end space-x-4 pt-4">
-                    <button
-                      type="button"
-                      onClick={handleCloseModal}
-                      className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      className="px-6 py-2 bg-valentine-red text-white rounded-lg hover:bg-valentine-darkRed"
-                    >
-                      {editingService ? 'Update' : 'Create'} Service
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        )}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <h3 className="font-semibold text-blue-900 mb-2">💡 Service Management Tips</h3>
+        <ul className="text-sm text-blue-800 space-y-1">
+          <li>• Add high-quality images to make your services more appealing</li>
+          <li>• Keep descriptions clear and concise</li>
+          <li>• Update price ranges regularly to reflect current offerings</li>
+          <li>• Use the Active/Inactive toggle to control service visibility</li>
+        </ul>
       </div>
     </div>
   );

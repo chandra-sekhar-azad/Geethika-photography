@@ -42,8 +42,10 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// Create service (public - no auth required)
+// Create service (admin/superadmin only)
 router.post('/',
+  authenticate,
+  isAdmin,
   upload.single('image'),
   [
     body('name').trim().notEmpty(),
@@ -103,8 +105,10 @@ router.post('/',
   }
 );
 
-// Update service (public - no auth required)
+// Update service (admin/superadmin only)
 router.put('/:id',
+  authenticate,
+  isAdmin,
   upload.single('image'),
   async (req, res) => {
     try {
@@ -165,8 +169,8 @@ router.put('/:id',
   }
 );
 
-// Delete service (public - no auth required)
-router.delete('/:id', async (req, res) => {
+// Delete service (admin/superadmin only)
+router.delete('/:id', authenticate, isAdmin, async (req, res) => {
   try {
     const { id } = req.params;
 

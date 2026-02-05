@@ -11,11 +11,11 @@ const ProductCard = ({ product }) => {
       <Link to={`/product/${product.id}`}>
         <div className="relative overflow-hidden">
           <img
-            src={product.image}
+            src={product.image_url || product.image}
             alt={product.name}
             className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-300"
           />
-          {product.valentineSpecial && (
+          {product.valentine_special && (
             <div className="absolute top-2 left-2 bg-valentine-red text-white px-3 py-1 rounded-full text-xs font-semibold">
               💝 Valentine Special
             </div>

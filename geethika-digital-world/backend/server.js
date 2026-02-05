@@ -16,6 +16,9 @@ import categoryRoutes from './routes/categories.js';
 import orderRoutes from './routes/orders.js';
 import serviceRoutes from './routes/services.js';
 import adminRoutes from './routes/admin.js';
+import superAdminRoutes from './routes/super-admin.js';
+import auditRoutes from './routes/audit.js';
+import whatsappRoutes from './routes/whatsapp.js';
 
 // Import middleware
 import { errorHandler, notFound } from './middleware/errorHandler.js';
@@ -119,6 +122,9 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/services', serviceRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/super-admin', superAdminRoutes);
+app.use('/api/audit', auditRoutes);
+app.use('/api/whatsapp', whatsappRoutes);
 
 // Root endpoint
 app.get('/', (req, res) => {

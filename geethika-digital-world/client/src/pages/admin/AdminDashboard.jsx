@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Package, 
@@ -7,10 +8,24 @@ import {
   TrendingUp,
   DollarSign,
   Image as ImageIcon,
-  Settings
+  Shield
 } from 'lucide-react';
 
 const AdminDashboard = () => {
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+
+  useEffect(() => {
+    // Check if user is super admin
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        setIsSuperAdmin(payload.role === 'super_admin');
+      } catch (error) {
+        console.error('Token parse error:', error);
+      }
+    }
+  }, []);
   const stats = [
     { label: 'Total Orders', value: '0', icon: ShoppingBag, color: 'bg-blue-500' },
     { label: 'Total Products', value: '0', icon: Package, color: 'bg-green-500' },
@@ -63,6 +78,19 @@ const AdminDashboard = () => {
     },
   ];
 
+  // Add Admin Management for super admins
+  const superAdminLinks = isSuperAdmin ? [
+    { 
+      title: 'Admin Management', 
+      description: 'Manage admin users and permissions',
+      icon: Shield,
+      link: '/admin/admin-management',
+      color: 'from-red-500 to-red-600'
+    },
+  ] : [];
+
+  const allQuickLinks = [...quickLinks, ...superAdminLinks];
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -96,7 +124,7 @@ const AdminDashboard = () => {
         <div className="mb-8">
           <h2 className="text-xl font-bold text-gray-900 mb-4">Quick Actions</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {quickLinks.map((link, index) => {
+            {allQuickLinks.map((link, index) => {
               const Icon = link.icon;
               return (
                 <Link

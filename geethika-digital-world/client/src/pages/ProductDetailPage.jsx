@@ -1,17 +1,17 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ShoppingCart, Upload, Heart } from 'lucide-react';
-import { getProductById } from '../data/products';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 
 const ProductDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const product = getProductById(id);
   const { addToCart } = useCart();
   const { isAuthenticated } = useAuth();
 
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [customization, setCustomization] = useState({
     image: null,
@@ -19,6 +19,35 @@ const ProductDetailPage = () => {
     textInputs: {},
     selectedSize: null,
   });
+
+  useEffect(() => {
+    fetchProduct();
+  }, [id]);
+
+  const fetchProduct = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`http://localhost:5000/api/products/${id}`);
+      if (!response.ok) {
+        throw new Error('Product not found');
+      }
+      const data = await response.json();
+      setProduct(data);
+    } catch (error) {
+      console.error('Failed to fetch product:', error);
+      setProduct(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-valentine-red"></div>
+      </div>
+    );
+  }
 
   if (!product) {
     return (
@@ -39,8 +68,8 @@ const ProductDetailPage = () => {
 
   const calculatePrice = () => {
     let price = finalPrice;
-    if (customization.selectedSize) {
-      const sizeOption = product.customizationOptions.sizes.find(
+    if (customization.selectedSize && product.customization_options?.sizes) {
+      const sizeOption = product.customization_options.sizes.find(
         s => s.name === customization.selectedSize
       );
       if (sizeOption) {
@@ -81,15 +110,43 @@ const ProductDetailPage = () => {
       return;
     }
 
+    // Validate customization if product is customizable
+    if (product.customizable && product.customization_options) {
+      // Check if image upload is required
+      if (product.customization_options.imageUpload && !customization.image) {
+        alert('Please upload an image for customization');
+        return;
+      }
+
+      // Check if text inputs are filled (if any)
+      if (product.customization_options.textInput) {
+        const missingInputs = product.customization_options.textInput.filter(
+          label => !customization.textInputs[label] || customization.textInputs[label].trim() === ''
+        );
+        if (missingInputs.length > 0) {
+          alert(`Please fill in: ${missingInputs.join(', ')}`);
+          return;
+        }
+      }
+
+      // Check if size is selected (if sizes are available)
+      if (product.customization_options.sizes && !customization.selectedSize) {
+        alert('Please select a size');
+        return;
+      }
+    }
+
     const cartItem = {
       id: product.id,
       name: product.name,
-      image: product.image,
+      image: product.image || product.image_url,
+      image_url: product.image || product.image_url,
       basePrice: product.price,
       finalPrice: calculatePrice(),
       quantity,
       customization: product.customizable ? {
         image: customization.imagePreview,
+        imageFile: customization.image,
         textInputs: customization.textInputs,
         size: customization.selectedSize,
       } : null,
@@ -110,11 +167,11 @@ const ProductDetailPage = () => {
             {/* Product Image */}
             <div className="relative">
               <img
-                src={product.image}
+                src={product.image_url || product.image}
                 alt={product.name}
                 className="w-full h-96 lg:h-full object-cover"
               />
-              {product.valentineSpecial && (
+              {product.valentine_special && (
                 <div className="absolute top-4 left-4 bg-valentine-red text-white px-4 py-2 rounded-full font-semibold">
                   💝 Valentine Special
                 </div>
@@ -153,17 +210,17 @@ const ProductDetailPage = () => {
               </div>
 
               {/* Customization Options */}
-              {product.customizable && (
+              {product.customizable && product.customization_options && (
                 <div className="mb-6 space-y-4">
                   <h3 className="text-xl font-bold mb-4">Customize Your Product</h3>
 
                   {/* Image Upload */}
-                  {product.customizationOptions.imageUpload && (
+                  {product.customization_options.imageUpload && (
                     <div>
                       <label className="block text-sm font-semibold mb-2">
-                        Upload Your Image
+                        Upload Your Image <span className="text-red-500">*</span>
                       </label>
-                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-valentine-red transition-colors">
                         {customization.imagePreview ? (
                           <div className="relative">
                             <img
@@ -181,26 +238,31 @@ const ProductDetailPage = () => {
                         ) : (
                           <label className="cursor-pointer">
                             <Upload className="w-12 h-12 mx-auto text-gray-400 mb-2" />
-                            <p className="text-sm text-gray-600">Click to upload image</p>
+                            <p className="text-sm text-gray-600 mb-1">Click to upload your image</p>
+                            <p className="text-xs text-gray-500">Required for customization</p>
                             <input
                               type="file"
                               accept="image/*"
                               onChange={handleImageUpload}
                               className="hidden"
+                              required
                             />
                           </label>
                         )}
                       </div>
+                      <p className="text-xs text-gray-500 mt-2">
+                        💡 Upload the image you want printed/customized on this product
+                      </p>
                     </div>
                   )}
 
                   {/* Text Inputs */}
-                  {product.customizationOptions.textInput && (
+                  {product.customization_options.textInput && (
                     <div className="space-y-3">
-                      {product.customizationOptions.textInput.map((label) => (
+                      {product.customization_options.textInput.map((label) => (
                         <div key={label}>
                           <label className="block text-sm font-semibold mb-1">
-                            {label}
+                            {label} <span className="text-red-500">*</span>
                           </label>
                           <input
                             type="text"
@@ -208,6 +270,7 @@ const ProductDetailPage = () => {
                             onChange={(e) => handleTextInput(label, e.target.value)}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-valentine-red focus:border-transparent"
                             placeholder={`Enter ${label.toLowerCase()}`}
+                            required
                           />
                         </div>
                       ))}
@@ -215,13 +278,13 @@ const ProductDetailPage = () => {
                   )}
 
                   {/* Size Selection */}
-                  {product.customizationOptions.sizes && (
+                  {product.customization_options.sizes && (
                     <div>
                       <label className="block text-sm font-semibold mb-2">
-                        Select Size
+                        Select Size <span className="text-red-500">*</span>
                       </label>
                       <div className="grid grid-cols-3 gap-2">
-                        {product.customizationOptions.sizes.map((size) => (
+                        {product.customization_options.sizes.map((size) => (
                           <button
                             key={size.name}
                             onClick={() => setCustomization({ ...customization, selectedSize: size.name })}

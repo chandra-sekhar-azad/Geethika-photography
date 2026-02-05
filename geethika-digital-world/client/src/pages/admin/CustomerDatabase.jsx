@@ -1,10 +1,17 @@
 import { useState, useEffect } from 'react';
-import { Search, Users, Mail, Phone } from 'lucide-react';
+import { Search, Users, Mail, Phone, Plus, X } from 'lucide-react';
 
 const CustomerDatabase = () => {
   const [customers, setCustomers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    password: ''
+  });
 
   useEffect(() => {
     fetchCustomers();
@@ -17,17 +24,59 @@ const CustomerDatabase = () => {
         ...(searchTerm && { search: searchTerm })
       });
 
+      console.log('Fetching customers from API...');
       const response = await fetch(`http://localhost:5000/api/admin/customers?${params}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const data = await response.json();
+      console.log('Customers data received:', data);
       setCustomers(data.customers || []);
     } catch (error) {
       console.error('Failed to fetch customers:', error);
+      alert(`Error loading customers: ${error.message}. Make sure the backend server is running.`);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:5000/api/admin/customers', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(formData)
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create customer');
+      }
+
+      alert(`Customer created successfully!${data.defaultPassword ? `\n\nDefault Password: ${data.defaultPassword}\n\nPlease share this with the customer.` : ''}`);
+      setShowModal(false);
+      setFormData({ name: '', email: '', phone: '', password: '' });
+      fetchCustomers();
+    } catch (error) {
+      console.error('Failed to create customer:', error);
+      alert(error.message);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setFormData({ name: '', email: '', phone: '', password: '' });
   };
 
   if (loading) {
@@ -37,9 +86,18 @@ const CustomerDatabase = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Customer Database</h1>
-          <p className="text-gray-600 mt-2">Manage and view all your customers</p>
+        <div className="mb-8 flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Customer Database</h1>
+            <p className="text-gray-600 mt-2">Manage and view all your customers</p>
+          </div>
+          <button
+            onClick={() => setShowModal(true)}
+            className="bg-valentine-red text-white px-6 py-3 rounded-lg flex items-center space-x-2 hover:bg-valentine-darkRed transition-colors"
+          >
+            <Plus className="w-5 h-5" />
+            <span>Add Customer</span>
+          </button>
         </div>
 
         {/* Stats */}
@@ -161,6 +219,91 @@ const CustomerDatabase = () => {
             </div>
           )}
         </div>
+
+        {/* Add Customer Modal */}
+        {showModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-md w-full">
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-2xl font-bold text-gray-900">Add New Customer</h2>
+                  <button onClick={handleCloseModal} className="text-gray-400 hover:text-gray-600">
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Name *</label>
+                    <input
+                      type="text"
+                      required
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-valentine-red focus:border-transparent"
+                      placeholder="Customer name"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Email *</label>
+                    <input
+                      type="email"
+                      required
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-valentine-red focus:border-transparent"
+                      placeholder="customer@example.com"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+                    <input
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-valentine-red focus:border-transparent"
+                      placeholder="9876543210"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Password (optional)
+                    </label>
+                    <input
+                      type="password"
+                      value={formData.password}
+                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-valentine-red focus:border-transparent"
+                      placeholder="Leave blank for default password"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      If left blank, default password "Customer@123" will be used
+                    </p>
+                  </div>
+
+                  <div className="flex justify-end space-x-4 pt-4">
+                    <button
+                      type="button"
+                      onClick={handleCloseModal}
+                      className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-6 py-2 bg-valentine-red text-white rounded-lg hover:bg-valentine-darkRed"
+                    >
+                      Create Customer
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
