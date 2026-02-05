@@ -21,6 +21,9 @@ const ProductManagement = () => {
     is_active: true
   });
 
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+
   useEffect(() => {
     fetchProducts();
     fetchCategories();
@@ -48,6 +51,18 @@ const ProductManagement = () => {
     }
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem('token');
@@ -57,21 +72,36 @@ const ProductManagement = () => {
         ? `http://localhost:5000/api/products/${editingProduct.id}`
         : 'http://localhost:5000/api/products';
 
+      const formDataToSend = new FormData();
+      
+      // Append all form fields
+      Object.keys(formData).forEach(key => {
+        formDataToSend.append(key, formData[key]);
+      });
+
+      // Append image if selected
+      if (imageFile) {
+        formDataToSend.append('image', imageFile);
+      }
+
       const response = await fetch(url, {
         method: editingProduct ? 'PUT' : 'POST',
         headers: {
-          'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(formData)
+        body: formDataToSend
       });
 
       if (response.ok) {
         fetchProducts();
         handleCloseModal();
+      } else {
+        const error = await response.json();
+        alert(error.error || 'Failed to save product');
       }
     } catch (error) {
       console.error('Failed to save product:', error);
+      alert('Failed to save product');
     }
   };
 
@@ -107,12 +137,16 @@ const ProductManagement = () => {
       customizable: product.customizable || false,
       is_active: product.is_active
     });
+    setImagePreview(product.image_url);
+    setImageFile(null);
     setShowModal(true);
   };
 
   const handleCloseModal = () => {
     setShowModal(false);
     setEditingProduct(null);
+    setImageFile(null);
+    setImagePreview(null);
     setFormData({
       name: '',
       description: '',
@@ -241,6 +275,29 @@ const ProductManagement = () => {
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
+                  {/* Image Upload */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Product Image</label>
+                    <div className="flex items-center space-x-4">
+                      {imagePreview && (
+                        <img
+                          src={imagePreview}
+                          alt="Preview"
+                          className="w-24 h-24 object-cover rounded-lg border-2 border-gray-200"
+                        />
+                      )}
+                      <div className="flex-1">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageChange}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-valentine-red focus:border-transparent"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">Upload product image (JPG, PNG, max 5MB)</p>
+                      </div>
+                    </div>
+                  </div>
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Product Name</label>
                     <input

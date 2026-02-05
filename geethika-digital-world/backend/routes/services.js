@@ -2,6 +2,8 @@ import express from 'express';
 import { body, validationResult } from 'express-validator';
 import pool from '../config/database.js';
 import { authenticate, isAdmin } from '../middleware/auth.js';
+import { upload } from '../middleware/upload.js';
+import { uploadToCloudinary, deleteFromCloudinary } from '../config/cloudinary.js';
 
 const router = express.Router();
 
@@ -42,6 +44,7 @@ router.get('/:id', async (req, res) => {
 
 // Create service (public - no auth required)
 router.post('/',
+  upload.single('image'),
   [
     body('name').trim().notEmpty(),
     body('description').optional()
@@ -62,18 +65,30 @@ router.post('/',
         is_active = true
       } = req.body;
 
-      // Convert features array to PostgreSQL array format if needed
-      const featuresArray = Array.isArray(features) ? features : [];
+      let imageUrl = null;
+      let imagePublicId = null;
+
+      if (req.file) {
+        const uploadResult = await uploadToCloudinary(req.file, 'services');
+        imageUrl = uploadResult.url;
+        imagePublicId = uploadResult.publicId;
+      }
+
+      // Parse features if it's a JSON string
+      const featuresArray = typeof features === 'string' ? JSON.parse(features) : (Array.isArray(features) ? features : []);
 
       const result = await pool.query(`
         INSERT INTO services (
-          name, slug, description, is_active
-        ) VALUES ($1, $2, $3, $4)
+          name, slug, description, price_range, image_url, image_public_id, is_active
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING *
       `, [
         name,
         slug || name.toLowerCase().replace(/\s+/g, '-'),
         description,
+        price_range,
+        imageUrl,
+        imagePublicId,
         is_active
       ]);
 
@@ -90,6 +105,7 @@ router.post('/',
 
 // Update service (public - no auth required)
 router.put('/:id',
+  upload.single('image'),
   async (req, res) => {
     try {
       const { id } = req.params;
@@ -101,15 +117,38 @@ router.put('/:id',
         is_active
       } = req.body;
 
+      // Get existing service
+      const existing = await pool.query('SELECT * FROM services WHERE id = $1', [id]);
+      if (existing.rows.length === 0) {
+        return res.status(404).json({ error: 'Service not found' });
+      }
+
+      let imageUrl = existing.rows[0].image_url;
+      let imagePublicId = existing.rows[0].image_public_id;
+
+      if (req.file) {
+        // Delete old image
+        if (imagePublicId) {
+          await deleteFromCloudinary(imagePublicId);
+        }
+        // Upload new image
+        const uploadResult = await uploadToCloudinary(req.file, 'services');
+        imageUrl = uploadResult.url;
+        imagePublicId = uploadResult.publicId;
+      }
+
       const result = await pool.query(`
         UPDATE services SET
           name = COALESCE($1, name),
           description = COALESCE($2, description),
-          is_active = COALESCE($3, is_active),
+          price_range = COALESCE($3, price_range),
+          image_url = $4,
+          image_public_id = $5,
+          is_active = COALESCE($6, is_active),
           updated_at = CURRENT_TIMESTAMP
-        WHERE id = $4
+        WHERE id = $7
         RETURNING *
-      `, [name, description, is_active, id]);
+      `, [name, description, price_range, imageUrl, imagePublicId, is_active, id]);
 
       if (result.rows.length === 0) {
         return res.status(404).json({ error: 'Service not found' });
@@ -131,11 +170,17 @@ router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
-    const result = await pool.query('DELETE FROM services WHERE id = $1 RETURNING *', [id]);
-
-    if (result.rows.length === 0) {
+    const service = await pool.query('SELECT * FROM services WHERE id = $1', [id]);
+    if (service.rows.length === 0) {
       return res.status(404).json({ error: 'Service not found' });
     }
+
+    // Delete image from Cloudinary
+    if (service.rows[0].image_public_id) {
+      await deleteFromCloudinary(service.rows[0].image_public_id);
+    }
+
+    const result = await pool.query('DELETE FROM services WHERE id = $1 RETURNING *', [id]);
 
     res.json({ message: 'Service deleted successfully' });
   } catch (error) {

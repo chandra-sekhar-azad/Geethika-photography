@@ -1,19 +1,36 @@
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import SimpleProductCard from './SimpleProductCard';
-import { products } from '../data/products';
 import { TrendingUp, Sparkles } from 'lucide-react';
 
 const TrendingSection = () => {
   const navigate = useNavigate();
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Get Valentine special products or first 6 products
-  const trendingProducts = products
-    .filter(p => p.valentineSpecial)
-    .slice(0, 6);
+  useEffect(() => {
+    fetchProducts();
+  }, []);
 
-  const displayProducts = trendingProducts.length > 0 
-    ? trendingProducts 
-    : products.slice(0, 6);
+  const fetchProducts = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/products?valentine=true&limit=6');
+      const data = await response.json();
+      
+      // If no valentine products, fetch regular products
+      if (data.products.length === 0) {
+        const fallbackResponse = await fetch('http://localhost:5000/api/products?limit=6');
+        const fallbackData = await fallbackResponse.json();
+        setProducts(fallbackData.products || []);
+      } else {
+        setProducts(data.products || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch products:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <section className="py-16 md:py-20 bg-gradient-to-br from-pink-50 via-white to-rose-50 relative overflow-hidden">
@@ -42,24 +59,34 @@ const TrendingSection = () => {
         </div>
 
         {/* Products Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6">
-          {displayProducts.map((product, index) => (
-            <div 
-              key={product.id}
-              className="animate-slide-up"
-              style={{ animationDelay: `${index * 0.1}s` }}
-            >
-              <SimpleProductCard
-                image={product.image}
-                price={product.discount 
-                  ? product.price - (product.price * product.discount / 100)
-                  : product.price
-                }
-                onClick={() => navigate(`/product/${product.id}`)}
-              />
-            </div>
-          ))}
-        </div>
+        {loading ? (
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-valentine-red"></div>
+          </div>
+        ) : products.length > 0 ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6">
+            {products.map((product, index) => (
+              <div 
+                key={product.id}
+                className="animate-slide-up"
+                style={{ animationDelay: `${index * 0.1}s` }}
+              >
+                <SimpleProductCard
+                  image={product.image_url}
+                  price={product.discount 
+                    ? product.price - (product.price * product.discount / 100)
+                    : product.price
+                  }
+                  onClick={() => navigate(`/product/${product.id}`)}
+                />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <p className="text-gray-500">No products available</p>
+          </div>
+        )}
 
         {/* View All Button */}
         <div className="text-center mt-12">

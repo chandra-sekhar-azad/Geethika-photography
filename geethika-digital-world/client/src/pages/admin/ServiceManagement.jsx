@@ -16,6 +16,9 @@ const ServiceManagement = () => {
     is_active: true
   });
 
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+
   useEffect(() => {
     fetchServices();
   }, []);
@@ -32,14 +35,38 @@ const ServiceManagement = () => {
     }
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      const serviceData = {
-        ...formData,
-        features: formData.features ? formData.features.split('\n').filter(f => f.trim()) : []
-      };
+      const serviceData = new FormData();
+      
+      // Append all form fields
+      serviceData.append('name', formData.name);
+      serviceData.append('description', formData.description);
+      serviceData.append('price_range', formData.price_range);
+      serviceData.append('is_active', formData.is_active);
+      
+      // Convert features to array
+      const featuresArray = formData.features ? formData.features.split('\n').filter(f => f.trim()) : [];
+      serviceData.append('features', JSON.stringify(featuresArray));
+
+      // Append image if selected
+      if (imageFile) {
+        serviceData.append('image', imageFile);
+      }
 
       const url = editingService
         ? `http://localhost:5000/api/services/${editingService.id}`
@@ -47,18 +74,19 @@ const ServiceManagement = () => {
 
       const response = await fetch(url, {
         method: editingService ? 'PUT' : 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(serviceData)
+        body: serviceData
       });
 
       if (response.ok) {
         fetchServices();
         handleCloseModal();
+      } else {
+        const error = await response.json();
+        alert(error.error || 'Failed to save service');
       }
     } catch (error) {
       console.error('Failed to save service:', error);
+      alert('Failed to save service');
     }
   };
 
@@ -87,12 +115,16 @@ const ServiceManagement = () => {
       features: Array.isArray(service.features) ? service.features.join('\n') : '',
       is_active: service.is_active
     });
+    setImagePreview(service.image_url);
+    setImageFile(null);
     setShowModal(true);
   };
 
   const handleCloseModal = () => {
     setShowModal(false);
     setEditingService(null);
+    setImageFile(null);
+    setImagePreview(null);
     setFormData({
       name: '',
       description: '',
@@ -220,6 +252,29 @@ const ServiceManagement = () => {
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
+                  {/* Image Upload */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Service Image</label>
+                    <div className="flex items-center space-x-4">
+                      {imagePreview && (
+                        <img
+                          src={imagePreview}
+                          alt="Preview"
+                          className="w-24 h-24 object-cover rounded-lg border-2 border-gray-200"
+                        />
+                      )}
+                      <div className="flex-1">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageChange}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-valentine-red focus:border-transparent"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">Upload service image (JPG, PNG, max 5MB)</p>
+                      </div>
+                    </div>
+                  </div>
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Service Name *</label>
                     <input

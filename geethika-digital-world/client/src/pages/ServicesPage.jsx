@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Calendar, MapPin, Phone, User, MessageSquare, CreditCard } from 'lucide-react';
-import { services } from '../data/services';
 
 const ServicesPage = () => {
+  const [services, setServices] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [selectedService, setSelectedService] = useState(null);
   const [selectedPackage, setSelectedPackage] = useState(null);
   const [showBookingForm, setShowBookingForm] = useState(false);
@@ -13,6 +14,22 @@ const ServicesPage = () => {
     location: '',
     requirements: '',
   });
+
+  useEffect(() => {
+    fetchServices();
+  }, []);
+
+  const fetchServices = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/services');
+      const data = await response.json();
+      setServices(data.services || []);
+    } catch (error) {
+      console.error('Failed to fetch services:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleBooking = (service, pkg) => {
     setSelectedService(service);
@@ -56,65 +73,61 @@ const ServicesPage = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="space-y-12">
-          {services.map((service) => (
-            <div key={service.id} className="bg-white rounded-2xl shadow-lg overflow-hidden border border-valentine-pink/20">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-1">
-                  <img
-                    src={service.image}
-                    alt={service.name}
-                    className="w-full h-64 lg:h-full object-cover"
-                  />
-                </div>
+        {loading ? (
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-valentine-red"></div>
+          </div>
+        ) : services.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-gray-500 text-lg">No services available at the moment.</p>
+          </div>
+        ) : (
+          <div className="space-y-12">
+            {services.map((service) => (
+              <div key={service.id} className="bg-white rounded-2xl shadow-lg overflow-hidden border border-valentine-pink/20">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {service.image_url && (
+                    <div className="lg:col-span-1">
+                      <img
+                        src={service.image_url}
+                        alt={service.name}
+                        className="w-full h-64 lg:h-full object-cover"
+                      />
+                    </div>
+                  )}
 
-                <div className="lg:col-span-2 p-8">
-                  <div className="flex items-center space-x-3 mb-4">
-                    <span className="text-4xl">{service.icon}</span>
-                    <h2 className="text-3xl font-display font-bold text-valentine-red italic">{service.name}</h2>
-                  </div>
-                  <p className="text-gray-600 mb-6">{service.description}</p>
+                  <div className={`${service.image_url ? 'lg:col-span-2' : 'lg:col-span-3'} p-8`}>
+                    <div className="flex items-center space-x-3 mb-4">
+                      <h2 className="text-3xl font-display font-bold text-valentine-red italic">{service.name}</h2>
+                    </div>
+                    <p className="text-gray-600 mb-6">{service.description}</p>
 
-                  <div className="space-y-4">
-                    <h3 className="text-xl font-bold mb-4 text-gray-800">Available Packages</h3>
-                    {service.packages.map((pkg, index) => (
-                      <div
-                        key={index}
-                        className="border-2 border-valentine-pink/30 rounded-xl p-5 hover:border-valentine-red hover:shadow-lg transition-all bg-gradient-to-r from-white to-valentine-pink/5"
-                      >
-                        <div className="flex justify-between items-start mb-3">
-                          <div>
-                            <h4 className="font-bold text-lg">{pkg.name}</h4>
-                            <p className="text-sm text-gray-600">{pkg.duration}</p>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-2xl font-bold text-valentine-red">
-                              ₹{pkg.price}
-                            </div>
-                          </div>
-                        </div>
-                        <ul className="space-y-2 mb-4">
-                          {pkg.features.map((feature, idx) => (
-                            <li key={idx} className="text-sm text-gray-600 flex items-start">
-                              <span className="text-valentine-red mr-2">✓</span>
-                              {feature}
-                            </li>
-                          ))}
-                        </ul>
-                        <button
-                          onClick={() => handleBooking(service, pkg)}
-                          className="w-full btn-romantic"
-                        >
-                          Book Now
-                        </button>
+                    {service.price_range && (
+                      <div className="mb-6">
+                        <span className="inline-block bg-valentine-pink/20 text-valentine-red px-4 py-2 rounded-full font-semibold">
+                          {service.price_range}
+                        </span>
                       </div>
-                    ))}
+                    )}
+
+                    <div className="space-y-4">
+                      <button
+                        onClick={() => {
+                          const message = `Hi! I'm interested in ${service.name}. Can you provide more details?`;
+                          const whatsappUrl = `https://wa.me/917416111271?text=${encodeURIComponent(message)}`;
+                          window.open(whatsappUrl, '_blank');
+                        }}
+                        className="btn-romantic"
+                      >
+                        Book Now via WhatsApp
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {showBookingForm && (
