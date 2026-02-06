@@ -1,0 +1,70 @@
+# Vercel Build Fix Summary
+
+## Problem
+Build was failing with error:
+```
+Error: Cannot find module @rollup/rollup-linux-x64-gnu
+```
+
+This is a known npm bug with optional dependencies not being installed correctly in workspace/monorepo setups.
+
+## Solutions Applied
+
+### 1. Added Root `.npmrc` File
+Created `geethika-digital-world/.npmrc` with:
+```
+engine-strict=false
+legacy-peer-deps=false
+optional=true
+```
+This ensures optional dependencies (like Rollup's native bindings) are installed.
+
+### 2. Updated `vercel.json`
+Changed from:
+```json
+"installCommand": "cd client && npm install",
+"buildCommand": "cd client && npm install && npm run build"
+```
+
+To:
+```json
+"installCommand": "npm install --include=optional",
+"buildCommand": "npm run build"
+```
+
+This uses the workspace root installation which properly handles optional dependencies.
+
+### 3. Added Postinstall Script
+Added to `client/package.json`:
+```json
+"postinstall": "npm rebuild rollup"
+```
+
+This ensures Rollup's native bindings are rebuilt after installation.
+
+### 4. Added Root Build Script
+Added to root `package.json`:
+```json
+"build": "npm run build:client"
+```
+
+This allows Vercel to build using the workspace structure.
+
+## Why This Works
+- Vercel installs dependencies at the root level for workspaces
+- The `--include=optional` flag ensures Rollup's platform-specific binaries are installed
+- Using workspace commands prevents double installation issues
+- The postinstall script rebuilds Rollup if needed
+
+## Next Steps
+1. Commit these changes
+2. Push to GitHub
+3. Vercel will automatically redeploy
+4. Build should succeed now!
+
+## Files Changed
+- ✅ Created: `geethika-digital-world/.npmrc`
+- ✅ Updated: `geethika-digital-world/vercel.json`
+- ✅ Updated: `geethika-digital-world/client/package.json`
+- ✅ Updated: `geethika-digital-world/package.json`
+- ✅ Deleted: `geethika-digital-world/client/.npmrc` (was being ignored anyway)
