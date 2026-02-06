@@ -1,0 +1,132 @@
+╔════════════════════════════════════════════════════════════════╗
+║                                                                ║
+║           FRONTEND DEPLOYMENT - QUICK REFERENCE                ║
+║                                                                ║
+╚════════════════════════════════════════════════════════════════╝
+
+📦 INSTALL COMMAND
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+cd client
+npm install
+
+
+🔨 BUILD COMMAND
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+npm run build
+
+
+📁 OUTPUT DIRECTORY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+dist/
+
+
+🌐 VERCEL DEPLOYMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Framework Preset:    Vite
+Root Directory:      client
+Build Command:       npm run build
+Output Directory:    dist
+Install Command:     npm install
+
+Environment Variable:
+VITE_API_URL=https://your-backend-url.com
+
+
+🚀 NETLIFY DEPLOYMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Base Directory:      client
+Build Command:       npm run build
+Publish Directory:   client/dist
+Install Command:     npm install
+
+Environment Variable:
+VITE_API_URL=https://your-backend-url.com
+
+
+🐳 DOCKER DEPLOYMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+docker build -t geethika-frontend ./client
+docker run -p 80:80 geethika-frontend
+
+
+⚙️ ENVIRONMENT VARIABLES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Development (.env):
+VITE_API_URL=http://localhost:5000
+
+Production (.env.production):
+VITE_API_URL=https://api.yourdomain.com
+
+
+📋 COMPLETE DEPLOYMENT STEPS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. cd client
+2. npm install
+3. npm run build
+4. Upload dist/ folder to hosting
+5. Set environment variable: VITE_API_URL
+6. Configure redirects for SPA routing
+
+
+🔧 VERCEL CLI DEPLOYMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+npm install -g vercel
+cd client
+vercel
+vercel --prod
+
+
+🔧 NETLIFY CLI DEPLOYMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+npm install -g netlify-cli
+cd client
+npm run build
+netlify deploy --prod
+
+
+✅ POST-DEPLOYMENT CHECKLIST
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+□ Frontend accessible
+□ All routes working
+□ API calls successful
+□ Images loading
+□ Forms working
+□ Authentication working
+□ Admin panel accessible
+□ Mobile responsive
+□ No console errors
+
+
+⚠️ IMPORTANT NOTES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• All environment variables must start with VITE_
+• Rebuild after changing environment variables
+• Configure SPA redirects (all routes → index.html)
+• Update VITE_API_URL to your backend URL
+• Test locally with: npm run preview
+
+
+🆘 TROUBLESHOOTING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Build fails:
+  NODE_OPTIONS=--max_old_space_size=4096 npm run build
+
+Routes not working:
+  Add redirect rules (see FRONTEND_DEPLOYMENT_COMMANDS.md)
+
+Env vars not working:
+  • Check they start with VITE_
+  • Rebuild after changes
+  • Verify in platform settings
+
+
+📚 DOCUMENTATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Complete Guide: FRONTEND_DEPLOYMENT_COMMANDS.md
+Vercel Guide:   VERCEL_DEPLOYMENT.md
+Quick Deploy:   QUICK_DEPLOY.md
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                    READY TO DEPLOY! 🚀
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
