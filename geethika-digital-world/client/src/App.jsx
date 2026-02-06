@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import WhatsAppFloat from './components/WhatsAppFloat';
+import BackendWakeup from './components/BackendWakeup';
 import PageTransition from './components/PageTransition';
 import AdminLayout from './components/AdminLayout';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -45,6 +46,7 @@ function App() {
     <AuthProvider>
       <CartProvider>
         <Router>
+          <BackendWakeup />
           <Routes>
             {/* Admin Login Route (no layout) */}
             <Route path="/admin/login" element={<AdminLogin />} />
