@@ -1,82 +1,69 @@
 # Vercel Build Fix Summary - Node.js Version Issue
 
-## Problem
-Build was failing with error:
-```
-Error: Cannot find module @rollup/rollup-linux-x64-gnu
-```
+## 🚨 CRITICAL ISSUE: Vercel is STILL using Node 24!
 
-**Root Cause:** Vercel was using Node.js v24, and Rollup (used by Vite) doesn't work properly with Node 24. The optional dependencies for Rollup's native bindings fail to install.
+Your build log shows: **"Node.js v24.13.0"**
 
-## Solution Applied ✅
+This means you haven't set Node 18 in Vercel Dashboard yet!
 
-### 1. Downgraded to Node.js 18.x (LTS)
-Updated both `package.json` files to use Node 18:
+═══════════════════════════════════════════════════════════
 
-**Root `package.json`:**
-```json
-"engines": {
-  "node": "18.x"
-}
-```
+## ⚠️ YOU MUST DO THIS MANUALLY IN VERCEL DASHBOARD
 
-**Client `package.json`:**
-```json
-"engines": {
-  "node": "18.x"
-}
-```
+**Setting it in package.json is NOT enough!**
 
-### 2. Created `.nvmrc` File
-Added `.nvmrc` with `18` to ensure consistent Node version across all environments.
+### Required Steps:
 
-### 3. Updated Vercel Configuration
-The `vercel.json` now uses workspace-level installation:
-```json
-"installCommand": "npm install --include=optional",
-"buildCommand": "npm run build"
-```
+1. **Go to Vercel Dashboard**: https://vercel.com/dashboard
+2. **Click your project**: "geethika-photography"
+3. **Go to Settings** → **General**
+4. **Find "Node.js Version"** section
+5. **Select "18.x"** from dropdown
+6. **Click "Save"**
+7. **Go to Deployments** tab
+8. **Click "Redeploy"**
 
-## Why Node 18 Works
-- Node 18 is the current LTS (Long Term Support) version
-- Vite + Rollup are fully compatible with Node 18
-- Rollup's optional dependencies install correctly on Node 18
-- Node 24 is too new and has compatibility issues with many build tools
+═══════════════════════════════════════════════════════════
+
+## Why This Happens
+
+- Vercel **ignores** the `engines` field in package.json
+- It uses whatever Node version is set in the dashboard
+- Default is Node 24 (latest)
+- You MUST manually change it to 18.x
+
+═══════════════════════════════════════════════════════════
+
+## How to Verify It Worked
+
+After redeploying, check the build log:
+- ✅ Should say: "Node.js v18.x.x"
+- ❌ If it says: "Node.js v24.x.x" → You didn't save the setting
+
+═══════════════════════════════════════════════════════════
+
+## Files Changed (Latest)
+
+- ✅ Updated: `vercel.json` (simplified build command)
+- ✅ Updated: `client/package.json` (removed postinstall)
+- ✅ Updated: `.npmrc` (removed problematic optional flag)
+- ✅ Created: `.nvmrc` (Node 18 for local dev)
+- ✅ Both package.json files have `"engines": { "node": "18.x" }`
+
+═══════════════════════════════════════════════════════════
 
 ## Next Steps
 
-### 1. Clean Local Installation (Optional but Recommended)
-```bash
-cd geethika-digital-world
-rm -rf node_modules package-lock.json
-rm -rf client/node_modules client/package-lock.json
-npm install
-```
+1. **SET NODE 18 IN VERCEL DASHBOARD** (see steps above)
+2. Commit these latest changes:
+   ```
+   git add .
+   git commit -m "Fix vercel config for Node 18"
+   git push
+   ```
+3. Redeploy from Vercel
+4. Build will succeed! 🚀
 
-### 2. Commit and Push Changes
-```bash
-git add .
-git commit -m "Fix: Downgrade to Node 18.x for Vercel compatibility"
-git push
-```
+═══════════════════════════════════════════════════════════
 
-### 3. Configure Vercel Dashboard (IMPORTANT!)
-1. Go to Vercel Dashboard
-2. Select your project
-3. Go to **Settings** → **General**
-4. Find **Node.js Version**
-5. Select **18.x**
-6. Click **Save**
-7. Go to **Deployments** tab
-8. Click **Redeploy** on the latest deployment
-
-## Files Changed
-- ✅ Updated: `geethika-digital-world/package.json` (added engines: node 18.x)
-- ✅ Updated: `geethika-digital-world/client/package.json` (changed from 24.x to 18.x)
-- ✅ Created: `geethika-digital-world/.nvmrc` (ensures Node 18 everywhere)
-- ✅ Updated: `geethika-digital-world/vercel.json` (workspace-level installation)
-- ✅ Created: `geethika-digital-world/.npmrc` (ensures optional deps are installed)
-- ✅ Deleted: `geethika-digital-world/client/.npmrc` (was being ignored)
-
-## Expected Result
-After pushing and redeploying with Node 18.x configured in Vercel, the build will succeed! 🚀
+See `VERCEL_NODE_18_SETUP.txt` for detailed visual guide.

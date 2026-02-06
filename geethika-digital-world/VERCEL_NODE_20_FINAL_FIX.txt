@@ -1,0 +1,71 @@
+🎯 FINAL FIX - Use Node 20.x (Available in Vercel)
+
+═══════════════════════════════════════════════════════════
+
+✅ WHAT I FIXED
+───────────────────────────────────────────────────────────
+
+1. Changed Node version from 18.x → 20.x
+   (Node 18 is not available in Vercel anymore)
+
+2. Added @rollup/rollup-linux-x64-gnu explicitly
+   This is the missing package that was causing the error
+
+3. Updated .nvmrc to use Node 20
+
+═══════════════════════════════════════════════════════════
+
+🚀 STEPS TO DEPLOY
+───────────────────────────────────────────────────────────
+
+STEP 1: Commit and Push
+```bash
+git add .
+git commit -m "Fix: Use Node 20.x and add Rollup Linux binary"
+git push
+```
+
+STEP 2: Set Node 20.x in Vercel Dashboard
+1. Go to: https://vercel.com/dashboard
+2. Click your project
+3. Settings → General
+4. Node.js Version → Select "20.x"
+5. Click "Save"
+
+STEP 3: Redeploy
+1. Go to Deployments tab
+2. Click "Redeploy"
+3. Wait for build to complete
+
+═══════════════════════════════════════════════════════════
+
+🔍 WHY THIS WORKS
+───────────────────────────────────────────────────────────
+
+• Node 20.x is LTS and available in Vercel
+• We explicitly added @rollup/rollup-linux-x64-gnu
+• This package contains the native bindings Rollup needs
+• Node 20 is fully compatible with Vite + Rollup
+
+═══════════════════════════════════════════════════════════
+
+📋 AVAILABLE NODE VERSIONS IN VERCEL
+───────────────────────────────────────────────────────────
+
+✅ 24.x (Latest - but has Rollup issues)
+✅ 22.x (Works but not LTS)
+✅ 20.x (LTS - RECOMMENDED) ← We're using this
+❌ 18.x (Not available anymore)
+
+═══════════════════════════════════════════════════════════
+
+✅ EXPECTED RESULT
+───────────────────────────────────────────────────────────
+
+Build log should show:
+✓ "Node.js v20.x.x"
+✓ "@rollup/rollup-linux-x64-gnu" installed
+✓ "vite build" succeeds
+✓ Deployment successful!
+
+═══════════════════════════════════════════════════════════

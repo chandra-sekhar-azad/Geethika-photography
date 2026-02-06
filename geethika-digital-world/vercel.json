@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "buildCommand": "npm run build",
+  "buildCommand": "cd client && npm ci && npm run build",
   "outputDirectory": "client/dist",
-  "installCommand": "npm install --include=optional",
+  "installCommand": null,
   "framework": null,
   "rewrites": [
     {

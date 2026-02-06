@@ -22,7 +22,7 @@
     "start:backend": "cd backend && npm start"
   },
   "engines": {
-    "node": "18.x"
+    "node": "20.x"
   },
   "keywords": [
     "ecommerce",

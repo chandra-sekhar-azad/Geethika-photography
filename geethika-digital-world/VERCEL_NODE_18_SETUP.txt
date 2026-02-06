@@ -1,0 +1,113 @@
+🚨 CRITICAL: YOU MUST SET NODE 18 IN VERCEL DASHBOARD 🚨
+
+═══════════════════════════════════════════════════════════
+
+⚠️  THE PROBLEM
+───────────────────────────────────────────────────────────
+Your build log shows: "Node.js v24.13.0"
+
+This means Vercel is STILL using Node 24, even though we 
+set it in package.json. 
+
+WHY? Because package.json "engines" is just a suggestion.
+Vercel ignores it unless you configure it in the dashboard!
+
+═══════════════════════════════════════════════════════════
+
+✅ SOLUTION: MANUALLY SET NODE VERSION IN VERCEL
+───────────────────────────────────────────────────────────
+
+STEP 1: Go to Vercel Dashboard
+👉 https://vercel.com/dashboard
+
+STEP 2: Click on Your Project
+👉 Find "geethika-photography" or your project name
+👉 Click on it
+
+STEP 3: Go to Settings
+👉 Click "Settings" tab at the top
+
+STEP 4: Find Node.js Version Setting
+👉 Scroll down to "Node.js Version" section
+👉 You'll see a dropdown menu
+
+STEP 5: Change to 18.x
+👉 Click the dropdown
+👉 Select "18.x"
+👉 Click "Save" button
+
+STEP 6: Redeploy
+👉 Go to "Deployments" tab
+👉 Click on the latest deployment
+👉 Click "Redeploy" button
+👉 Wait for build to complete
+
+═══════════════════════════════════════════════════════════
+
+📸 VISUAL GUIDE
+───────────────────────────────────────────────────────────
+
+Dashboard → Project → Settings → General
+
+Look for this section:
+
+┌─────────────────────────────────────────┐
+│ Node.js Version                         │
+│                                         │
+│ [Dropdown: 18.x ▼]                     │
+│                                         │
+│ [Save]                                  │
+└─────────────────────────────────────────┘
+
+═══════════════════════════════════════════════════════════
+
+🔍 HOW TO VERIFY IT WORKED
+───────────────────────────────────────────────────────────
+
+After redeploying, check the build log.
+
+You should see:
+✅ "Node.js v18.x.x" (NOT v24.x.x)
+
+If you still see v24, you didn't save the setting correctly.
+Go back and repeat steps 3-6.
+
+═══════════════════════════════════════════════════════════
+
+💡 WHY THIS IS NECESSARY
+───────────────────────────────────────────────────────────
+
+• Node 24 is too new
+• Rollup doesn't support Node 24 yet
+• Vite uses Rollup for building
+• Node 18 is LTS and fully compatible
+• This is a Vercel configuration issue, not a code issue
+
+═══════════════════════════════════════════════════════════
+
+📝 AFTER YOU SET NODE 18 IN DASHBOARD
+───────────────────────────────────────────────────────────
+
+1. Commit the latest code changes:
+   git add .
+   git commit -m "Update vercel config for Node 18"
+   git push
+
+2. Vercel will auto-deploy with Node 18
+3. Build will succeed! ✅
+
+═══════════════════════════════════════════════════════════
+
+❌ COMMON MISTAKES
+───────────────────────────────────────────────────────────
+
+1. Only changing package.json → Doesn't work!
+2. Not clicking "Save" in Vercel → Doesn't work!
+3. Not redeploying after changing → Doesn't work!
+
+YOU MUST:
+✓ Change in Vercel Dashboard
+✓ Click Save
+✓ Redeploy
+
+═══════════════════════════════════════════════════════════
