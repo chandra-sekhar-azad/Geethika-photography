@@ -1,0 +1,35 @@
+═══════════════════════════════════════════════════════════
+              VERCEL DEPLOYMENT - NODE 24 FIX
+═══════════════════════════════════════════════════════════
+
+✅ FIXED: Updated to Node.js 24.x
+
+package.json now has:
+  "engines": { "node": "24.x" }
+
+═══════════════════════════════════════════════════════════
+                    DEPLOY NOW
+═══════════════════════════════════════════════════════════
+
+git add client/package.json
+git commit -m "Update to Node.js 24"
+git push origin main
+
+Vercel will auto-deploy!
+
+═══════════════════════════════════════════════════════════
+                VERCEL SETTINGS
+═══════════════════════════════════════════════════════════
+
+Framework:       Vite
+Root Directory:  client
+Build Command:   npm run build
+Output:          dist
+Node Version:    24.x (auto-detected)
+
+Environment Variable:
+VITE_API_URL = https://your-backend-url.com
+
+═══════════════════════════════════════════════════════════
+                    STATUS: READY ✅
+═══════════════════════════════════════════════════════════

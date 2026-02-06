@@ -1,619 +1,625 @@
-# Complete Deployment Guide - Geethika Digital World
+# 🚀 Deployment Guide - Geethika Digital World
 
-## Admin Access After Deployment
-
-### Development (Current):
-```
-http://localhost:5173/admin/login
-```
-
-### Production (After Deployment):
-```
-https://yourdomain.com/admin/login
-OR
-https://www.geethikadigitalworld.com/admin/login
-```
-
-**The route `/admin/login` remains the same!** Only the domain changes.
+Complete guide to deploy your application to production using Vercel (Frontend) and Render (Backend + Database).
 
 ---
 
-## Deployment Options
+## 📋 Table of Contents
 
-### Option 1: Vercel (Recommended - Easiest)
-**Best for:** Frontend + Backend together or separate deployments
-
-#### Frontend Deployment (Vercel)
-
-1. **Prepare Frontend:**
-```bash
-cd client
-npm run build
-```
-
-2. **Install Vercel CLI:**
-```bash
-npm install -g vercel
-```
-
-3. **Deploy:**
-```bash
-vercel
-```
-
-4. **Configure Environment Variables in Vercel Dashboard:**
-   - Go to Project Settings → Environment Variables
-   - Add:
-     ```
-     VITE_API_URL=https://your-backend-url.com
-     VITE_RAZORPAY_KEY_ID=rzp_live_XXXXXXXXXX
-     ```
-
-5. **Your Admin URL will be:**
-```
-https://your-project.vercel.app/admin/login
-```
-
-#### Backend Deployment (Vercel)
-
-1. **Create `vercel.json` in backend folder:**
-```json
-{
-  "version": 2,
-  "builds": [
-    {
-      "src": "server.js",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "server.js"
-    }
-  ],
-  "env": {
-    "NODE_ENV": "production"
-  }
-}
-```
-
-2. **Deploy Backend:**
-```bash
-cd backend
-vercel
-```
-
-3. **Add Environment Variables in Vercel:**
-   - DATABASE_URL
-   - JWT_SECRET
-   - RAZORPAY_KEY_ID
-   - RAZORPAY_KEY_SECRET
-   - EMAIL_USER
-   - EMAIL_PASS
-   - CLOUDINARY_CLOUD_NAME
-   - CLOUDINARY_API_KEY
-   - CLOUDINARY_API_SECRET
+1. [Prerequisites](#prerequisites)
+2. [Database Setup (Render PostgreSQL)](#database-setup)
+3. [Backend Deployment (Render)](#backend-deployment)
+4. [Frontend Deployment (Vercel)](#frontend-deployment)
+5. [Post-Deployment Setup](#post-deployment-setup)
+6. [Environment Variables](#environment-variables)
+7. [Troubleshooting](#troubleshooting)
 
 ---
 
-### Option 2: Netlify (Frontend) + Render (Backend)
+## 🔧 Prerequisites
 
-#### Frontend on Netlify
+Before starting, ensure you have:
 
-1. **Build Command:**
-```bash
-npm run build
-```
-
-2. **Publish Directory:**
-```
-dist
-```
-
-3. **Environment Variables:**
-```
-VITE_API_URL=https://your-backend.onrender.com
-VITE_RAZORPAY_KEY_ID=rzp_live_XXXXXXXXXX
-```
-
-4. **Create `_redirects` file in `client/public`:**
-```
-/*    /index.html   200
-```
-
-5. **Admin URL:**
-```
-https://your-site.netlify.app/admin/login
-```
-
-#### Backend on Render
-
-1. **Create `render.yaml` in backend:**
-```yaml
-services:
-  - type: web
-    name: geethika-backend
-    env: node
-    buildCommand: npm install
-    startCommand: node server.js
-    envVars:
-      - key: NODE_ENV
-        value: production
-      - key: DATABASE_URL
-        sync: false
-      - key: JWT_SECRET
-        sync: false
-      - key: RAZORPAY_KEY_ID
-        sync: false
-      - key: RAZORPAY_KEY_SECRET
-        sync: false
-```
-
-2. **Connect GitHub and Deploy**
+- ✅ GitHub account (to push your code)
+- ✅ Vercel account (sign up at https://vercel.com)
+- ✅ Render account (sign up at https://render.com)
+- ✅ Your code pushed to a GitHub repository
+- ✅ Razorpay account with API keys
+- ✅ Email service credentials (Gmail/SendGrid)
 
 ---
 
-### Option 3: Railway (Full Stack)
+## 🗄️ Database Setup (Render PostgreSQL)
 
-1. **Install Railway CLI:**
-```bash
-npm install -g @railway/cli
-```
+### Step 1: Create PostgreSQL Database
 
-2. **Login:**
-```bash
-railway login
-```
+1. **Go to Render Dashboard**
+   - Visit https://dashboard.render.com
+   - Click "New +" → "PostgreSQL"
 
-3. **Deploy Backend:**
-```bash
-cd backend
-railway init
-railway up
-```
+2. **Configure Database**
+   ```
+   Name: geethika-db
+   Database: geethika_db
+   User: (auto-generated)
+   Region: Singapore (or closest to your users)
+   PostgreSQL Version: 15
+   Plan: Free (or Starter for production)
+   ```
 
-4. **Deploy Frontend:**
-```bash
-cd client
-railway init
-railway up
-```
+3. **Create Database**
+   - Click "Create Database"
+   - Wait 2-3 minutes for provisioning
 
-5. **Add Environment Variables in Railway Dashboard**
+4. **Get Connection Details**
+   - Copy the "Internal Database URL" (for backend)
+   - Copy the "External Database URL" (for local testing)
+   - Format: `postgresql://user:password@host:port/database`
+
+### Step 2: Initialize Database Schema
+
+**Option A: Using Render Shell**
+
+1. Go to your database dashboard
+2. Click "Connect" → "PSQL Command"
+3. Run in your local terminal:
+   ```bash
+   psql <your-external-database-url>
+   ```
+
+**Option B: Using Database Migration Script**
+
+1. Update your local `.env` with the External Database URL
+2. Run setup scripts:
+   ```bash
+   cd backend
+   node scripts/create-admin.js
+   node scripts/create-services-table.js
+   node scripts/create-whatsapp-templates-table.js
+   node scripts/create-gallery-table.js
+   node scripts/add-all-categories-simple.js
+   ```
 
 ---
 
-### Option 4: DigitalOcean / AWS / VPS
+## 🖥️ Backend Deployment (Render)
 
-#### Using PM2 for Process Management
+### Step 1: Prepare Backend for Deployment
 
-1. **Install PM2:**
+1. **Create `render.yaml` in project root** (optional but recommended):
+   ```yaml
+   services:
+     - type: web
+       name: geethika-backend
+       env: node
+       region: singapore
+       plan: free
+       buildCommand: cd backend && npm install
+       startCommand: cd backend && npm start
+       envVars:
+         - key: NODE_ENV
+           value: production
+         - key: PORT
+           value: 10000
+   ```
+
+2. **Ensure `backend/package.json` has correct scripts**:
+   ```json
+   {
+     "scripts": {
+       "start": "node server.js",
+       "dev": "nodemon server.js"
+     }
+   }
+   ```
+
+### Step 2: Deploy to Render
+
+1. **Go to Render Dashboard**
+   - Click "New +" → "Web Service"
+
+2. **Connect Repository**
+   - Select "Connect a repository"
+   - Choose your GitHub repository
+   - Click "Connect"
+
+3. **Configure Service**
+   ```
+   Name: geethika-backend
+   Region: Singapore
+   Branch: main (or master)
+   Root Directory: backend
+   Environment: Node
+   Build Command: npm install
+   Start Command: npm start
+   Plan: Free (or Starter)
+   ```
+
+4. **Add Environment Variables**
+   
+   Click "Advanced" → "Add Environment Variable" and add:
+
+   ```bash
+   # Database
+   DATABASE_URL=<your-internal-database-url-from-render>
+   
+   # Server
+   NODE_ENV=production
+   PORT=10000
+   
+   # JWT
+   JWT_SECRET=<generate-random-string-min-32-chars>
+   
+   # Razorpay
+   RAZORPAY_KEY_ID=<your-razorpay-key-id>
+   RAZORPAY_KEY_SECRET=<your-razorpay-key-secret>
+   
+   # Email (Gmail)
+   EMAIL_USER=<your-gmail-address>
+   EMAIL_PASSWORD=<your-gmail-app-password>
+   EMAIL_FROM=<your-gmail-address>
+   
+   # Cloudinary (Optional - for image uploads)
+   CLOUDINARY_CLOUD_NAME=<your-cloudinary-name>
+   CLOUDINARY_API_KEY=<your-cloudinary-key>
+   CLOUDINARY_API_SECRET=<your-cloudinary-secret>
+   
+   # CORS (Important!)
+   FRONTEND_URL=https://your-vercel-app.vercel.app
+   ```
+
+5. **Deploy**
+   - Click "Create Web Service"
+   - Wait 5-10 minutes for deployment
+   - Note your backend URL: `https://geethika-backend.onrender.com`
+
+### Step 3: Verify Backend Deployment
+
+Test your backend:
 ```bash
-npm install -g pm2
-```
+# Health check
+curl https://geethika-backend.onrender.com/
 
-2. **Backend Setup:**
-```bash
-cd backend
-npm install
-pm2 start server.js --name geethika-backend
-pm2 save
-pm2 startup
-```
-
-3. **Frontend Build:**
-```bash
-cd client
-npm run build
-```
-
-4. **Serve with Nginx:**
-
-Create `/etc/nginx/sites-available/geethika`:
-```nginx
-server {
-    listen 80;
-    server_name yourdomain.com www.yourdomain.com;
-
-    # Frontend
-    location / {
-        root /var/www/geethika/client/dist;
-        try_files $uri $uri/ /index.html;
-    }
-
-    # Backend API
-    location /api {
-        proxy_pass http://localhost:5000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
-    }
-}
-```
-
-5. **Enable Site:**
-```bash
-sudo ln -s /etc/nginx/sites-available/geethika /etc/nginx/sites-enabled/
-sudo nginx -t
-sudo systemctl restart nginx
-```
-
-6. **SSL Certificate (Let's Encrypt):**
-```bash
-sudo apt install certbot python3-certbot-nginx
-sudo certbot --nginx -d yourdomain.com -d www.yourdomain.com
-```
-
-7. **Admin URL:**
-```
-https://yourdomain.com/admin/login
+# API test
+curl https://geethika-backend.onrender.com/api/products
 ```
 
 ---
 
-## Environment Variables Setup
+## 🌐 Frontend Deployment (Vercel)
 
-### Frontend (.env)
-```env
-# Production
-VITE_API_URL=https://api.yourdomain.com
-VITE_RAZORPAY_KEY_ID=rzp_live_XXXXXXXXXX
+### Step 1: Prepare Frontend
 
-# Development (keep for local testing)
-# VITE_API_URL=http://localhost:5000
-# VITE_RAZORPAY_KEY_ID=rzp_test_XXXXXXXXXX
+1. **Update `client/.env.production`** (create if doesn't exist):
+   ```bash
+   VITE_API_URL=https://geethika-backend.onrender.com
+   ```
+
+2. **Ensure `client/vercel.json` exists**:
+   ```json
+   {
+     "rewrites": [
+       { "source": "/(.*)", "destination": "/index.html" }
+     ],
+     "headers": [
+       {
+         "source": "/(.*)",
+         "headers": [
+           {
+             "key": "X-Content-Type-Options",
+             "value": "nosniff"
+           },
+           {
+             "key": "X-Frame-Options",
+             "value": "DENY"
+           },
+           {
+             "key": "X-XSS-Protection",
+             "value": "1; mode=block"
+           }
+         ]
+       }
+     ]
+   }
+   ```
+
+### Step 2: Deploy to Vercel
+
+**Option A: Using Vercel CLI**
+
+1. **Install Vercel CLI**:
+   ```bash
+   npm install -g vercel
+   ```
+
+2. **Login to Vercel**:
+   ```bash
+   vercel login
+   ```
+
+3. **Deploy**:
+   ```bash
+   cd client
+   vercel --prod
+   ```
+
+**Option B: Using Vercel Dashboard**
+
+1. **Go to Vercel Dashboard**
+   - Visit https://vercel.com/dashboard
+   - Click "Add New..." → "Project"
+
+2. **Import Repository**
+   - Select your GitHub repository
+   - Click "Import"
+
+3. **Configure Project**
+   ```
+   Framework Preset: Vite
+   Root Directory: client
+   Build Command: npm run build
+   Output Directory: dist
+   Install Command: npm install
+   ```
+
+4. **Add Environment Variables**
+   
+   Click "Environment Variables" and add:
+   ```bash
+   VITE_API_URL=https://geethika-backend.onrender.com
+   ```
+
+5. **Deploy**
+   - Click "Deploy"
+   - Wait 2-3 minutes
+   - Note your frontend URL: `https://your-app.vercel.app`
+
+### Step 3: Update Backend CORS
+
+1. **Go back to Render Dashboard**
+2. **Update Backend Environment Variables**
+   - Add/Update: `FRONTEND_URL=https://your-app.vercel.app`
+3. **Redeploy Backend** (it will restart automatically)
+
+---
+
+## ⚙️ Post-Deployment Setup
+
+### 1. Create Admin User
+
+**Option A: Using Render Shell**
+
+1. Go to Render Dashboard → Your Backend Service
+2. Click "Shell" tab
+3. Run:
+   ```bash
+   cd backend
+   node scripts/create-admin.js
+   ```
+
+**Option B: Using Local Connection**
+
+1. Connect to production database locally:
+   ```bash
+   # Update local .env with production DATABASE_URL
+   cd backend
+   node scripts/create-admin.js
+   ```
+
+### 2. Add Initial Data
+
+Run these scripts to populate your database:
+
+```bash
+# Categories
+node scripts/add-all-categories-simple.js
+
+# Services
+node scripts/create-services-table.js
+
+# WhatsApp Templates
+node scripts/create-whatsapp-templates-table.js
+
+# Gallery Table
+node scripts/create-gallery-table.js
 ```
 
-### Backend (.env)
-```env
-# Server
-NODE_ENV=production
-PORT=5000
+### 3. Test Your Application
 
-# Database
-DATABASE_URL=postgresql://user:password@host:5432/database
+1. **Visit Frontend**: `https://your-app.vercel.app`
+2. **Test Customer Features**:
+   - Browse products
+   - Add to cart
+   - Register/Login
+   - Place test order
 
-# JWT
-JWT_SECRET=your-super-secret-jwt-key-change-this
+3. **Test Admin Panel**:
+   - Go to: `https://your-app.vercel.app/admin/login`
+   - Login with admin credentials
+   - Test all admin features
 
-# Razorpay
-RAZORPAY_KEY_ID=rzp_live_XXXXXXXXXX
-RAZORPAY_KEY_SECRET=your_razorpay_secret
+### 4. Configure Custom Domain (Optional)
 
-# Email (Gmail)
+**For Vercel (Frontend)**:
+1. Go to Project Settings → Domains
+2. Add your custom domain
+3. Update DNS records as instructed
+
+**For Render (Backend)**:
+1. Go to Service Settings → Custom Domains
+2. Add your API subdomain (e.g., `api.yourdomain.com`)
+3. Update DNS records
+
+---
+
+## 🔐 Environment Variables Reference
+
+### Backend Environment Variables
+
+```bash
+# Required
+DATABASE_URL=postgresql://user:pass@host:port/db
+JWT_SECRET=your-secret-min-32-characters
+RAZORPAY_KEY_ID=rzp_live_xxxxx
+RAZORPAY_KEY_SECRET=your-secret
 EMAIL_USER=your-email@gmail.com
-EMAIL_PASS=your-app-specific-password
+EMAIL_PASSWORD=your-app-password
+FRONTEND_URL=https://your-app.vercel.app
 
-# Cloudinary
-CLOUDINARY_CLOUD_NAME=your_cloud_name
-CLOUDINARY_API_KEY=your_api_key
-CLOUDINARY_API_SECRET=your_api_secret
-
-# CORS
-FRONTEND_URL=https://yourdomain.com
+# Optional
+NODE_ENV=production
+PORT=10000
+CLOUDINARY_CLOUD_NAME=your-cloud
+CLOUDINARY_API_KEY=your-key
+CLOUDINARY_API_SECRET=your-secret
 ```
 
----
+### Frontend Environment Variables
 
-## Database Setup (Production)
-
-### Option 1: Neon (PostgreSQL - Free Tier)
-1. Go to https://neon.tech
-2. Create account and database
-3. Copy connection string
-4. Add to backend environment variables
-
-### Option 2: Supabase (PostgreSQL - Free Tier)
-1. Go to https://supabase.com
-2. Create project
-3. Get connection string from Settings → Database
-4. Add to backend environment variables
-
-### Option 3: Railway PostgreSQL
-1. Add PostgreSQL plugin in Railway
-2. Connection string auto-generated
-3. Use in backend
-
-### Option 4: DigitalOcean Managed Database
-1. Create managed PostgreSQL database
-2. Get connection details
-3. Configure firewall rules
-4. Add connection string to backend
-
----
-
-## Pre-Deployment Checklist
-
-### Code Changes Required:
-
-1. **Update API URLs in Frontend:**
-   - All `http://localhost:5000` should use `VITE_API_URL` from env
-   - Check all files for hardcoded URLs
-
-2. **Update CORS in Backend:**
-```javascript
-// backend/server.js
-const corsOptions = {
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-  credentials: true
-};
-app.use(cors(corsOptions));
-```
-
-3. **Update Razorpay Keys:**
-   - Switch from test keys to live keys
-   - Update in both frontend and backend .env
-
-4. **Update Email Configuration:**
-   - Use production email credentials
-   - Test email sending
-
-5. **Update Business Information:**
-   - Replace placeholder addresses in policy pages
-   - Update contact information
-   - Update Google Maps location
-
-### Security Checklist:
-
-- [ ] Change JWT_SECRET to strong random string
-- [ ] Use environment variables for all secrets
-- [ ] Enable HTTPS/SSL certificate
-- [ ] Set secure cookie flags
-- [ ] Configure CORS properly
-- [ ] Add rate limiting
-- [ ] Sanitize user inputs
-- [ ] Use prepared statements (already done)
-- [ ] Enable database SSL connection
-- [ ] Set up database backups
-
-### Testing Checklist:
-
-- [ ] Test admin login at `/admin/login`
-- [ ] Test all admin features
-- [ ] Test customer registration/login
-- [ ] Test product browsing
-- [ ] Test cart functionality
-- [ ] Test checkout process
-- [ ] Test Razorpay payment (small amount)
-- [ ] Test order creation
-- [ ] Test email notifications
-- [ ] Test image uploads
-- [ ] Test all policy pages
-- [ ] Test mobile responsiveness
-- [ ] Test on different browsers
-
----
-
-## Admin Access After Deployment
-
-### How to Access Admin Panel:
-
-1. **Navigate to:**
-```
-https://yourdomain.com/admin/login
-```
-
-2. **Login with admin credentials:**
-   - Email: admin@geethikadigitalworld.com (or your admin email)
-   - Password: (set during admin creation)
-
-3. **If you forgot admin credentials, create new admin:**
 ```bash
-# SSH into your server or use database client
-node backend/scripts/create-admin.js
+# Required
+VITE_API_URL=https://your-backend.onrender.com
+
+# Optional
+VITE_RAZORPAY_KEY_ID=rzp_live_xxxxx
 ```
-
-### Securing Admin Access:
-
-1. **Use Strong Password:**
-   - Minimum 12 characters
-   - Mix of uppercase, lowercase, numbers, symbols
-
-2. **Consider IP Whitelisting (Optional):**
-```nginx
-# In Nginx config
-location /admin {
-    allow YOUR_IP_ADDRESS;
-    deny all;
-    # ... rest of config
-}
-```
-
-3. **Enable 2FA (Future Enhancement):**
-   - Consider adding two-factor authentication
-   - Use authenticator apps
-
-4. **Monitor Admin Access:**
-   - Log all admin logins
-   - Set up alerts for suspicious activity
 
 ---
 
-## Post-Deployment Steps
+## 🔍 Troubleshooting
 
-1. **Test Everything:**
-   - Go through entire user flow
-   - Test admin panel thoroughly
-   - Make a test purchase
+### Common Issues
 
-2. **Set Up Monitoring:**
-   - Use services like UptimeRobot
-   - Set up error tracking (Sentry)
-   - Monitor server resources
+#### 1. Backend Not Starting
 
-3. **Configure Backups:**
-   - Database backups (daily)
-   - File backups (weekly)
-   - Store backups off-site
+**Error**: "Application failed to respond"
 
-4. **Set Up Analytics:**
-   - Google Analytics
-   - Track conversions
-   - Monitor user behavior
-
-5. **SEO Setup:**
-   - Submit sitemap to Google
-   - Set up Google Search Console
-   - Add meta tags
-   - Configure robots.txt
-
-6. **Performance Optimization:**
-   - Enable CDN (Cloudflare)
-   - Optimize images
-   - Enable caching
-   - Minify assets
-
----
-
-## Common Deployment Issues & Solutions
-
-### Issue 1: Admin Login Not Working
-**Solution:**
-- Check if admin user exists in production database
-- Run create-admin script on production
-- Verify JWT_SECRET is set correctly
-- Check CORS configuration
-
-### Issue 2: API Calls Failing
-**Solution:**
-- Verify VITE_API_URL is set correctly
-- Check CORS settings in backend
-- Ensure backend is running
-- Check network tab in browser DevTools
-
-### Issue 3: Images Not Loading
-**Solution:**
-- Verify Cloudinary credentials
-- Check image upload permissions
-- Ensure HTTPS for image URLs
-- Check CORS for image domains
-
-### Issue 4: Payment Gateway Not Working
-**Solution:**
-- Use live Razorpay keys (not test keys)
-- Verify webhook URL is set
-- Check HTTPS is enabled
-- Test with small amount first
-
-### Issue 5: Database Connection Failed
-**Solution:**
+**Solutions**:
+- Check Render logs for errors
 - Verify DATABASE_URL is correct
-- Check database is running
-- Verify SSL settings
-- Check firewall rules
+- Ensure PORT is set to 10000
+- Check all required environment variables are set
+
+#### 2. CORS Errors
+
+**Error**: "Access-Control-Allow-Origin"
+
+**Solutions**:
+- Verify FRONTEND_URL in backend matches your Vercel URL
+- Check backend CORS configuration in `server.js`
+- Ensure no trailing slashes in URLs
+
+#### 3. Database Connection Failed
+
+**Error**: "Connection refused" or "Authentication failed"
+
+**Solutions**:
+- Use Internal Database URL for backend on Render
+- Verify database is running in Render dashboard
+- Check database credentials are correct
+- Ensure database region matches backend region
+
+#### 4. Images Not Loading
+
+**Solutions**:
+- Check if uploads directory exists
+- Verify Cloudinary credentials (if using)
+- Check file upload size limits
+- Ensure proper CORS headers for images
+
+#### 5. Payment Gateway Not Working
+
+**Solutions**:
+- Verify Razorpay keys (use live keys for production)
+- Check Razorpay webhook URL is set
+- Test with Razorpay test mode first
+- Verify HTTPS is enabled
+
+#### 6. Email Not Sending
+
+**Solutions**:
+- Use Gmail App Password (not regular password)
+- Enable "Less secure app access" in Gmail
+- Check EMAIL_USER and EMAIL_PASSWORD are correct
+- Consider using SendGrid for production
+
+### Checking Logs
+
+**Render Backend Logs**:
+1. Go to Render Dashboard
+2. Select your service
+3. Click "Logs" tab
+4. Filter by error level
+
+**Vercel Frontend Logs**:
+1. Go to Vercel Dashboard
+2. Select your project
+3. Click "Deployments"
+4. Click on a deployment → "View Function Logs"
 
 ---
 
-## Maintenance
+## 🔄 Continuous Deployment
 
-### Regular Tasks:
+### Automatic Deployments
 
-**Daily:**
-- Monitor error logs
-- Check order processing
-- Verify payment gateway
+Both Vercel and Render support automatic deployments:
 
-**Weekly:**
-- Review analytics
-- Check server resources
-- Update products/content
+**Vercel**:
+- Automatically deploys on every push to `main` branch
+- Preview deployments for pull requests
 
-**Monthly:**
-- Database backup verification
-- Security updates
-- Performance review
-- Update dependencies
+**Render**:
+- Automatically deploys on every push to `main` branch
+- Can configure branch-specific deployments
 
-### Update Process:
+### Manual Deployments
 
-1. **Test locally first**
-2. **Create backup**
-3. **Deploy to staging (if available)**
-4. **Test on staging**
-5. **Deploy to production**
-6. **Monitor for issues**
-7. **Rollback if needed**
-
----
-
-## Support & Resources
-
-### Documentation:
-- Vercel: https://vercel.com/docs
-- Netlify: https://docs.netlify.com
-- Railway: https://docs.railway.app
-- Render: https://render.com/docs
-
-### Payment Gateway:
-- Razorpay Docs: https://razorpay.com/docs
-- Razorpay Support: support@razorpay.com
-
-### Database:
-- PostgreSQL Docs: https://www.postgresql.org/docs
-- Neon Docs: https://neon.tech/docs
-- Supabase Docs: https://supabase.com/docs
-
----
-
-## Quick Deployment Commands
-
-### Vercel (Fastest):
+**Vercel**:
 ```bash
-# Frontend
 cd client
 vercel --prod
-
-# Backend
-cd backend
-vercel --prod
 ```
 
-### Railway:
-```bash
-# Frontend
-cd client
-railway up
+**Render**:
+- Go to Dashboard → Service → "Manual Deploy" → "Deploy latest commit"
 
-# Backend
-cd backend
-railway up
+---
+
+## 📊 Monitoring & Maintenance
+
+### Health Checks
+
+Set up monitoring for your services:
+
+**Backend Health Endpoint**:
+```
+GET https://your-backend.onrender.com/
 ```
 
-### Manual VPS:
+**Frontend Health**:
+```
+GET https://your-app.vercel.app/
+```
+
+### Database Backups
+
+**Render PostgreSQL**:
+- Free plan: No automatic backups
+- Paid plans: Daily automatic backups
+- Manual backup: Use `pg_dump` command
+
 ```bash
-# Pull latest code
-git pull origin main
+pg_dump <external-database-url> > backup.sql
+```
 
-# Backend
-cd backend
-npm install
-pm2 restart geethika-backend
+### Performance Optimization
 
-# Frontend
-cd client
-npm install
-npm run build
-sudo cp -r dist/* /var/www/geethika/
+1. **Enable Caching**: Use Redis for session storage
+2. **CDN**: Vercel provides automatic CDN
+3. **Image Optimization**: Use Cloudinary or Vercel Image Optimization
+4. **Database Indexing**: Add indexes to frequently queried columns
+5. **Compression**: Enable gzip compression (already configured)
+
+---
+
+## 🎯 Production Checklist
+
+Before going live, ensure:
+
+- [ ] All environment variables are set correctly
+- [ ] Database is backed up
+- [ ] Admin user is created
+- [ ] Initial data is populated (categories, services)
+- [ ] HTTPS is enabled (automatic on Vercel/Render)
+- [ ] Custom domain is configured (optional)
+- [ ] Email sending is working
+- [ ] Payment gateway is tested
+- [ ] All admin features are working
+- [ ] Customer registration/login works
+- [ ] Order placement works end-to-end
+- [ ] Error monitoring is set up
+- [ ] Logs are being collected
+- [ ] Security headers are configured
+- [ ] Rate limiting is enabled
+- [ ] CORS is properly configured
+- [ ] File uploads are working
+- [ ] WhatsApp integration is tested (if using)
+
+---
+
+## 📞 Support
+
+If you encounter issues:
+
+1. Check the troubleshooting section above
+2. Review Render/Vercel documentation
+3. Check application logs
+4. Verify all environment variables
+5. Test locally with production database
+
+---
+
+## 🔒 Security Best Practices
+
+1. **Never commit `.env` files** to Git
+2. **Use strong JWT secrets** (min 32 characters)
+3. **Enable rate limiting** (already configured)
+4. **Use HTTPS only** (automatic on Vercel/Render)
+5. **Regularly update dependencies**: `npm audit fix`
+6. **Use environment-specific keys** (test vs production)
+7. **Enable database SSL** (automatic on Render)
+8. **Set up monitoring** for suspicious activity
+9. **Regular backups** of database
+10. **Keep admin credentials secure**
+
+---
+
+## 📝 Quick Reference
+
+### URLs After Deployment
+
+```
+Frontend: https://your-app.vercel.app
+Backend API: https://your-backend.onrender.com
+Admin Panel: https://your-app.vercel.app/admin/login
+Database: Internal URL (from Render)
+```
+
+### Important Commands
+
+```bash
+# Deploy frontend
+cd client && vercel --prod
+
+# View backend logs
+# (Use Render Dashboard)
+
+# Backup database
+pg_dump <database-url> > backup.sql
+
+# Restore database
+psql <database-url> < backup.sql
 ```
 
 ---
 
-## Final Notes
+## ✅ Deployment Complete!
 
-1. **Admin URL never changes** - it's always `/admin/login`, just the domain changes
-2. **Test with small amounts** before going fully live
-3. **Keep backups** of database and files
-4. **Monitor regularly** for issues
-5. **Update dependencies** for security
-6. **Use HTTPS** always in production
-7. **Document your deployment** process
+Your application is now live! 🎉
 
-**Your admin panel will be accessible at:**
-```
-https://yourdomain.com/admin/login
-```
+- Frontend: Hosted on Vercel
+- Backend: Hosted on Render
+- Database: PostgreSQL on Render
 
-Good luck with your deployment! 🚀
+Remember to:
+- Monitor your application regularly
+- Keep dependencies updated
+- Backup your database
+- Review logs for errors
+- Scale resources as needed
+
+---
+
+**Last Updated**: February 2026
+**Version**: 1.0.0
