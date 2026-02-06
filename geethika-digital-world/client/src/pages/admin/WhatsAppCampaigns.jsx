@@ -25,10 +25,11 @@ const WhatsAppCampaigns = () => {
   const fetchCampaigns = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/whatsapp/campaigns');
-      setCampaigns(response.data.campaigns);
+      const response = await api.get('/api/whatsapp/campaigns');
+      setCampaigns(response.campaigns || []);
     } catch (error) {
       console.error('Error fetching campaigns:', error);
+      setCampaigns([]);
     } finally {
       setLoading(false);
     }
@@ -36,19 +37,21 @@ const WhatsAppCampaigns = () => {
 
   const fetchTemplates = async () => {
     try {
-      const response = await api.get('/whatsapp/templates?active=true');
-      setTemplates(response.data.templates);
+      const response = await api.get('/api/whatsapp/templates?active=true');
+      setTemplates(response.templates || []);
     } catch (error) {
       console.error('Error fetching templates:', error);
+      setTemplates([]);
     }
   };
 
   const fetchCustomers = async (audience) => {
     try {
-      const response = await api.get(`/whatsapp/customers?filter=${audience}`);
-      setCustomers(response.data.customers);
+      const response = await api.get(`/api/whatsapp/customers?filter=${audience}`);
+      setCustomers(response.customers || []);
     } catch (error) {
       console.error('Error fetching customers:', error);
+      setCustomers([]);
     }
   };
 
@@ -56,7 +59,7 @@ const WhatsAppCampaigns = () => {
     e.preventDefault();
     
     try {
-      await api.post('/whatsapp/campaigns', formData);
+      await api.post('/api/whatsapp/campaigns', formData);
       setShowModal(false);
       resetForm();
       fetchCampaigns();

@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Search, Users, Mail, Phone, Plus, X } from 'lucide-react';
+import api from '../../utils/api';
 
 const CustomerDatabase = () => {
+  const navigate = useNavigate();
   const [customers, setCustomers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
@@ -19,26 +22,22 @@ const CustomerDatabase = () => {
 
   const fetchCustomers = async () => {
     try {
-      const token = localStorage.getItem('token');
       const params = new URLSearchParams({
         ...(searchTerm && { search: searchTerm })
       });
 
       console.log('Fetching customers from API...');
-      const response = await fetch(`http://localhost:5000/api/admin/customers?${params}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const data = await response.json();
+      const data = await api.get(`/api/admin/customers?${params}`);
       console.log('Customers data received:', data);
       setCustomers(data.customers || []);
     } catch (error) {
       console.error('Failed to fetch customers:', error);
-      alert(`Error loading customers: ${error.message}. Make sure the backend server is running.`);
+      if (error.message.includes('Authentication')) {
+        alert('Your session has expired. Please log in again.');
+        navigate('/admin/login');
+      } else {
+        alert(`Error loading customers: ${error.message}. Make sure the backend server is running.`);
+      }
     } finally {
       setLoading(false);
     }
@@ -48,21 +47,7 @@ const CustomerDatabase = () => {
     e.preventDefault();
     
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/admin/customers', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(formData)
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to create customer');
-      }
+      const data = await api.post('/api/admin/customers', formData);
 
       alert(`Customer created successfully!${data.defaultPassword ? `\n\nDefault Password: ${data.defaultPassword}\n\nPlease share this with the customer.` : ''}`);
       setShowModal(false);
@@ -70,7 +55,12 @@ const CustomerDatabase = () => {
       fetchCustomers();
     } catch (error) {
       console.error('Failed to create customer:', error);
-      alert(error.message);
+      if (error.message.includes('Authentication')) {
+        alert('Your session has expired. Please log in again.');
+        navigate('/admin/login');
+      } else {
+        alert(error.message || 'Failed to create customer');
+      }
     }
   };
 

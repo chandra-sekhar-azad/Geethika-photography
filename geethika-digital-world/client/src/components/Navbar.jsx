@@ -11,6 +11,11 @@ const Navbar = () => {
   const { getCartCount } = useCart();
   const { user, logout, isAuthenticated } = useAuth();
 
+  // Don't render navbar on admin pages
+  if (location.pathname.startsWith('/admin')) {
+    return null;
+  }
+
   const navLinks = [
     { path: '/', label: 'Home' },
     { path: '/shop', label: 'Shop' },
@@ -24,7 +29,12 @@ const Navbar = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/');
+    // If admin, redirect to admin login, otherwise to home
+    if (user?.role === 'admin' || user?.role === 'super_admin') {
+      navigate('/admin/login');
+    } else {
+      navigate('/');
+    }
     setIsOpen(false);
   };
 

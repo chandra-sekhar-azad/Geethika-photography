@@ -10,9 +10,19 @@ import {
   Image as ImageIcon,
   Shield
 } from 'lucide-react';
+import api from '../../utils/api';
 
 const AdminDashboard = () => {
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const [stats, setStats] = useState({
+    total_orders: 0,
+    total_products: 0,
+    total_customers: 0,
+    total_revenue: 0,
+    pending_orders: 0,
+    completed_orders: 0
+  });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Check if user is super admin
@@ -25,12 +35,47 @@ const AdminDashboard = () => {
         console.error('Token parse error:', error);
       }
     }
+    
+    // Fetch dashboard stats
+    fetchStats();
   }, []);
-  const stats = [
-    { label: 'Total Orders', value: '0', icon: ShoppingBag, color: 'bg-blue-500' },
-    { label: 'Total Products', value: '0', icon: Package, color: 'bg-green-500' },
-    { label: 'Service Bookings', value: '0', icon: Camera, color: 'bg-purple-500' },
-    { label: 'Total Revenue', value: '₹0', icon: DollarSign, color: 'bg-yellow-500' },
+
+  const fetchStats = async () => {
+    try {
+      const data = await api.get('/api/admin/stats');
+      setStats(data);
+    } catch (error) {
+      console.error('Failed to fetch stats:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const statsCards = [
+    { 
+      label: 'Total Orders', 
+      value: loading ? '...' : stats.total_orders || 0, 
+      icon: ShoppingBag, 
+      color: 'bg-blue-500' 
+    },
+    { 
+      label: 'Total Products', 
+      value: loading ? '...' : stats.total_products || 0, 
+      icon: Package, 
+      color: 'bg-green-500' 
+    },
+    { 
+      label: 'Service Bookings', 
+      value: loading ? '...' : '0', 
+      icon: Camera, 
+      color: 'bg-purple-500' 
+    },
+    { 
+      label: 'Total Revenue', 
+      value: loading ? '...' : `₹${parseFloat(stats.total_revenue || 0).toLocaleString('en-IN')}`, 
+      icon: DollarSign, 
+      color: 'bg-yellow-500' 
+    },
   ];
 
   const quickLinks = [
@@ -102,7 +147,7 @@ const AdminDashboard = () => {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {stats.map((stat, index) => {
+          {statsCards.map((stat, index) => {
             const Icon = stat.icon;
             return (
               <div key={index} className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">

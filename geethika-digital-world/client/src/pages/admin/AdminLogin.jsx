@@ -38,7 +38,8 @@ const AdminLogin = () => {
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
       
-      navigate('/admin/dashboard');
+      // Force navigation to admin dashboard
+      window.location.href = '/admin/dashboard';
     } catch (err) {
       setError(err.message);
     } finally {

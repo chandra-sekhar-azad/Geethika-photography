@@ -15,7 +15,7 @@ router.get('/stats', async (req, res) => {
   try {
     const stats = await pool.query(`
       SELECT
-        (SELECT COUNT(*) FROM orders) as total_orders,
+        (SELECT COUNT(*) FROM orders WHERE payment_status = 'paid') as total_orders,
         (SELECT COUNT(*) FROM orders WHERE order_status = 'pending') as pending_orders,
         (SELECT COUNT(*) FROM orders WHERE order_status = 'completed') as completed_orders,
         (SELECT COUNT(*) FROM products) as total_products,

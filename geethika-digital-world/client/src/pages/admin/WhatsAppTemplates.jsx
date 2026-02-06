@@ -32,10 +32,11 @@ const WhatsAppTemplates = () => {
       if (filterCategory) params.append('category', filterCategory);
       if (filterOccasion) params.append('occasion', filterOccasion);
       
-      const response = await api.get(`/whatsapp/templates?${params}`);
-      setTemplates(response.data.templates);
+      const response = await api.get(`/api/whatsapp/templates?${params}`);
+      setTemplates(response.templates || []);
     } catch (error) {
       console.error('Error fetching templates:', error);
+      setTemplates([]);
     } finally {
       setLoading(false);
     }

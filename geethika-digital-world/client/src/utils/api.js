@@ -92,10 +92,53 @@ export const getCurrentUser = () => {
   }
 };
 
+/**
+ * HTTP Methods
+ */
+const get = async (endpoint) => {
+  const response = await apiRequest(endpoint, {
+    method: 'GET'
+  });
+  return response.json();
+};
+
+const post = async (endpoint, data) => {
+  const response = await apiRequest(endpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  });
+  return response.json();
+};
+
+const put = async (endpoint, data) => {
+  const response = await apiRequest(endpoint, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  });
+  return response.json();
+};
+
+const del = async (endpoint) => {
+  const response = await apiRequest(endpoint, {
+    method: 'DELETE'
+  });
+  return response.json();
+};
+
 export default {
   apiRequest,
   getAuthHeaders,
   isAuthenticated,
   isAdmin,
-  getCurrentUser
+  getCurrentUser,
+  get,
+  post,
+  put,
+  delete: del
 };

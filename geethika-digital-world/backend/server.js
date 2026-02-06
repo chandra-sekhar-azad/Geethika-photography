@@ -19,6 +19,7 @@ import adminRoutes from './routes/admin.js';
 import superAdminRoutes from './routes/super-admin.js';
 import auditRoutes from './routes/audit.js';
 import whatsappRoutes from './routes/whatsapp.js';
+import galleryRoutes from './routes/gallery.js';
 
 // Import middleware
 import { errorHandler, notFound } from './middleware/errorHandler.js';
@@ -125,6 +126,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/super-admin', superAdminRoutes);
 app.use('/api/audit', auditRoutes);
 app.use('/api/whatsapp', whatsappRoutes);
+app.use('/api/gallery', galleryRoutes);
 
 // Root endpoint
 app.get('/', (req, res) => {

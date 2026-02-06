@@ -1,8 +1,15 @@
 import { FaWhatsapp } from 'react-icons/fa';
+import { useLocation } from 'react-router-dom';
 
 const WhatsAppFloat = () => {
+  const location = useLocation();
   const phoneNumber = '917416111271'; // Replace with actual WhatsApp number
   const message = 'Hi! I am interested in your products/services.';
+
+  // Don't render on admin pages
+  if (location.pathname.startsWith('/admin')) {
+    return null;
+  }
 
   const handleClick = () => {
     const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;

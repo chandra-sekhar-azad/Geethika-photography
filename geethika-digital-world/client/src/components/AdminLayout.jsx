@@ -15,7 +15,7 @@ const AdminLayout = ({ children }) => {
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    navigate('/login');
+    window.location.href = '/admin/login';
   };
 
   const menuItems = [
@@ -51,17 +51,17 @@ const AdminLayout = ({ children }) => {
 
       {/* Sidebar */}
       <aside className={`
-        fixed top-0 left-0 h-full w-64 bg-white shadow-lg z-40 transform transition-transform duration-300
+        fixed top-0 left-0 h-full w-64 bg-white shadow-lg z-40 transform transition-transform duration-300 flex flex-col
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
         lg:translate-x-0
       `}>
-        <div className="p-6 border-b">
+        <div className="p-6 border-b flex-shrink-0">
           <h1 className="text-2xl font-bold text-valentine-red">Admin Panel</h1>
           <p className="text-sm text-gray-600 mt-1">Geethika Digital World</p>
         </div>
 
-        <nav className="p-4">
-          <ul className="space-y-2">
+        <nav className="p-4 flex-1 overflow-y-auto">
+          <ul className="space-y-2 pb-4">
             {menuItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path;
@@ -88,7 +88,7 @@ const AdminLayout = ({ children }) => {
           </ul>
         </nav>
 
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t">
+        <div className="p-4 border-t flex-shrink-0">
           <button
             onClick={handleLogout}
             className="w-full flex items-center space-x-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
