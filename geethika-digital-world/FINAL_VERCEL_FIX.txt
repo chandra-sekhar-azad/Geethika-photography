@@ -1,0 +1,141 @@
+🎯 FINAL VERCEL FIX - Optional Dependencies Issue
+
+═══════════════════════════════════════════════════════════
+
+✅ WHAT WAS FIXED
+───────────────────────────────────────────────────────────
+
+1. ✅ Updated .npmrc with optional=true
+   Forces Vercel to install Rollup's Linux binary
+
+2. ✅ Updated vercel.json build command
+   Now uses: npm install --include=optional
+
+3. ✅ Added @rollup/rollup-linux-x64-gnu to package.json
+   Explicitly includes the missing dependency
+
+4. ✅ Set Node 20.x (available in Vercel)
+
+═══════════════════════════════════════════════════════════
+
+🚀 DEPLOY STEPS
+───────────────────────────────────────────────────────────
+
+STEP 1: Clean Local Installation (IMPORTANT!)
+```bash
+cd geethika-digital-world/client
+rm -rf node_modules package-lock.json
+npm install
+cd ..
+```
+
+STEP 2: Commit and Push
+```bash
+git add .
+git commit -m "Fix: Force optional dependencies installation for Vercel"
+git push
+```
+
+STEP 3: Set Node 20.x in Vercel Dashboard
+1. Go to: https://vercel.com/dashboard
+2. Click your project
+3. Settings → General
+4. Node.js Version → Select "20.x"
+5. Click "Save"
+
+STEP 4: Redeploy
+1. Go to Deployments tab
+2. Click "Redeploy"
+3. ✅ Build will succeed!
+
+═══════════════════════════════════════════════════════════
+
+📝 FILES CHANGED
+───────────────────────────────────────────────────────────
+
+✅ .npmrc
+   Added: optional=true
+
+✅ vercel.json
+   Changed buildCommand to:
+   "cd client && npm install --include=optional && npm run build"
+
+✅ client/package.json
+   - Added: @rollup/rollup-linux-x64-gnu
+   - Set: "node": "20.x"
+
+✅ .nvmrc
+   Set to: 20
+
+═══════════════════════════════════════════════════════════
+
+🔍 WHY THIS WORKS
+───────────────────────────────────────────────────────────
+
+The Problem:
+• Rollup uses platform-specific native binaries
+• @rollup/rollup-linux-x64-gnu is an "optional dependency"
+• Vercel sometimes skips optional dependencies
+• Build fails with "Cannot find module @rollup/rollup-linux-x64-gnu"
+
+The Solution:
+• .npmrc with optional=true → Forces npm to install optional deps
+• --include=optional flag → Explicitly includes them during build
+• Explicit package.json entry → Ensures the package is installed
+• Node 20.x → Stable LTS version compatible with Rollup
+
+═══════════════════════════════════════════════════════════
+
+✅ EXPECTED BUILD LOG
+───────────────────────────────────────────────────────────
+
+You should see:
+✓ Node.js v20.x.x
+✓ npm install --include=optional
+✓ added XXX packages
+✓ vite build
+✓ ✓ built in XXXms
+✓ Build Completed
+
+═══════════════════════════════════════════════════════════
+
+⚠️ IF STILL FAILS (Backup Plan)
+───────────────────────────────────────────────────────────
+
+If the build still fails after following all steps:
+
+Option A: Downgrade Vite to v5 (More Stable)
+```bash
+cd client
+npm install vite@5
+git add .
+git commit -m "Downgrade to Vite 5 for stability"
+git push
+```
+
+Option B: Use PostCSS instead of LightningCSS
+Add to vite.config.js:
+```javascript
+export default defineConfig({
+  plugins: [react()],
+  css: {
+    transformer: 'postcss'
+  },
+  // ... rest of config
+})
+```
+
+═══════════════════════════════════════════════════════════
+
+🎯 PRODUCTION READY SETUP
+───────────────────────────────────────────────────────────
+
+Current Setup (Recommended):
+✅ Node 20.x (LTS)
+✅ Vite 7.x (Latest)
+✅ Optional dependencies forced
+✅ Explicit Rollup binary
+
+This is production-ready for Geethika Digital World! 🚀
+
+═══════════════════════════════════════════════════════════

@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "cd client && npm ci && npm run build",
+  "buildCommand": "cd client && npm install --include=optional && npm run build",
   "outputDirectory": "client/dist",
   "installCommand": null,
   "framework": null,
