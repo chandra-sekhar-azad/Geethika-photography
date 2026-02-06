@@ -3,10 +3,6 @@
   "version": "1.0.0",
   "description": "Full Stack E-Commerce Platform for Geethika Digital World",
   "private": true,
-  "workspaces": [
-    "client",
-    "backend"
-  ],
   "scripts": {
     "client": "cd client && npm run dev",
     "backend": "cd backend && npm run dev",
