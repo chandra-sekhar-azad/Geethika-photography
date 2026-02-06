@@ -65,7 +65,7 @@ const GalleryManagement = () => {
         }
         data.append('image', formData.image);
         
-        const response = await fetch(`${api.apiRequest ? 'http://localhost:5000' : ''}/api/gallery`, {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/gallery`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -107,7 +107,7 @@ const GalleryManagement = () => {
       category: image.category,
       image: null
     });
-    setPreviewUrl(`http://localhost:5000${image.image_url}`);
+    setPreviewUrl(`${import.meta.env.VITE_API_URL}${image.image_url}`);
     setShowModal(true);
   };
 
@@ -196,7 +196,7 @@ const GalleryManagement = () => {
             <div key={image.id} className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow overflow-hidden">
               <div className="aspect-square relative">
                 <img
-                  src={`http://localhost:5000${image.image_url}`}
+                  src={`${import.meta.env.VITE_API_URL}${image.image_url}`}
                   alt={image.title}
                   className="w-full h-full object-cover"
                 />

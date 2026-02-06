@@ -14,12 +14,12 @@ const TrendingSection = () => {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/products?valentine=true&limit=6');
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/products?valentine=true&limit=6`);
       const data = await response.json();
       
       // If no valentine products, fetch regular products
       if (data.products.length === 0) {
-        const fallbackResponse = await fetch('http://localhost:5000/api/products?limit=6');
+        const fallbackResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/products?limit=6`);
         const fallbackData = await fallbackResponse.json();
         setProducts(fallbackData.products || []);
       } else {

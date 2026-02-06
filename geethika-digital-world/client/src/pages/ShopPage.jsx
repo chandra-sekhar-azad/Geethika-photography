@@ -24,7 +24,7 @@ const ShopPage = () => {
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      let url = 'http://localhost:5000/api/products?';
+      let url = `${import.meta.env.VITE_API_URL}/api/products?`;
       
       if (selectedCategory !== 'all') {
         url += `category=${selectedCategory}&`;

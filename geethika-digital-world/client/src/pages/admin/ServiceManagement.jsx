@@ -21,7 +21,7 @@ const ServiceManagement = () => {
 
   const fetchServices = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/services');
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/services`);
       const data = await response.json();
       setServices(data.services || []);
     } catch (error) {
@@ -65,8 +65,8 @@ const ServiceManagement = () => {
       }
 
       const url = editingService
-        ? `http://localhost:5000/api/services/${editingService.id}`
-        : 'http://localhost:5000/api/services';
+        ? `${import.meta.env.VITE_API_URL}/api/services/${editingService.id}`
+        : `${import.meta.env.VITE_API_URL}/api/services`;
 
       const method = editingService ? 'PUT' : 'POST';
 
@@ -115,7 +115,7 @@ const ServiceManagement = () => {
         return;
       }
 
-      const response = await fetch(`http://localhost:5000/api/services/${id}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/services/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`

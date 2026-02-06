@@ -76,7 +76,7 @@ const CheckoutPage = () => {
 
       console.log('Order data being sent:', orderData);
 
-      const response = await fetch('http://localhost:5000/api/orders', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/orders`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -111,7 +111,7 @@ const CheckoutPage = () => {
           // Payment successful
           try {
             // Update order with payment details
-            await fetch(`http://localhost:5000/api/orders/${data.order.id}/payment`, {
+            await fetch(`${import.meta.env.VITE_API_URL}/api/orders/${data.order.id}/payment`, {
               method: 'PATCH',
               headers: {
                 'Content-Type': 'application/json',

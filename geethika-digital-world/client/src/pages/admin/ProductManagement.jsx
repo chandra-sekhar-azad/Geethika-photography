@@ -44,7 +44,7 @@ const ProductManagement = () => {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/products');
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/products`);
       const data = await response.json();
       setProducts(data.products || []);
     } catch (error) {
@@ -56,7 +56,7 @@ const ProductManagement = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/categories');
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/categories`);
       const data = await response.json();
       setCategories(data.categories || []);
     } catch (error) {
@@ -98,8 +98,8 @@ const ProductManagement = () => {
 
     try {
       const url = editingProduct
-        ? `http://localhost:5000/api/products/${editingProduct.id}`
-        : 'http://localhost:5000/api/products';
+        ? `${import.meta.env.VITE_API_URL}/api/products/${editingProduct.id}`
+        : `${import.meta.env.VITE_API_URL}/api/products`;
 
       const formDataToSend = new FormData();
       
@@ -168,7 +168,7 @@ const ProductManagement = () => {
     console.log('Using token:', token ? token.substring(0, 20) + '...' : 'NO TOKEN');
 
     try {
-      const response = await fetch(`http://localhost:5000/api/products/${id}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/products/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
