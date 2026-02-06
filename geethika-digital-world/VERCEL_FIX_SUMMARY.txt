@@ -1,4 +1,4 @@
-# Vercel Build Fix Summary
+# Vercel Build Fix Summary - Node.js Version Issue
 
 ## Problem
 Build was failing with error:
@@ -6,65 +6,77 @@ Build was failing with error:
 Error: Cannot find module @rollup/rollup-linux-x64-gnu
 ```
 
-This is a known npm bug with optional dependencies not being installed correctly in workspace/monorepo setups.
+**Root Cause:** Vercel was using Node.js v24, and Rollup (used by Vite) doesn't work properly with Node 24. The optional dependencies for Rollup's native bindings fail to install.
 
-## Solutions Applied
+## Solution Applied ✅
 
-### 1. Added Root `.npmrc` File
-Created `geethika-digital-world/.npmrc` with:
-```
-engine-strict=false
-legacy-peer-deps=false
-optional=true
-```
-This ensures optional dependencies (like Rollup's native bindings) are installed.
+### 1. Downgraded to Node.js 18.x (LTS)
+Updated both `package.json` files to use Node 18:
 
-### 2. Updated `vercel.json`
-Changed from:
+**Root `package.json`:**
 ```json
-"installCommand": "cd client && npm install",
-"buildCommand": "cd client && npm install && npm run build"
+"engines": {
+  "node": "18.x"
+}
 ```
 
-To:
+**Client `package.json`:**
+```json
+"engines": {
+  "node": "18.x"
+}
+```
+
+### 2. Created `.nvmrc` File
+Added `.nvmrc` with `18` to ensure consistent Node version across all environments.
+
+### 3. Updated Vercel Configuration
+The `vercel.json` now uses workspace-level installation:
 ```json
 "installCommand": "npm install --include=optional",
 "buildCommand": "npm run build"
 ```
 
-This uses the workspace root installation which properly handles optional dependencies.
-
-### 3. Added Postinstall Script
-Added to `client/package.json`:
-```json
-"postinstall": "npm rebuild rollup"
-```
-
-This ensures Rollup's native bindings are rebuilt after installation.
-
-### 4. Added Root Build Script
-Added to root `package.json`:
-```json
-"build": "npm run build:client"
-```
-
-This allows Vercel to build using the workspace structure.
-
-## Why This Works
-- Vercel installs dependencies at the root level for workspaces
-- The `--include=optional` flag ensures Rollup's platform-specific binaries are installed
-- Using workspace commands prevents double installation issues
-- The postinstall script rebuilds Rollup if needed
+## Why Node 18 Works
+- Node 18 is the current LTS (Long Term Support) version
+- Vite + Rollup are fully compatible with Node 18
+- Rollup's optional dependencies install correctly on Node 18
+- Node 24 is too new and has compatibility issues with many build tools
 
 ## Next Steps
-1. Commit these changes
-2. Push to GitHub
-3. Vercel will automatically redeploy
-4. Build should succeed now!
+
+### 1. Clean Local Installation (Optional but Recommended)
+```bash
+cd geethika-digital-world
+rm -rf node_modules package-lock.json
+rm -rf client/node_modules client/package-lock.json
+npm install
+```
+
+### 2. Commit and Push Changes
+```bash
+git add .
+git commit -m "Fix: Downgrade to Node 18.x for Vercel compatibility"
+git push
+```
+
+### 3. Configure Vercel Dashboard (IMPORTANT!)
+1. Go to Vercel Dashboard
+2. Select your project
+3. Go to **Settings** → **General**
+4. Find **Node.js Version**
+5. Select **18.x**
+6. Click **Save**
+7. Go to **Deployments** tab
+8. Click **Redeploy** on the latest deployment
 
 ## Files Changed
-- ✅ Created: `geethika-digital-world/.npmrc`
-- ✅ Updated: `geethika-digital-world/vercel.json`
-- ✅ Updated: `geethika-digital-world/client/package.json`
-- ✅ Updated: `geethika-digital-world/package.json`
-- ✅ Deleted: `geethika-digital-world/client/.npmrc` (was being ignored anyway)
+- ✅ Updated: `geethika-digital-world/package.json` (added engines: node 18.x)
+- ✅ Updated: `geethika-digital-world/client/package.json` (changed from 24.x to 18.x)
+- ✅ Created: `geethika-digital-world/.nvmrc` (ensures Node 18 everywhere)
+- ✅ Updated: `geethika-digital-world/vercel.json` (workspace-level installation)
+- ✅ Created: `geethika-digital-world/.npmrc` (ensures optional deps are installed)
+- ✅ Deleted: `geethika-digital-world/client/.npmrc` (was being ignored)
+
+## Expected Result
+After pushing and redeploying with Node 18.x configured in Vercel, the build will succeed! 🚀

@@ -21,6 +21,9 @@
     "start:client": "cd client && npm run preview",
     "start:backend": "cd backend && npm start"
   },
+  "engines": {
+    "node": "18.x"
+  },
   "keywords": [
     "ecommerce",
     "react",
