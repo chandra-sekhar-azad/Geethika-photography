@@ -1,76 +1,102 @@
-🚀 DEPLOYMENT COMMANDS - Copy & Paste
+═══════════════════════════════════════════════════════════════
+  🚀 HOMEPAGE MANAGEMENT - DEPLOYMENT INSTRUCTIONS
+═══════════════════════════════════════════════════════════════
 
-═══════════════════════════════════════════════════════════
+✅ STATUS: All code is fixed and pushed to GitHub!
 
-✅ STEP 1: Clean Install (Run in client folder)
-───────────────────────────────────────────────────────────
+⚠️  ACTION REQUIRED: Deploy on Render to activate the feature
 
-cd geethika-digital-world\client
-rmdir /s /q node_modules
-del /f /q package-lock.json
-npm install
+═══════════════════════════════════════════════════════════════
+  STEP 1: DEPLOY ON RENDER
+═══════════════════════════════════════════════════════════════
 
-OR just run:
-CLEAN_INSTALL.bat
+1. Go to: https://dashboard.render.com
 
-═══════════════════════════════════════════════════════════
+2. Find your service: "geethika-digital-world1"
 
-✅ STEP 2: Test Build Locally
-───────────────────────────────────────────────────────────
+3. Click: "Manual Deploy" button (top right)
 
-npm run build
+4. Select: "Deploy latest commit"
 
-Should see:
-✓ vite v5.4.11
-✓ built in XXXms
-✓ No errors!
+5. Wait: 2-3 minutes for deployment to complete
 
-═══════════════════════════════════════════════════════════
+6. Look for: Green "Live" status
 
-✅ STEP 3: Commit and Push
-───────────────────────────────────────────────────────────
+═══════════════════════════════════════════════════════════════
+  STEP 2: VERIFY DEPLOYMENT
+═══════════════════════════════════════════════════════════════
 
-cd ..
-git add .
-git commit -m "Fix: Use stable Tailwind v3.4.4 and Vite 5"
-git push
+Test the API endpoint:
 
-═══════════════════════════════════════════════════════════
+curl https://geethika-digital-world1.onrender.com/api/homepage/content
 
-✅ STEP 4: Configure Vercel
-───────────────────────────────────────────────────────────
+Expected: JSON response with hero_banner, offers, and testimonials
 
-1. Go to: https://vercel.com/dashboard
-2. Click your project
-3. Settings → General
-4. Node.js Version → Select "20.x"
-5. Click "Save"
+═══════════════════════════════════════════════════════════════
+  STEP 3: TEST ADMIN PANEL
+═══════════════════════════════════════════════════════════════
 
-═══════════════════════════════════════════════════════════
+1. Login as Super Admin
 
-✅ STEP 5: Redeploy
-───────────────────────────────────────────────────────────
+2. Go to: /admin/homepage
 
-1. Go to Deployments tab
-2. Click "Redeploy"
-3. ✅ Build will succeed!
+3. You should see:
+   - Hero Banner section
+   - Special Offers Cards (4 items)
+   - Testimonials (3 items)
 
-═══════════════════════════════════════════════════════════
+4. Click "Edit" on any item to test
 
-📦 FINAL STABLE STACK
-───────────────────────────────────────────────────────────
+5. Upload a new image
 
-✅ Node 20.x (LTS)
-✅ Vite 5.4.11 (Stable)
-✅ Tailwind CSS 3.4.4 (Stable, No LightningCSS)
-✅ PostCSS + Autoprefixer (Standard)
-✅ React 19.2.0
+6. Save changes
 
-NO @tailwindcss/postcss
-NO lightningcss
-NO native binaries
-NO optional dependency issues
+7. Verify changes appear on homepage
 
-100% Pure JavaScript - Works Everywhere! 🎉
+═══════════════════════════════════════════════════════════════
+  WHAT WAS FIXED
+═══════════════════════════════════════════════════════════════
 
-═══════════════════════════════════════════════════════════
+✅ Fixed SQL placeholders in backend/routes/homepage.js
+   - Changed ${paramCount} to $${paramCount}
+   - Now generates proper PostgreSQL queries ($1, $2, etc.)
+
+✅ Verified route configuration in server.js
+   - Homepage routes properly imported
+   - Routes registered at /api/homepage
+
+✅ Database table already exists on production
+   - Table: homepage_content
+   - Default content: 1 banner, 4 offers, 3 testimonials
+
+═══════════════════════════════════════════════════════════════
+  TROUBLESHOOTING
+═══════════════════════════════════════════════════════════════
+
+Problem: Still getting 404 errors
+Solution: Make sure you deployed on Render (Step 1)
+
+Problem: Sections not loading
+Solution: Check backend URL in .env file:
+         VITE_API_URL=https://geethika-digital-world1.onrender.com
+
+Problem: Images not uploading
+Solution: Check file size (max 10MB) and format (JPG, PNG, GIF)
+
+═══════════════════════════════════════════════════════════════
+  DOCUMENTATION FILES
+═══════════════════════════════════════════════════════════════
+
+📄 HOMEPAGE_MANAGEMENT_COMPLETE.md - Complete overview
+📄 DEPLOY_HOMEPAGE_FEATURE.md - Detailed deployment guide
+📄 QUICK_START_HOMEPAGE.md - Quick reference
+📄 TEST_HOMEPAGE_FEATURE.md - Step-by-step testing guide
+
+═══════════════════════════════════════════════════════════════
+  READY TO GO!
+═══════════════════════════════════════════════════════════════
+
+All code is ready. Just deploy on Render and start customizing
+your homepage! 🎉
+
+Backend URL: https://geethika-digital-world1.onrender.com

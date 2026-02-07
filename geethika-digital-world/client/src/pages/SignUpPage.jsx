@@ -91,16 +91,45 @@ const SignUpPage = () => {
     setIsSubmitting(true);
 
     try {
-      // TODO: Replace with actual API call
-      console.log('Sign up data:', formData);
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          name: formData.fullName,
+          phone: formData.phone || null
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (response.status === 409) {
+          setErrors({ email: 'Email already registered' });
+        } else if (data.errors) {
+          const newErrors = {};
+          data.errors.forEach(err => {
+            newErrors[err.path] = err.msg;
+          });
+          setErrors(newErrors);
+        } else {
+          setErrors({ submit: data.error || 'Registration failed. Please try again.' });
+        }
+        return;
+      }
+
+      // Store token and user data
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Success - redirect to login with success message
-      navigate('/login', { state: { message: 'Account created successfully! Please login.' } });
+      // Success - redirect to home or shop page
+      navigate('/', { state: { message: 'Account created successfully! Welcome to Geethika Digital World.' } });
     } catch (error) {
-      setErrors({ submit: 'Registration failed. Please try again.' });
+      console.error('Registration error:', error);
+      setErrors({ submit: 'Registration failed. Please check your connection and try again.' });
     } finally {
       setIsSubmitting(false);
     }
