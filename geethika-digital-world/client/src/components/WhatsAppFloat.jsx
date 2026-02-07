@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 
 const WhatsAppFloat = () => {
   const location = useLocation();
-  const phoneNumber = '918897536435'; // WhatsApp Business Number
+  const phoneNumber = '919492686421'; // WhatsApp Business Number
   const message = 'Hi! I want to book a photoshoot or order customized products.';
 
   // Don't render on admin pages

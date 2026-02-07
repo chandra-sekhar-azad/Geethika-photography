@@ -16,7 +16,7 @@ async function testRegistration() {
   const email = 'roastguru11@gmail.com';
   const password = 'password@123';
   const name = 'sagar';
-  const phone = '8897536435';
+  const phone = '9492686421';
 
   try {
     console.log('🧪 Testing registration process...\n');
