@@ -1,172 +1,251 @@
-# Homepage Management Feature - Complete ✅
+# ✅ Homepage Management Feature - COMPLETE
 
-## What Was Added
+## 🎉 Status: READY FOR DEPLOYMENT
 
-Super admins can now manage all homepage images and content through an intuitive admin interface.
+All code has been fixed, tested, and pushed to GitHub. The homepage management feature is ready to use after you redeploy on Render.
 
-## Features Implemented
+---
 
-### 1. Database Layer
-- ✅ Created `homepage_content` table (PostgreSQL)
-- ✅ Migration script with default content
-- ✅ Supports hero banner, offers, and testimonials
+## 📦 What's Included
 
-### 2. Backend API
-- ✅ Public endpoint to fetch active content
-- ✅ Admin endpoints for CRUD operations
-- ✅ Image upload support
-- ✅ Audit logging integration
-- ✅ Super admin authentication required
+### Backend (API)
+✅ Database table: `homepage_content` (already created on production)
+✅ API routes: `/api/homepage/*` (fixed and working)
+✅ Authentication: Super Admin only
+✅ Image upload: Multer middleware configured
+✅ Default content: 1 banner, 4 offers, 3 testimonials
 
-### 3. Frontend Admin Interface
-- ✅ Homepage Management page (`/admin/homepage`)
-- ✅ Visual content cards with preview images
-- ✅ Edit modal with image upload
-- ✅ Toggle visibility (show/hide)
-- ✅ Display order management
-- ✅ Grouped by content type (Banner, Offers, Testimonials)
+### Frontend (Admin Panel)
+✅ Admin page: `/admin/homepage`
+✅ Edit modal: Update content with image upload
+✅ Toggle visibility: Show/hide content
+✅ Display order: Organize content
+✅ Real-time preview: See changes immediately
 
-### 4. Navigation & Access
-- ✅ Added to Admin Dashboard quick links
-- ✅ Added to Admin Layout sidebar menu
-- ✅ Route configured in App.jsx
-- ✅ Super admin only access
+---
 
-## Files Created
+## 🔧 Bug Fixed
 
-### Backend
-1. `backend/routes/homepage.js` - API routes for homepage management
-2. `backend/scripts/create-homepage-content-table.js` - Database migration script
+### Issue
+The homepage routes were returning 404 errors on production because of a SQL query bug.
 
-### Frontend
-1. `client/src/pages/admin/HomePageManagement.jsx` - Admin management interface
+### Root Cause
+In `backend/routes/homepage.js`, the SQL placeholders were incorrectly formatted:
+```javascript
+// ❌ WRONG (was causing silent failures)
+updateFields.push(`title = ${paramCount++}`);
 
-### Documentation
-1. `docs/HOMEPAGE_MANAGEMENT_GUIDE.md` - Complete user guide
-2. `HOMEPAGE_MANAGEMENT_COMPLETE.md` - This summary
-
-## Files Modified
-
-### Backend
-- `backend/server.js` - Added homepage routes
-
-### Frontend
-- `client/src/App.jsx` - Added homepage management route
-- `client/src/pages/admin/AdminDashboard.jsx` - Added quick link card
-- `client/src/components/AdminLayout.jsx` - Added sidebar menu item
-
-## How to Use
-
-### Setup (One-time)
-```bash
-# Run database migration
-cd backend
-node scripts/create-homepage-content-table.js
+// ✅ CORRECT (now fixed)
+updateFields.push(`title = $${paramCount++}`);
 ```
 
-### Access
-1. Login as Super Admin
-2. Go to Admin Dashboard
-3. Click "Homepage Management" card
-4. Or navigate to `/admin/homepage`
+This caused PostgreSQL to receive invalid SQL queries, making the routes fail silently.
 
-### Manage Content
-- **Edit**: Click image icon to open edit modal
-- **Upload Image**: Click "Upload New Image" button
-- **Toggle Visibility**: Click eye icon to show/hide
-- **Save**: Click "Save Changes" to apply updates
+### Solution
+- Fixed all SQL placeholders to use proper PostgreSQL format (`$1`, `$2`, etc.)
+- Verified route imports and registrations in `server.js`
+- Tested locally and confirmed working
 
-## Content Sections
+---
 
-### Hero Banner (1 item)
-- Main homepage banner image
-- Title and description
-- Call-to-action link
+## 🚀 DEPLOYMENT REQUIRED
 
-### Special Offers (4 items)
-- Valentine Special
-- Personalized Gifts
-- Photo Sessions
-- Premium Combos
+### ⚠️ IMPORTANT: You Must Redeploy on Render
 
-### Testimonials (3 items)
-- Customer photos and names
-- Review text
-- Display order
+The fixes are in GitHub but **NOT YET** on your production server.
 
-## API Endpoints
+### How to Deploy:
 
-### Public
-- `GET /api/homepage/content` - Get active content
+1. **Go to Render Dashboard**
+   - URL: https://dashboard.render.com
+   - Service: `geethika-digital-world1`
 
-### Admin (Super Admin Only)
-- `GET /api/homepage/admin/content` - Get all content
-- `GET /api/homepage/admin/content/:id` - Get single item
-- `PUT /api/homepage/admin/content/:id` - Update item
-- `POST /api/homepage/admin/content` - Create item
-- `DELETE /api/homepage/admin/content/:id` - Delete item
+2. **Manual Deploy**
+   - Click "Manual Deploy" button
+   - Select "Deploy latest commit"
+   - Wait 2-3 minutes
 
-## Security Features
-- ✅ Super admin authentication required
-- ✅ JWT token validation
-- ✅ File upload validation
-- ✅ Audit logging for all changes
-- ✅ SQL injection protection (parameterized queries)
+3. **Verify**
+   ```bash
+   curl https://geethika-digital-world1.onrender.com/api/homepage/content
+   ```
+   Should return JSON with hero_banner, offers, and testimonials
 
-## Database Schema
+---
+
+## 📋 After Deployment - Test Checklist
+
+### 1. Test API Endpoints
+- [ ] `GET /api/homepage/content` - Returns public content
+- [ ] `GET /api/homepage/admin/content` - Returns 401 (needs auth)
+- [ ] Backend health check shows "healthy"
+
+### 2. Test Admin Panel
+- [ ] Login as Super Admin
+- [ ] Navigate to `/admin/homepage`
+- [ ] See 3 sections: Hero Banner, Offers, Testimonials
+- [ ] Click edit on any item
+- [ ] Upload a new image
+- [ ] Save changes successfully
+
+### 3. Test Homepage
+- [ ] Go to main homepage
+- [ ] See updated content
+- [ ] Images load correctly
+- [ ] Links work properly
+
+---
+
+## 📁 Files Modified
+
+```
+backend/
+├── routes/homepage.js          ✅ Fixed SQL placeholders
+├── server.js                   ✅ Routes already registered
+└── scripts/
+    └── create-homepage-content-table.js  ✅ Already run on production
+
+client/
+└── src/pages/admin/
+    └── HomePageManagement.jsx  ✅ Working (no changes needed)
+
+docs/
+├── DEPLOY_HOMEPAGE_FEATURE.md  📝 Full deployment guide
+├── QUICK_START_HOMEPAGE.md     📝 Quick start guide
+└── HOMEPAGE_MANAGEMENT_COMPLETE.md  📝 This file
+```
+
+---
+
+## 🎯 How to Use (After Deployment)
+
+### For Super Admin:
+
+1. **Access Admin Panel**
+   - Login with Super Admin credentials
+   - Go to `/admin/homepage`
+
+2. **Edit Hero Banner**
+   - Click edit icon on banner card
+   - Upload new banner image (recommended: 1920x600px)
+   - Update title and description
+   - Add call-to-action link
+   - Save changes
+
+3. **Edit Special Offers**
+   - Click edit on any of the 4 offer cards
+   - Upload offer image (recommended: 400x300px)
+   - Update offer title and description
+   - Add link to product/category
+   - Toggle active/inactive
+   - Save changes
+
+4. **Edit Testimonials**
+   - Click edit on any of the 3 testimonial cards
+   - Upload customer photo (recommended: 200x200px)
+   - Update customer name and review
+   - Save changes
+
+### For Customers:
+- Visit homepage to see updated content
+- Click on offers to view products
+- Read customer testimonials
+- Click hero banner CTA button
+
+---
+
+## 🔍 Troubleshooting
+
+### Issue: Still seeing "unable to customise home page images"
+**Solution**: You need to redeploy on Render first. The fix is in GitHub but not on production yet.
+
+### Issue: 404 errors on `/api/homepage/*`
+**Solution**: 
+1. Verify deployment completed on Render
+2. Check Render logs for any import errors
+3. Restart the service if needed
+
+### Issue: Images not uploading
+**Solution**:
+1. Check file size (max 10MB)
+2. Verify file format (JPG, PNG, GIF, WebP)
+3. Check Render has write permissions to `/uploads`
+
+### Issue: Changes not appearing on homepage
+**Solution**:
+1. Check if content is marked as "active"
+2. Clear browser cache
+3. Verify API returns updated content
+
+---
+
+## 📊 Database Schema
 
 ```sql
 CREATE TABLE homepage_content (
   id SERIAL PRIMARY KEY,
-  section VARCHAR(50) NOT NULL UNIQUE,
-  content_type VARCHAR(50) NOT NULL,
+  section VARCHAR(50) NOT NULL,           -- 'hero', 'offers', 'testimonials'
+  content_type VARCHAR(50) NOT NULL,      -- 'banner', 'offer_card', 'testimonial'
   title VARCHAR(255),
   description TEXT,
   image_url VARCHAR(500),
   link_url VARCHAR(500),
-  display_order INT DEFAULT 0,
+  display_order INTEGER DEFAULT 0,
   is_active BOOLEAN DEFAULT true,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 ```
 
-## Testing Checklist
+---
 
-- [ ] Run database migration script
-- [ ] Login as super admin
-- [ ] Access `/admin/homepage`
-- [ ] Edit hero banner image
-- [ ] Update offer card text
-- [ ] Change testimonial photo
-- [ ] Toggle content visibility
-- [ ] Verify changes appear on homepage
-- [ ] Check audit log for changes
+## 🎨 Image Recommendations
 
-## Next Steps
+### Hero Banner
+- **Size**: 1920x600px (or 16:5 ratio)
+- **Format**: JPG or WebP
+- **Content**: Eye-catching, high-quality product photos
+- **Text**: Minimal (use overlay text in component)
 
-### To Deploy:
-1. Run migration on production database
-2. Deploy backend with new routes
-3. Deploy frontend with new admin page
-4. Test in production environment
+### Offer Cards
+- **Size**: 400x300px (or 4:3 ratio)
+- **Format**: JPG or PNG
+- **Content**: Product photos or promotional graphics
+- **Text**: Can include text in image
 
-### To Use:
-1. Login as super admin
-2. Navigate to Homepage Management
-3. Upload your custom images
-4. Update text content
-5. Save and verify on homepage
+### Testimonials
+- **Size**: 200x200px (square)
+- **Format**: JPG or PNG
+- **Content**: Customer photos or avatars
+- **Style**: Professional, friendly
 
-## Notes
-- All changes are logged in audit log
-- Images stored in `backend/uploads/` directory
-- Only super admins can access this feature
-- Changes are immediate (no approval needed)
-- Original images are preserved when updating
+---
 
-## Support
-For issues or questions, refer to:
-- `docs/HOMEPAGE_MANAGEMENT_GUIDE.md` - Detailed user guide
-- Audit log at `/admin/audit-log` - Track all changes
-- Backend logs for API errors
+## 📞 Support
+
+### Documentation Files:
+- `DEPLOY_HOMEPAGE_FEATURE.md` - Detailed deployment steps
+- `QUICK_START_HOMEPAGE.md` - Quick reference guide
+- `HOMEPAGE_MANAGEMENT_COMPLETE.md` - This comprehensive guide
+
+### Code Files:
+- `backend/routes/homepage.js` - API implementation
+- `client/src/pages/admin/HomePageManagement.jsx` - Admin UI
+- `backend/scripts/create-homepage-content-table.js` - Database setup
+
+---
+
+## ✨ Summary
+
+**Status**: ✅ Code fixed and pushed to GitHub
+**Action Required**: 🚀 Redeploy on Render
+**Time to Deploy**: ⏱️ 2-3 minutes
+**Ready to Use**: 🎯 Immediately after deployment
+
+Once you redeploy on Render, the homepage management feature will be fully functional and you can start customizing your homepage content!
+
+---
+
+**Last Updated**: February 7, 2026
+**Version**: 1.0.0
+**Status**: Production Ready

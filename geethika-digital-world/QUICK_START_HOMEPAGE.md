@@ -1,239 +1,112 @@
-# 🚀 Quick Start: Homepage Management
+# 🚀 Quick Start: Homepage Management Feature
 
-## Setup (One-Time)
+## ✅ Changes Pushed to GitHub
 
-### Step 1: Run Database Migration
+All fixes have been committed and pushed to the main branch.
+
+## 🔧 What Was Fixed
+
+1. **SQL Query Bug**: Fixed PostgreSQL placeholders in `backend/routes/homepage.js`
+   - Changed `${paramCount}` to `$${paramCount}` for proper SQL parameter binding
+   
+2. **Route Configuration**: Verified homepage routes are properly loaded in server.js
+
+## 📋 Next Steps - DEPLOY TO RENDER
+
+### Step 1: Redeploy Backend on Render
+
+1. Go to: https://dashboard.render.com
+2. Find service: **geethika-digital-world1**
+3. Click: **"Manual Deploy"** → **"Deploy latest commit"**
+4. Wait 2-3 minutes for deployment
+
+### Step 2: Verify Deployment
+
+After Render finishes deploying, test the API:
+
 ```bash
-cd geethika-digital-world/backend
-node scripts/create-homepage-content-table.js
+# Should return homepage content
+curl https://geethika-digital-world1.onrender.com/api/homepage/content
 ```
 
-**Expected Output:**
-```
-🔄 Creating homepage_content table...
-✅ Database connected successfully
-🔄 Inserting default homepage content...
-✅ Default content inserted successfully
-📊 Homepage Content Summary:
-- Hero Banner: 1 item
-- Special Offers: 4 items
-- Testimonials: 3 items
-✅ Homepage content table setup complete!
-```
-
-### Step 2: Start Servers
-```bash
-# Terminal 1 - Backend
-cd geethika-digital-world/backend
-npm run dev
-
-# Terminal 2 - Frontend
-cd geethika-digital-world/client
-npm run dev
+Expected response:
+```json
+{
+  "success": true,
+  "content": {
+    "hero_banner": {...},
+    "offers": [...],
+    "testimonials": [...]
+  }
+}
 ```
 
-## Using the Feature
+### Step 3: Test in Admin Panel
 
-### Access Homepage Management
+1. Login to admin panel as Super Admin
+2. Go to: `/admin/homepage`
+3. You should now see:
+   - Hero Banner section
+   - Special Offers Cards (4 items)
+   - Testimonials (3 items)
 
-**Option 1: From Dashboard**
-1. Login as Super Admin → `http://localhost:5173/admin/login`
-2. Click "Homepage Management" card on dashboard
+### Step 4: Customize Homepage
 
-**Option 2: Direct URL**
-- Go to `http://localhost:5173/admin/homepage`
+Now you can:
+- ✅ Edit titles and descriptions
+- ✅ Upload new images
+- ✅ Change display order
+- ✅ Toggle active/inactive status
+- ✅ Update links
 
-### Edit Content
+## 🎯 Features Available
 
-#### 1. Hero Banner
-```
-┌─────────────────────────────────────────┐
-│  Hero Banner                            │
-├─────────────────────────────────────────┤
-│  [Image Preview]                        │
-│  Title: Thoughtful Gifts for Every...  │
-│  Description: Celebrate your special... │
-│  [Edit] [Show/Hide]                     │
-└─────────────────────────────────────────┘
-```
+### Hero Banner
+- Large banner image
+- Title and description
+- Call-to-action link
 
-**To Edit:**
-- Click **Edit** icon (image icon)
-- Upload new banner image
-- Update title/description
-- Click **Save Changes**
+### Special Offers (4 cards)
+- Offer images
+- Titles and descriptions
+- Links to products/categories
 
-#### 2. Special Offers (4 Cards)
-```
-┌──────────────┬──────────────┬──────────────┬──────────────┐
-│ Valentine    │ Personalized │ Photo        │ Premium      │
-│ Special      │ Gifts        │ Sessions     │ Combos       │
-│ [Edit] [👁️]  │ [Edit] [👁️]  │ [Edit] [👁️]  │ [Edit] [👁️]  │
-└──────────────┴──────────────┴──────────────┴──────────────┘
-```
+### Testimonials (3 cards)
+- Customer photos
+- Names and reviews
+- Star ratings (in description)
 
-**To Edit:**
-- Click **Edit** on any card
-- Update title/description
-- Change link URL
-- Modify display order
-- Click **Save Changes**
+## 📱 How to Use
 
-#### 3. Testimonials (3 Cards)
-```
-┌──────────────┬──────────────┬──────────────┐
-│ [Photo]      │ [Photo]      │ [Photo]      │
-│ Priya &      │ Anjali       │ Vikram &     │
-│ Rahul        │ Sharma       │ Sneha        │
-│ "Amazing..." │ "Quality..." │ "Beautiful..." │
-│ [Edit] [👁️]  │ [Edit] [👁️]  │ [Edit] [👁️]  │
-└──────────────┴──────────────┴──────────────┘
-```
+1. **Edit Content**: Click the image icon on any card
+2. **Upload Image**: Click "Upload New Image" button
+3. **Update Text**: Modify title and description
+4. **Save Changes**: Click "Save Changes" button
+5. **Toggle Visibility**: Click eye icon to show/hide
 
-**To Edit:**
-- Click **Edit** on testimonial
-- Upload new customer photo
-- Update name and review
-- Click **Save Changes**
+## ⚠️ Important Notes
 
-### Toggle Visibility
+- Changes appear immediately on the homepage
+- Only Super Admin can access this feature
+- Images are stored in `/uploads` directory
+- Maximum file size: 10MB
 
-**Show/Hide Content:**
-- Click the **Eye** icon
-- 👁️ Green = Visible on homepage
-- 👁️ Gray = Hidden from homepage
+## 🔍 Troubleshooting
 
-## Edit Modal
+### If homepage management still shows loading:
+1. Check if Render deployment completed successfully
+2. Verify backend URL in `.env`: `https://geethika-digital-world1.onrender.com`
+3. Check browser console for errors
+4. Try clearing browser cache
 
-When you click Edit, you'll see:
+### If images don't upload:
+1. Check file size (must be < 10MB)
+2. Verify file format (JPG, PNG, GIF)
+3. Check Render logs for upload errors
 
-```
-┌─────────────────────────────────────────┐
-│  Edit Content                      [X]  │
-├─────────────────────────────────────────┤
-│  Image                                  │
-│  [Current Image Preview]                │
-│  [Upload New Image]                     │
-│                                         │
-│  Title                                  │
-│  [Text Input]                           │
-│                                         │
-│  Description                            │
-│  [Textarea]                             │
-│                                         │
-│  Link URL (optional)                    │
-│  [Text Input]                           │
-│                                         │
-│  Display Order                          │
-│  [Number Input]                         │
-│                                         │
-│  ☑ Active (visible on homepage)        │
-│                                         │
-│  [Save Changes] [Cancel]                │
-└─────────────────────────────────────────┘
-```
+## 📞 Need Help?
 
-## Common Tasks
-
-### Change Hero Banner Image
-1. Go to `/admin/homepage`
-2. Click Edit on Hero Banner
-3. Click "Upload New Image"
-4. Select image (1920x650px recommended)
-5. Click "Save Changes"
-6. Visit homepage to see change
-
-### Update Offer Text
-1. Go to `/admin/homepage`
-2. Find "Special Offers Cards" section
-3. Click Edit on any offer
-4. Update title/description
-5. Click "Save Changes"
-
-### Hide a Testimonial
-1. Go to `/admin/homepage`
-2. Find "Testimonials" section
-3. Click Eye icon on testimonial
-4. Icon turns gray (hidden)
-5. Visit homepage - testimonial won't show
-
-### Reorder Content
-1. Click Edit on content item
-2. Change "Display Order" number
-3. Lower numbers appear first
-4. Click "Save Changes"
-
-## Verification
-
-### Check Changes on Homepage
-1. Go to `http://localhost:5173/`
-2. Scroll through homepage
-3. Verify your changes appear
-
-### Check Audit Log
-1. Go to `/admin/audit-log`
-2. Look for "homepage_content" entries
-3. Verify your changes are logged
-
-## Troubleshooting
-
-### ❌ Can't access /admin/homepage
-**Solution:** Verify you're logged in as Super Admin
-
-### ❌ Image won't upload
-**Solutions:**
-- Check file size < 5MB
-- Use JPG, PNG, or WebP format
-- Verify `backend/uploads/` directory exists
-
-### ❌ Changes not showing
-**Solutions:**
-- Hard refresh browser (Ctrl+F5)
-- Check "Active" checkbox is checked
-- Verify backend is running
-
-### ❌ "Content not found" error
-**Solution:** Run database migration script again
-
-## Quick Reference
-
-### Image Sizes
-- Hero Banner: 1920x650px
-- Testimonials: 200x200px
-- Offers: Optional
-
-### Content Types
-- `banner` - Hero Banner
-- `offer_card` - Special Offers
-- `testimonial` - Customer Reviews
-
-### API Endpoints
-- Public: `/api/homepage/content`
-- Admin: `/api/homepage/admin/content`
-
-### Files Location
-- Backend Route: `backend/routes/homepage.js`
-- Frontend Page: `client/src/pages/admin/HomePageManagement.jsx`
-- Migration: `backend/scripts/create-homepage-content-table.js`
-
-## Next Steps
-
-1. ✅ Run database migration
-2. ✅ Start servers
-3. ✅ Login as super admin
-4. ✅ Access homepage management
-5. ✅ Upload your images
-6. ✅ Update content
-7. ✅ Verify on homepage
-8. ✅ Deploy to production
-
-## Need Help?
-
-📖 **Full Guide**: `docs/HOMEPAGE_MANAGEMENT_GUIDE.md`
-📋 **Technical Details**: `HOMEPAGE_MANAGEMENT_COMPLETE.md`
-🧪 **Testing Guide**: `TEST_HOMEPAGE_FEATURE.md`
-📊 **Feature Summary**: `FEATURE_SUMMARY.md`
-
----
-
-**That's it! You can now manage your homepage content without touching any code! 🎉**
+Check these files for more details:
+- `DEPLOY_HOMEPAGE_FEATURE.md` - Full deployment guide
+- `backend/routes/homepage.js` - API routes
+- `client/src/pages/admin/HomePageManagement.jsx` - Frontend component
