@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Heart, Phone, Mail, MapPin, Facebook, Instagram, Twitter } from 'lucide-react';
+import { Heart, Phone, Mail, MapPin, Instagram } from 'lucide-react';
 
 const Footer = () => {
   const location = useLocation();
@@ -86,15 +86,16 @@ const Footer = () => {
             </ul>
 
             {/* Social Media */}
-            <div className="flex space-x-4 mt-4 justify-center sm:justify-start">
-              <a href="#" className="text-gray-400 hover:text-valentine-pink transition-colors">
-                <Facebook className="w-4 h-4 sm:w-5 sm:h-5" />
-              </a>
-              <a href="#" className="text-gray-400 hover:text-valentine-pink transition-colors">
-                <Instagram className="w-4 h-4 sm:w-5 sm:h-5" />
-              </a>
-              <a href="#" className="text-gray-400 hover:text-valentine-pink transition-colors">
-                <Twitter className="w-4 h-4 sm:w-5 sm:h-5" />
+            <div className="mt-4">
+              <a 
+                href="https://www.instagram.com/geethikadigitalworld?igsh=czdycmR3aXEwdnN6" 
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center space-x-2 text-gray-400 hover:text-valentine-pink transition-colors group justify-center sm:justify-start"
+                aria-label="Follow us on Instagram"
+              >
+                <Instagram className="w-5 h-5 sm:w-6 sm:h-6" />
+                <span className="text-sm sm:text-base font-medium">@geethikadigitalworld</span>
               </a>
             </div>
           </div>

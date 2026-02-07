@@ -24,6 +24,7 @@ const AdminLayout = ({ children }) => {
     { path: '/admin/services', icon: Package, label: 'Services' },
     { path: '/admin/orders', icon: ShoppingCart, label: 'Orders' },
     { path: '/admin/customers', icon: Users, label: 'Customers' },
+    { path: '/admin/gallery', icon: Image, label: 'Gallery' },
     { path: '/admin/homepage', icon: Image, label: 'Homepage' },
     { path: '/admin/sales-report', icon: TrendingUp, label: 'Sales Report' },
     { path: '/admin/whatsapp-templates', icon: MessageSquare, label: 'WhatsApp Templates' },

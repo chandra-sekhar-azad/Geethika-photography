@@ -42,15 +42,13 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16 sm:h-18 md:h-20">
           <Link to="/" className="flex items-center space-x-1.5 sm:space-x-2 flex-shrink-0">
-            <Heart className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-valentine-red fill-valentine-red" />
             <div className="hidden xs:block">
-              <h1 className="text-base sm:text-lg md:text-xl lg:text-2xl font-display font-bold text-valentine-red leading-tight">
+              <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-display font-bold text-valentine-red leading-tight">
                 Geethika Digital World
               </h1>
-              <p className="text-[10px] sm:text-xs text-gray-600 hidden sm:block">Capture Every Moment</p>
             </div>
             <div className="block xs:hidden">
-              <h1 className="text-sm font-display font-bold text-valentine-red">GDW</h1>
+              <h1 className="text-base font-display font-bold text-valentine-red">GDW</h1>
             </div>
           </Link>
 

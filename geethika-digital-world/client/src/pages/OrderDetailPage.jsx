@@ -200,7 +200,7 @@ const OrderDetailPage = () => {
                 <div className="border-t pt-3 flex justify-between">
                   <span className="text-lg font-bold">Total Amount</span>
                   <span className="text-2xl font-bold text-valentine-red">
-                    ₹{order.total_amount || order.total || 0}
+                    ₹{order.total || order.total_amount || 0}
                   </span>
                 </div>
               </div>

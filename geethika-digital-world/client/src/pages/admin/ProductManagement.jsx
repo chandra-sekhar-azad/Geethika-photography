@@ -8,6 +8,7 @@ const ProductManagement = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [filterType, setFilterType] = useState('all'); // 'all', 'trending', 'regular'
   const [loading, setLoading] = useState(true);
 
   const [formData, setFormData] = useState({
@@ -248,9 +249,15 @@ const ProductManagement = () => {
     });
   };
 
-  const filteredProducts = products.filter(product =>
-    product.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredProducts = products.filter(product => {
+    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesFilter = 
+      filterType === 'all' ? true :
+      filterType === 'trending' ? product.valentine_special === true :
+      filterType === 'regular' ? product.valentine_special !== true : true;
+    
+    return matchesSearch && matchesFilter;
+  });
 
   if (loading) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
@@ -270,8 +277,43 @@ const ProductManagement = () => {
           </button>
         </div>
 
-        {/* Search */}
-        <div className="mb-6">
+        {/* Search and Filter */}
+        <div className="mb-6 space-y-4">
+          {/* Filter Tabs */}
+          <div className="flex gap-2 border-b border-gray-200">
+            <button
+              onClick={() => setFilterType('all')}
+              className={`px-4 py-2 font-medium transition-colors ${
+                filterType === 'all'
+                  ? 'text-valentine-red border-b-2 border-valentine-red'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              All Products ({products.length})
+            </button>
+            <button
+              onClick={() => setFilterType('trending')}
+              className={`px-4 py-2 font-medium transition-colors ${
+                filterType === 'trending'
+                  ? 'text-valentine-red border-b-2 border-valentine-red'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              🔥 Trending Now ({products.filter(p => p.valentine_special).length})
+            </button>
+            <button
+              onClick={() => setFilterType('regular')}
+              className={`px-4 py-2 font-medium transition-colors ${
+                filterType === 'regular'
+                  ? 'text-valentine-red border-b-2 border-valentine-red'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Regular Products ({products.filter(p => !p.valentine_special).length})
+            </button>
+          </div>
+
+          {/* Search */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
@@ -282,6 +324,16 @@ const ProductManagement = () => {
               className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-valentine-red focus:border-transparent"
             />
           </div>
+
+          {/* Info Banner for Trending */}
+          {filterType === 'trending' && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <p className="text-sm text-blue-800">
+                <strong>💡 Tip:</strong> Products marked as "Valentine Special" appear in the "Trending Now" section on the homepage. 
+                Edit the "Valentine Special" checkbox when editing a product to add/remove it from trending.
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Products Table */}

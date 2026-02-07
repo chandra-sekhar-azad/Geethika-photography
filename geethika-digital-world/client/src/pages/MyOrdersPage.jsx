@@ -107,22 +107,10 @@ const MyOrdersPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="valentine-gradient text-white py-12">
+      {/* Filter Tabs - Directly below navbar */}
+      <div className="bg-white border-b sticky top-16 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-4xl md:text-5xl font-display font-bold mb-4">
-            My Orders
-          </h1>
-          <p className="text-lg">
-            Track and manage your orders
-          </p>
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Filter Tabs */}
-        <div className="bg-white rounded-xl shadow-lg p-4 mb-6">
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 py-4">
             <button
               onClick={() => setFilter('all')}
               className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
@@ -165,6 +153,10 @@ const MyOrdersPage = () => {
             </button>
           </div>
         </div>
+      </div>
+
+      {/* Orders Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
 
         {/* Orders List */}
         {filteredOrders.length === 0 ? (
@@ -200,7 +192,7 @@ const MyOrdersPage = () => {
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">Total Amount</p>
-                      <p className="font-bold text-xl text-valentine-red">₹{order.total_amount}</p>
+                      <p className="font-bold text-xl text-valentine-red">₹{order.total || order.total_amount || 0}</p>
                     </div>
                     <div className="flex items-center gap-2">
                       {getStatusIcon(order.status)}

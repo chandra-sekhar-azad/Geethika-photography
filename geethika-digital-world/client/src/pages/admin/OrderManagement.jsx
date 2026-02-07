@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Search, Eye, Plus } from 'lucide-react';
+import OrderDetailsModal from '../../components/OrderDetailsModal';
 
 const OrderManagement = () => {
   const [orders, setOrders] = useState([]);
@@ -67,6 +68,11 @@ const OrderManagement = () => {
   };
 
   const filteredOrders = orders.filter(order => {
+    // Hide orders with pending payment
+    if (order.payment_status === 'pending') {
+      return false;
+    }
+    
     const matchesSearch = order.order_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          order.customer_name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = filterStatus === 'all' || order.order_status === filterStatus;
@@ -135,7 +141,6 @@ const OrderManagement = () => {
           >
             <option value="all">All Payments</option>
             <option value="paid">Paid Only</option>
-            <option value="pending">Pending Payment</option>
             <option value="failed">Failed Payment</option>
           </select>
         </div>
@@ -232,79 +237,6 @@ const OrderManagement = () => {
             }}
           />
         )}
-      </div>
-    </div>
-  );
-};
-
-// Order Details Modal Component
-const OrderDetailsModal = ({ order, onClose, onUpdateStatus }) => {
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">Order Details</h2>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">×</button>
-          </div>
-
-          <div className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-gray-600">Order Number</p>
-                <p className="font-semibold">{order.order_number}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Order Date</p>
-                <p className="font-semibold">{new Date(order.created_at).toLocaleString()}</p>
-              </div>
-            </div>
-
-            <div>
-              <h3 className="font-semibold mb-2">Customer Information</h3>
-              <p>{order.customer_name}</p>
-              <p className="text-sm text-gray-600">{order.customer_email}</p>
-              <p className="text-sm text-gray-600">{order.customer_phone}</p>
-              <p className="text-sm text-gray-600 mt-2">{order.shipping_address}</p>
-              <p className="text-sm text-gray-600">{order.city}, {order.state} - {order.pincode}</p>
-            </div>
-
-            <div>
-              <h3 className="font-semibold mb-2">Order Items</h3>
-              <div className="space-y-2">
-                {order.items?.map((item, index) => (
-                  <div key={index} className="flex justify-between items-center py-2 border-b">
-                    <div className="flex items-center space-x-3">
-                      <img src={item.product_image} alt={item.product_name} className="w-12 h-12 object-cover rounded" />
-                      <div>
-                        <p className="font-medium">{item.product_name}</p>
-                        <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
-                      </div>
-                    </div>
-                    <p className="font-semibold">₹{parseFloat(item.price * item.quantity).toLocaleString()}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="border-t pt-4">
-              <div className="flex justify-between mb-2">
-                <span>Subtotal:</span>
-                <span>₹{parseFloat(order.subtotal).toLocaleString()}</span>
-              </div>
-              {order.discount > 0 && (
-                <div className="flex justify-between mb-2 text-green-600">
-                  <span>Discount:</span>
-                  <span>-₹{parseFloat(order.discount).toLocaleString()}</span>
-                </div>
-              )}
-              <div className="flex justify-between font-bold text-lg">
-                <span>Total:</span>
-                <span>₹{parseFloat(order.total).toLocaleString()}</span>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );

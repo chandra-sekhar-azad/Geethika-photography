@@ -82,47 +82,41 @@ const ServicesPage = () => {
             <p className="text-gray-500 text-base sm:text-lg">No services available at the moment.</p>
           </div>
         ) : (
-          <div className="space-y-4 sm:space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {services.map((service) => (
-              <div key={service.id} className="bg-white rounded-lg sm:rounded-xl shadow-md overflow-hidden border border-valentine-pink/20">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
-                  {service.image_url && (
-                    <div className="lg:col-span-1">
-                      <img
-                        src={service.image_url}
-                        alt={service.name}
-                        className="w-full h-40 sm:h-48 lg:h-full object-cover"
-                      />
+              <div key={service.id} className="bg-white rounded-lg shadow-md overflow-hidden border border-valentine-pink/20 hover:shadow-xl transition-shadow">
+                {service.image_url && (
+                  <div className="h-48 overflow-hidden">
+                    <img
+                      src={service.image_url}
+                      alt={service.name}
+                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
+                )}
+
+                <div className="p-5">
+                  <h2 className="text-xl font-display font-bold text-valentine-red italic mb-2">{service.name}</h2>
+                  <p className="text-sm text-gray-600 mb-3 line-clamp-3">{service.description}</p>
+
+                  {service.price_range && (
+                    <div className="mb-3">
+                      <span className="inline-block bg-valentine-pink/20 text-valentine-red px-3 py-1 rounded-full font-semibold text-sm">
+                        {service.price_range}
+                      </span>
                     </div>
                   )}
 
-                  <div className={`${service.image_url ? 'lg:col-span-2' : 'lg:col-span-3'} p-4 sm:p-5`}>
-                    <div className="flex items-center space-x-2 mb-2 sm:mb-3">
-                      <h2 className="text-xl sm:text-2xl font-display font-bold text-valentine-red italic">{service.name}</h2>
-                    </div>
-                    <p className="text-sm sm:text-base text-gray-600 mb-3 sm:mb-4">{service.description}</p>
-
-                    {service.price_range && (
-                      <div className="mb-3 sm:mb-4">
-                        <span className="inline-block bg-valentine-pink/20 text-valentine-red px-3 py-1 sm:px-4 sm:py-1.5 rounded-full font-semibold text-xs sm:text-sm">
-                          {service.price_range}
-                        </span>
-                      </div>
-                    )}
-
-                    <div>
-                      <button
-                        onClick={() => {
-                          const message = `Hi! I'm interested in ${service.name}. Can you provide more details?`;
-                          const whatsappUrl = `https://wa.me/919492686421?text=${encodeURIComponent(message)}`;
-                          window.open(whatsappUrl, '_blank');
-                        }}
-                        className="btn-romantic text-sm sm:text-base w-full sm:w-auto"
-                      >
-                        Book Now via WhatsApp
-                      </button>
-                    </div>
-                  </div>
+                  <button
+                    onClick={() => {
+                      const message = `Hi! I'm interested in ${service.name}. Can you provide more details?`;
+                      const whatsappUrl = `https://wa.me/919492686421?text=${encodeURIComponent(message)}`;
+                      window.open(whatsappUrl, '_blank');
+                    }}
+                    className="btn-romantic text-sm w-full"
+                  >
+                    Book Now via WhatsApp
+                  </button>
                 </div>
               </div>
             ))}
