@@ -118,7 +118,7 @@ fetch(api.products.list)
 
 ### Before (Hardcoded WhatsApp):
 ```javascript
-const url = `https://wa.me/917416111271?text=${message}`;
+const url = `https://wa.me/919492686421?text=${message}`;
 ```
 
 ### After (Using helper):

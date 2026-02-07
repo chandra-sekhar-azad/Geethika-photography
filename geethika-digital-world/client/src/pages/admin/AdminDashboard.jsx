@@ -8,7 +8,8 @@ import {
   TrendingUp,
   DollarSign,
   Image as ImageIcon,
-  Shield
+  Shield,
+  MessageCircle
 } from 'lucide-react';
 import api from '../../utils/api';
 
@@ -99,6 +100,13 @@ const AdminDashboard = () => {
       icon: Camera,
       link: '/admin/services',
       color: 'from-purple-500 to-purple-600'
+    },
+    { 
+      title: 'WhatsApp Messaging', 
+      description: 'Send WhatsApp messages to customers',
+      icon: MessageCircle,
+      link: '/admin/whatsapp',
+      color: 'from-green-400 to-green-500'
     },
     { 
       title: 'Gallery Management', 

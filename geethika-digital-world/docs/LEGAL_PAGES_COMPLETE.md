@@ -84,7 +84,7 @@ All required legal and informational pages have been created and integrated into
 **Content Includes:**
 - ✅ Business Name: Geethika Digital World
 - ✅ Email: info@geethikadigitalworld.com
-- ✅ Phone: +91 7416111271
+- ✅ Phone: +91 9492686421
 - ✅ Business Address: 123 Main Street, City Center, Your City, State - 123456, India
 - ✅ Business Hours
 - ✅ WhatsApp integration
@@ -138,7 +138,7 @@ All pages include:
 ### Information Displayed ✅
 - [x] Business Name: Geethika Digital World
 - [x] Email: info@geethikadigitalworld.com
-- [x] Phone: +91 7416111271
+- [x] Phone: +91 9492686421
 - [x] Business Address: 123 Main Street, City Center, Your City, State - 123456, India
 
 ## Important Notes
