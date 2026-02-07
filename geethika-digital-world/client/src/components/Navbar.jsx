@@ -79,7 +79,7 @@ const Navbar = () => {
                   className="flex items-center space-x-2 text-gray-700 hover:text-valentine-red transition-colors"
                 >
                   <User className="w-5 h-5" />
-                  <span className="font-medium">{user?.name || user?.email}</span>
+                  <span className="font-medium">{user?.fullName || user?.name || 'User'}</span>
                 </Link>
                 <button
                   onClick={handleLogout}
@@ -166,7 +166,7 @@ const Navbar = () => {
                   onClick={() => setIsOpen(false)}
                   className="block py-2 font-medium text-gray-700"
                 >
-                  Profile ({user?.name || user?.email})
+                  Profile ({user?.fullName || user?.name || 'User'})
                 </Link>
                 <button
                   onClick={handleLogout}
