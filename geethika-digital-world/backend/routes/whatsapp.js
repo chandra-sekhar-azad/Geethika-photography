@@ -1,6 +1,6 @@
 import express from 'express';
 import { sendWhatsAppMessage, sendWhatsAppTemplate, sendWhatsAppMedia } from '../config/whatsapp.js';
-import { authenticateToken, isAdmin } from '../middleware/auth.js';
+import { authenticate, isAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -8,7 +8,7 @@ const router = express.Router();
  * Send order confirmation via WhatsApp
  * POST /api/whatsapp/order-confirmation
  */
-router.post('/order-confirmation', authenticateToken, async (req, res) => {
+router.post('/order-confirmation', authenticate, async (req, res) => {
   try {
     const { orderId, customerPhone, customerName, total, deliveryDate } = req.body;
 
@@ -59,7 +59,7 @@ Need help? Reply to this message or call us at +91 9492686421
  * Send order status update via WhatsApp
  * POST /api/whatsapp/order-status
  */
-router.post('/order-status', authenticateToken, isAdmin, async (req, res) => {
+router.post('/order-status', authenticate, isAdmin, async (req, res) => {
   try {
     const { orderId, customerPhone, customerName, status } = req.body;
 
@@ -115,7 +115,7 @@ Questions? Call us at +91 9492686421
  * Send marketing campaign (Admin only)
  * POST /api/whatsapp/campaign
  */
-router.post('/campaign', authenticateToken, isAdmin, async (req, res) => {
+router.post('/campaign', authenticate, isAdmin, async (req, res) => {
   try {
     const { phoneNumbers, message } = req.body;
 
@@ -160,7 +160,7 @@ router.post('/campaign', authenticateToken, isAdmin, async (req, res) => {
  * Send product image via WhatsApp
  * POST /api/whatsapp/send-image
  */
-router.post('/send-image', authenticateToken, isAdmin, async (req, res) => {
+router.post('/send-image', authenticate, isAdmin, async (req, res) => {
   try {
     const { customerPhone, imageUrl, caption } = req.body;
 
@@ -196,7 +196,7 @@ router.post('/send-image', authenticateToken, isAdmin, async (req, res) => {
  * Test WhatsApp connection
  * GET /api/whatsapp/test
  */
-router.get('/test', authenticateToken, isAdmin, async (req, res) => {
+router.get('/test', authenticate, isAdmin, async (req, res) => {
   try {
     const testNumber = process.env.WHATSAPP_NUMBER || '919492686421';
     const testMessage = 'Test message from Geethika Digital World WhatsApp API. Connection is working! ✅';
