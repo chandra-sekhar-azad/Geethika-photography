@@ -1,7 +1,8 @@
 import express from 'express';
 import pool from '../config/database.js';
 import { authenticate, isSuperAdmin } from '../middleware/auth.js';
-import upload from '../middleware/upload.js';
+import { upload } from '../middleware/upload.js';
+import { logAdminAction } from '../middleware/auditLog.js';
 
 const router = express.Router();
 
@@ -150,6 +151,15 @@ router.put('/admin/content/:id', authenticate, isSuperAdmin, upload.single('imag
       [id]
     );
 
+    // Log audit
+    await logAdminAction(
+      req,
+      'UPDATE',
+      'homepage_content',
+      id,
+      existing.rows[0].section
+    );
+
     res.json({
       success: true,
       message: 'Content updated successfully',
@@ -182,6 +192,15 @@ router.post('/admin/content', authenticate, isSuperAdmin, upload.single('image')
       `INSERT INTO homepage_content (section, content_type, title, description, image_url, link_url, display_order)
        VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
       [section, content_type, title, description, image_url, link_url, display_order || 0]
+    );
+
+    // Log audit
+    await logAdminAction(
+      req,
+      'CREATE',
+      'homepage_content',
+      result.rows[0].id,
+      section
     );
 
     res.status(201).json({
@@ -217,6 +236,15 @@ router.delete('/admin/content/:id', authenticate, isSuperAdmin, async (req, res)
     }
 
     await pool.query('DELETE FROM homepage_content WHERE id = $1', [id]);
+
+    // Log audit
+    await logAdminAction(
+      req,
+      'DELETE',
+      'homepage_content',
+      id,
+      existing.rows[0].section
+    );
 
     res.json({
       success: true,
