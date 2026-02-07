@@ -3,8 +3,8 @@ import { useLocation } from 'react-router-dom';
 
 const WhatsAppFloat = () => {
   const location = useLocation();
-  const phoneNumber = '919492686421'; // WhatsApp Business Number
-  const message = 'Hi! I am interested in your products/services.';
+  const phoneNumber = '918897536435'; // WhatsApp Business Number
+  const message = 'Hi! I want to book a photoshoot or order customized products.';
 
   // Don't render on admin pages
   if (location.pathname.startsWith('/admin')) {

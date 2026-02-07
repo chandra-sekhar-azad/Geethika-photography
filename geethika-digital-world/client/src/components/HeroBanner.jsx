@@ -35,33 +35,34 @@ const HeroBanner = () => {
                 <Sparkles className="w-3 h-3 sm:w-4 sm:h-4" />
               </div>
 
-              <h1 className="font-display text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 leading-tight mb-3 sm:mb-4">
-                <span className="italic">Thoughtful Gifts</span>
-                <br />
-                <span className="bg-gradient-to-r from-valentine-red via-valentine-rose to-valentine-pink bg-clip-text text-transparent">
-                  for Every Love Story
+              <h1 className="font-heading text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-premium-black leading-tight mb-3 sm:mb-4">
+                <span className="block">Capturing Moments</span>
+                <span className="block bg-gradient-to-r from-premium-gold via-valentine-red to-premium-royalBlue bg-clip-text text-transparent">
+                  That Last Forever
                 </span>
               </h1>
               
-              <p className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-700 mb-4 sm:mb-6 md:mb-8 max-w-xl">
-                Celebrate your special moments with personalized gifts, stunning photography, and unforgettable experiences
+              <p className="font-body text-sm sm:text-base md:text-lg lg:text-xl text-gray-700 mb-4 sm:mb-6 md:mb-8 max-w-xl">
+                Professional photography, personalized gifts, and premium printing services for your special moments
               </p>
 
               <div className="flex flex-col xs:flex-row gap-3 sm:gap-4">
                 <button 
-                  className="btn-romantic text-sm sm:text-base md:text-lg inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-2.5 sm:py-3"
+                  className="btn-romantic text-sm sm:text-base md:text-lg inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-2.5 sm:py-3 transform hover:scale-105 transition-transform duration-300"
                   onClick={() => navigate('/shop')}
                 >
                   <Heart className="w-4 h-4 sm:w-5 sm:h-5" />
-                  <span>Explore Collection</span>
+                  <span>Book Now</span>
                 </button>
-                <button 
-                  className="btn-secondary text-sm sm:text-base md:text-lg inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-2.5 sm:py-3"
-                  onClick={() => navigate('/services')}
+                <a
+                  href="https://wa.me/918897536435?text=Hi%2C%20I%20want%20to%20book%20a%20photoshoot"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-secondary text-sm sm:text-base md:text-lg inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-2.5 sm:py-3 transform hover:scale-105 transition-transform duration-300"
                 >
                   <Sparkles className="w-4 h-4 sm:w-5 sm:h-5" />
-                  <span>Book Services</span>
-                </button>
+                  <span>Contact on WhatsApp</span>
+                </a>
               </div>
 
               {/* Offer Banner */}

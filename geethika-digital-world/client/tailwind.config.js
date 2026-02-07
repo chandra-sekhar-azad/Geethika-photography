@@ -17,6 +17,12 @@ export default {
           darkRed: '#8B0000',
           rose: '#FF007F',
         },
+        premium: {
+          black: '#111111',
+          gold: '#d4af37',
+          royalBlue: '#1e3a8a',
+          lightGrey: '#f5f5f5',
+        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -44,9 +50,10 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
-        display: ['Playfair Display', 'serif'],
-        body: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['Open Sans', 'Roboto', 'system-ui', 'sans-serif'],
+        display: ['Poppins', 'Montserrat', 'sans-serif'],
+        heading: ['Poppins', 'Montserrat', 'sans-serif'],
+        body: ['Open Sans', 'Roboto', 'system-ui', 'sans-serif'],
       },
       animation: {
         'pulse-soft': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
