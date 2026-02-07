@@ -11,11 +11,10 @@ export default {
       },
       colors: {
         valentine: {
-          lavender: '#E6E6FA',
-          purple: '#9370DB',
+          pink: '#FF69B4',
           red: '#DC143C',
-          lightLavender: '#F8F8FF',
-          darkPurple: '#663399',
+          lightPink: '#FFB6C1',
+          darkRed: '#8B0000',
           rose: '#FF007F',
         },
         premium: {
