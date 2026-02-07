@@ -59,6 +59,10 @@
     --input: 0 0% 89.8%;
     --ring: 348 83% 47%;
     --rose-medium: 330 81% 60%;
+    --color-valentine-red: #DC143C;
+    --color-valentine-rose: #FF007F;
+    --color-valentine-pink: #FF69B4;
+    --color-valentine-lightPink: #FFB6C1;
   }
 
   body {

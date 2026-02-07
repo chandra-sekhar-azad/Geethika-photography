@@ -30,6 +30,7 @@ const ProductManagement = () => {
 
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
     // Check authentication on mount
@@ -68,13 +69,62 @@ const ProductManagement = () => {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setImageFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
-      };
-      reader.readAsDataURL(file);
+      processImageFile(file);
     }
+  };
+
+  const processImageFile = (file) => {
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Please upload an image file');
+      return;
+    }
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image size must be less than 5MB');
+      return;
+    }
+
+    setImageFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleDragEnter = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      processImageFile(files[0]);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
   };
 
   const handleSubmit = async (e) => {
@@ -418,23 +468,81 @@ const ProductManagement = () => {
                   {/* Image Upload */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Product Image</label>
-                    <div className="flex items-center space-x-4">
-                      {imagePreview && (
-                        <img
-                          src={imagePreview}
-                          alt="Preview"
-                          className="w-24 h-24 object-cover rounded-lg border-2 border-gray-200"
-                        />
+                    <div
+                      onDragEnter={handleDragEnter}
+                      onDragOver={handleDragOver}
+                      onDragLeave={handleDragLeave}
+                      onDrop={handleDrop}
+                      className={`relative border-2 border-dashed rounded-lg p-6 transition-all ${
+                        isDragging
+                          ? 'border-valentine-red bg-valentine-pink/10 scale-105'
+                          : 'border-gray-300 hover:border-valentine-red'
+                      }`}
+                    >
+                      {imagePreview ? (
+                        <div className="flex items-center space-x-4">
+                          <img
+                            src={imagePreview}
+                            alt="Preview"
+                            className="w-32 h-32 object-cover rounded-lg border-2 border-gray-200"
+                          />
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-gray-900 mb-2">Image uploaded successfully!</p>
+                            <div className="flex space-x-2">
+                              <label className="cursor-pointer inline-flex items-center px-4 py-2 bg-valentine-red text-white rounded-lg hover:bg-valentine-darkRed transition-colors text-sm">
+                                <Edit className="w-4 h-4 mr-2" />
+                                Change Image
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={handleImageChange}
+                                  className="hidden"
+                                />
+                              </label>
+                              <button
+                                type="button"
+                                onClick={handleRemoveImage}
+                                className="inline-flex items-center px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors text-sm"
+                              >
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                Remove
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-center">
+                          <div className="mb-4">
+                            <svg
+                              className="mx-auto h-12 w-12 text-gray-400"
+                              stroke="currentColor"
+                              fill="none"
+                              viewBox="0 0 48 48"
+                              aria-hidden="true"
+                            >
+                              <path
+                                d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                                strokeWidth={2}
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          </div>
+                          <div className="flex text-sm text-gray-600 justify-center">
+                            <label className="relative cursor-pointer bg-white rounded-md font-medium text-valentine-red hover:text-valentine-darkRed focus-within:outline-none">
+                              <span>Click to upload</span>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleImageChange}
+                                className="sr-only"
+                              />
+                            </label>
+                            <p className="pl-1">or drag and drop</p>
+                          </div>
+                          <p className="text-xs text-gray-500 mt-2">PNG, JPG, GIF up to 5MB</p>
+                        </div>
                       )}
-                      <div className="flex-1">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleImageChange}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-valentine-red focus:border-transparent"
-                        />
-                        <p className="text-xs text-gray-500 mt-1">Upload product image (JPG, PNG, max 5MB)</p>
-                      </div>
                     </div>
                   </div>
 
@@ -551,28 +659,227 @@ const ProductManagement = () => {
                     <div className="border-2 border-valentine-pink/30 rounded-lg p-4 bg-valentine-pink/5">
                       <h3 className="text-lg font-semibold mb-4 text-valentine-red">Customization Options</h3>
                       
-                      <div className="space-y-4">
+                      <div className="space-y-6">
                         {/* Image Upload Option */}
-                        <label className="flex items-center">
-                          <input
-                            type="checkbox"
-                            checked={formData.customization_options.imageUpload}
-                            onChange={(e) => setFormData({
-                              ...formData,
-                              customization_options: {
-                                ...formData.customization_options,
-                                imageUpload: e.target.checked
-                              }
-                            })}
-                            className="mr-2"
-                          />
-                          <span className="text-sm text-gray-700 font-medium">
-                            📸 Require Customer Image Upload
-                          </span>
-                        </label>
-                        <p className="text-xs text-gray-500 ml-6">
-                          Customer must upload an image to customize this product
-                        </p>
+                        <div>
+                          <label className="flex items-center">
+                            <input
+                              type="checkbox"
+                              checked={formData.customization_options.imageUpload}
+                              onChange={(e) => setFormData({
+                                ...formData,
+                                customization_options: {
+                                  ...formData.customization_options,
+                                  imageUpload: e.target.checked
+                                }
+                              })}
+                              className="mr-2"
+                            />
+                            <span className="text-sm text-gray-700 font-medium">
+                              📸 Require Customer Image Upload
+                            </span>
+                          </label>
+                          <p className="text-xs text-gray-500 ml-6 mt-1">
+                            Customer must upload an image to customize this product
+                          </p>
+                        </div>
+
+                        {/* Text Input Fields */}
+                        <div>
+                          <label className="flex items-center mb-2">
+                            <input
+                              type="checkbox"
+                              checked={formData.customization_options.textInput && formData.customization_options.textInput.length > 0}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setFormData({
+                                    ...formData,
+                                    customization_options: {
+                                      ...formData.customization_options,
+                                      textInput: ['Name']
+                                    }
+                                  });
+                                } else {
+                                  setFormData({
+                                    ...formData,
+                                    customization_options: {
+                                      ...formData.customization_options,
+                                      textInput: []
+                                    }
+                                  });
+                                }
+                              }}
+                              className="mr-2"
+                            />
+                            <span className="text-sm text-gray-700 font-medium">
+                              ✏️ Add Text Input Fields
+                            </span>
+                          </label>
+                          
+                          {formData.customization_options.textInput && formData.customization_options.textInput.length > 0 && (
+                            <div className="ml-6 space-y-2">
+                              {formData.customization_options.textInput.map((field, index) => (
+                                <div key={index} className="flex items-center space-x-2">
+                                  <input
+                                    type="text"
+                                    value={field}
+                                    onChange={(e) => {
+                                      const newTextInput = [...formData.customization_options.textInput];
+                                      newTextInput[index] = e.target.value;
+                                      setFormData({
+                                        ...formData,
+                                        customization_options: {
+                                          ...formData.customization_options,
+                                          textInput: newTextInput
+                                        }
+                                      });
+                                    }}
+                                    placeholder="Field label (e.g., Name, Message)"
+                                    className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-valentine-red focus:border-transparent"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const newTextInput = formData.customization_options.textInput.filter((_, i) => i !== index);
+                                      setFormData({
+                                        ...formData,
+                                        customization_options: {
+                                          ...formData.customization_options,
+                                          textInput: newTextInput
+                                        }
+                                      });
+                                    }}
+                                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              ))}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setFormData({
+                                    ...formData,
+                                    customization_options: {
+                                      ...formData.customization_options,
+                                      textInput: [...formData.customization_options.textInput, '']
+                                    }
+                                  });
+                                }}
+                                className="text-sm text-valentine-red hover:text-valentine-darkRed font-medium"
+                              >
+                                + Add Another Field
+                              </button>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Size Options */}
+                        <div>
+                          <label className="flex items-center mb-2">
+                            <input
+                              type="checkbox"
+                              checked={formData.customization_options.sizes && formData.customization_options.sizes.length > 0}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setFormData({
+                                    ...formData,
+                                    customization_options: {
+                                      ...formData.customization_options,
+                                      sizes: [{ name: 'Small', price: formData.price }]
+                                    }
+                                  });
+                                } else {
+                                  setFormData({
+                                    ...formData,
+                                    customization_options: {
+                                      ...formData.customization_options,
+                                      sizes: []
+                                    }
+                                  });
+                                }
+                              }}
+                              className="mr-2"
+                            />
+                            <span className="text-sm text-gray-700 font-medium">
+                              📏 Add Size Options
+                            </span>
+                          </label>
+                          
+                          {formData.customization_options.sizes && formData.customization_options.sizes.length > 0 && (
+                            <div className="ml-6 space-y-2">
+                              {formData.customization_options.sizes.map((size, index) => (
+                                <div key={index} className="flex items-center space-x-2">
+                                  <input
+                                    type="text"
+                                    value={size.name}
+                                    onChange={(e) => {
+                                      const newSizes = [...formData.customization_options.sizes];
+                                      newSizes[index].name = e.target.value;
+                                      setFormData({
+                                        ...formData,
+                                        customization_options: {
+                                          ...formData.customization_options,
+                                          sizes: newSizes
+                                        }
+                                      });
+                                    }}
+                                    placeholder="Size name (e.g., Small, Medium, Large)"
+                                    className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-valentine-red focus:border-transparent"
+                                  />
+                                  <input
+                                    type="number"
+                                    value={size.price}
+                                    onChange={(e) => {
+                                      const newSizes = [...formData.customization_options.sizes];
+                                      newSizes[index].price = parseFloat(e.target.value) || 0;
+                                      setFormData({
+                                        ...formData,
+                                        customization_options: {
+                                          ...formData.customization_options,
+                                          sizes: newSizes
+                                        }
+                                      });
+                                    }}
+                                    placeholder="Price"
+                                    className="w-24 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-valentine-red focus:border-transparent"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const newSizes = formData.customization_options.sizes.filter((_, i) => i !== index);
+                                      setFormData({
+                                        ...formData,
+                                        customization_options: {
+                                          ...formData.customization_options,
+                                          sizes: newSizes
+                                        }
+                                      });
+                                    }}
+                                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              ))}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setFormData({
+                                    ...formData,
+                                    customization_options: {
+                                      ...formData.customization_options,
+                                      sizes: [...formData.customization_options.sizes, { name: '', price: formData.price }]
+                                    }
+                                  });
+                                }}
+                                className="text-sm text-valentine-red hover:text-valentine-darkRed font-medium"
+                              >
+                                + Add Another Size
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   )}

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ShoppingCart, Upload, Heart } from 'lucide-react';
+import { ShoppingCart, Upload, Heart, Zap } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 
@@ -102,12 +102,12 @@ const ProductDetailPage = () => {
     });
   };
 
-  const handleAddToCart = () => {
+  const validateCustomization = () => {
     // Check if user is logged in
     if (!isAuthenticated()) {
       // Redirect to login with return path
       navigate('/login', { state: { from: { pathname: `/product/${product.id}` } } });
-      return;
+      return false;
     }
 
     // Validate customization if product is customizable
@@ -115,7 +115,7 @@ const ProductDetailPage = () => {
       // Check if image upload is required
       if (product.customization_options.imageUpload && !customization.image) {
         alert('Please upload an image for customization');
-        return;
+        return false;
       }
 
       // Check if text inputs are filled (if any)
@@ -125,18 +125,22 @@ const ProductDetailPage = () => {
         );
         if (missingInputs.length > 0) {
           alert(`Please fill in: ${missingInputs.join(', ')}`);
-          return;
+          return false;
         }
       }
 
       // Check if size is selected (if sizes are available)
       if (product.customization_options.sizes && !customization.selectedSize) {
         alert('Please select a size');
-        return;
+        return false;
       }
     }
 
-    const cartItem = {
+    return true;
+  };
+
+  const createCartItem = () => {
+    return {
       id: product.id,
       name: product.name,
       image: product.image || product.image_url,
@@ -151,11 +155,27 @@ const ProductDetailPage = () => {
         size: customization.selectedSize,
       } : null,
     };
+  };
 
+  const handleAddToCart = () => {
+    if (!validateCustomization()) return;
+
+    const cartItem = createCartItem();
     const success = addToCart(cartItem);
     if (success) {
       // Show success message or navigate to cart
       navigate('/cart');
+    }
+  };
+
+  const handleBuyNow = () => {
+    if (!validateCustomization()) return;
+
+    const cartItem = createCartItem();
+    const success = addToCart(cartItem);
+    if (success) {
+      // Directly navigate to checkout page
+      navigate('/checkout');
     }
   };
 
@@ -334,14 +354,26 @@ const ProductDetailPage = () => {
                 </div>
               </div>
 
-              {/* Add to Cart Button */}
-              <button
-                onClick={handleAddToCart}
-                className="w-full btn-primary flex items-center justify-center space-x-2 text-sm sm:text-base py-3 sm:py-4"
-              >
-                <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span>Add to Cart</span>
-              </button>
+              {/* Action Buttons */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                {/* Add to Cart Button */}
+                <button
+                  onClick={handleAddToCart}
+                  className="btn-secondary flex items-center justify-center space-x-2 text-sm sm:text-base py-3 sm:py-4"
+                >
+                  <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <span>Add to Cart</span>
+                </button>
+
+                {/* Buy Now Button */}
+                <button
+                  onClick={handleBuyNow}
+                  className="btn-primary flex items-center justify-center space-x-2 text-sm sm:text-base py-3 sm:py-4"
+                >
+                  <Zap className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <span>Buy Now</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
