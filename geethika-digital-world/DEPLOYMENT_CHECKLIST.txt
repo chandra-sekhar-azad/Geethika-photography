@@ -1,0 +1,195 @@
+╔═══════════════════════════════════════════════════════════════╗
+║                                                               ║
+║           DEPLOYMENT CHECKLIST - HOMEPAGE FEATURE             ║
+║                                                               ║
+╚═══════════════════════════════════════════════════════════════╝
+
+
+📋 PRE-DEPLOYMENT
+─────────────────────────────────────────────────────────────
+
+[ ] All files saved
+[ ] Local testing completed
+[ ] No console errors
+[ ] Backend starts without errors
+[ ] Frontend builds successfully
+
+
+🔄 GIT OPERATIONS
+─────────────────────────────────────────────────────────────
+
+Commands to run:
+
+  cd geethika-digital-world
+  git add .
+  git commit -m "Add homepage management and fix localhost URLs"
+  git push origin main
+
+Checklist:
+[ ] git add completed
+[ ] git commit completed  
+[ ] git push completed
+[ ] No errors during push
+
+
+🚀 RENDER DEPLOYMENT (Backend)
+─────────────────────────────────────────────────────────────
+
+Go to: https://dashboard.render.com
+
+[ ] Login to Render
+[ ] Navigate to your backend service
+[ ] Check "Events" tab shows "Deploy started"
+[ ] Wait for "Build in progress" (2-3 minutes)
+[ ] Verify "Deploy live" appears
+[ ] Check "Logs" tab for any errors
+[ ] Service status shows "Live"
+
+
+💾 DATABASE MIGRATION
+─────────────────────────────────────────────────────────────
+
+In Render Dashboard:
+
+[ ] Click on your service
+[ ] Click "Shell" tab
+[ ] Run: node scripts/create-homepage-content-table.js
+[ ] Verify output shows: ✅ Homepage content table setup complete!
+[ ] Check: 8 rows created (1 banner + 4 offers + 3 testimonials)
+
+
+🌐 FRONTEND DEPLOYMENT (Vercel)
+─────────────────────────────────────────────────────────────
+
+Commands to run:
+
+  cd client
+  npm run build
+  vercel --prod
+
+Checklist:
+[ ] Build completes without errors
+[ ] Vercel deployment starts
+[ ] Deployment URL provided
+[ ] Production URL updated
+
+
+✅ VERIFICATION
+─────────────────────────────────────────────────────────────
+
+Backend API:
+[ ] Test: curl https://geethika-digital-world1.onrender.com/api/homepage/content
+[ ] Response includes hero_banner, offers, testimonials
+[ ] No 404 or 500 errors
+
+Frontend:
+[ ] Visit your production website
+[ ] No console errors (F12)
+[ ] All images load correctly
+[ ] No localhost:5000 errors
+
+Admin Access:
+[ ] Login as super admin
+[ ] Navigate to /admin/homepage
+[ ] Page loads without errors
+[ ] Can see all content sections
+
+
+🧪 FEATURE TESTING
+─────────────────────────────────────────────────────────────
+
+[ ] Click edit on hero banner
+[ ] Upload a test image
+[ ] Save changes
+[ ] Verify image appears on homepage
+[ ] Toggle visibility (eye icon)
+[ ] Check content hides/shows
+[ ] Edit offer card text
+[ ] Update testimonial
+[ ] Check audit log records changes
+
+
+📊 MONITORING
+─────────────────────────────────────────────────────────────
+
+First Hour:
+[ ] Check Render logs for errors
+[ ] Monitor API response times
+[ ] Verify no 500 errors
+[ ] Check database connections
+
+First Day:
+[ ] Test all admin features
+[ ] Upload production images
+[ ] Update homepage content
+[ ] Gather user feedback
+
+
+🔧 TROUBLESHOOTING
+─────────────────────────────────────────────────────────────
+
+If Render doesn't deploy:
+[ ] Check GitHub push was successful
+[ ] Verify Render auto-deploy is enabled
+[ ] Try manual deploy button
+[ ] Check Render logs for errors
+
+If migration fails:
+[ ] Verify DATABASE_URL is set
+[ ] Check database is accessible
+[ ] Review migration script logs
+[ ] Try running migration again
+
+If frontend errors:
+[ ] Clear browser cache (Ctrl+F5)
+[ ] Check .env has correct VITE_API_URL
+[ ] Verify Vercel build succeeded
+[ ] Check browser console for errors
+
+
+📝 POST-DEPLOYMENT TASKS
+─────────────────────────────────────────────────────────────
+
+Immediate:
+[ ] Test all features in production
+[ ] Upload real homepage images
+[ ] Update content with production text
+[ ] Notify team of new feature
+
+Within 24 hours:
+[ ] Monitor error logs
+[ ] Check performance metrics
+[ ] Gather initial feedback
+[ ] Document any issues
+
+Within 1 week:
+[ ] Review usage analytics
+[ ] Optimize if needed
+[ ] Plan improvements
+[ ] Update documentation
+
+
+✨ SUCCESS CRITERIA
+─────────────────────────────────────────────────────────────
+
+Deployment is successful when:
+
+✅ Backend deployed to Render
+✅ Database table created
+✅ Frontend deployed to Vercel
+✅ No localhost errors
+✅ Homepage management accessible
+✅ Can upload images
+✅ Changes appear on homepage
+✅ Audit log working
+✅ No console errors
+✅ Mobile responsive
+
+
+═══════════════════════════════════════════════════════════
+
+CURRENT STATUS: Ready to deploy! 🚀
+
+Next step: Run the git commands above to push your changes.
+
+═══════════════════════════════════════════════════════════

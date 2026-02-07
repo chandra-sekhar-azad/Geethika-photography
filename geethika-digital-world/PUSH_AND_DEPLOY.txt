@@ -1,0 +1,114 @@
+═══════════════════════════════════════════════════════════
+  PUSH CHANGES AND DEPLOY TO RENDER
+═══════════════════════════════════════════════════════════
+
+STEP 1: COMMIT AND PUSH TO GITHUB
+──────────────────────────────────────────────────────────
+
+Open your terminal and run these commands:
+
+cd geethika-digital-world
+
+git add .
+
+git commit -m "Add homepage management feature and fix localhost URLs"
+
+git push origin main
+
+
+STEP 2: WAIT FOR RENDER TO AUTO-DEPLOY
+──────────────────────────────────────────────────────────
+
+1. Go to: https://dashboard.render.com
+2. Click on your backend service: "geethika-backend" or similar
+3. Watch the "Events" tab - you should see:
+   - "Deploy started"
+   - "Build in progress"
+   - "Deploy live"
+
+This takes about 3-5 minutes.
+
+
+STEP 3: RUN DATABASE MIGRATION ON RENDER
+──────────────────────────────────────────────────────────
+
+After deployment completes:
+
+1. In Render Dashboard, click your service
+2. Click "Shell" tab at the top
+3. Run this command:
+
+   node scripts/create-homepage-content-table.js
+
+4. You should see:
+   ✅ Homepage content table setup complete!
+
+
+STEP 4: DEPLOY FRONTEND TO VERCEL
+──────────────────────────────────────────────────────────
+
+In your terminal:
+
+cd client
+
+npm run build
+
+vercel --prod
+
+
+STEP 5: TEST IN PRODUCTION
+──────────────────────────────────────────────────────────
+
+1. Go to your website
+2. Login as super admin
+3. Navigate to /admin/homepage
+4. Try uploading an image
+5. Check if changes appear on homepage
+
+
+═══════════════════════════════════════════════════════════
+  TROUBLESHOOTING
+═══════════════════════════════════════════════════════════
+
+IF RENDER DOESN'T AUTO-DEPLOY:
+-------------------------------
+1. Check if push was successful: git log --oneline -1
+2. Go to Render Dashboard
+3. Click "Manual Deploy" → "Deploy latest commit"
+
+
+IF YOU GET "PERMISSION DENIED":
+--------------------------------
+Your GitHub credentials may need updating.
+Use GitHub Desktop or authenticate via browser.
+
+
+IF MIGRATION FAILS:
+-------------------
+Check Render logs for errors.
+Verify DATABASE_URL environment variable is set.
+
+
+═══════════════════════════════════════════════════════════
+  WHAT'S BEING DEPLOYED
+═══════════════════════════════════════════════════════════
+
+✅ Homepage Management Feature
+   - Super admins can change homepage images
+   - Edit hero banner, offers, testimonials
+   - Upload images through admin interface
+
+✅ Localhost URL Fixes
+   - All API calls now use production URL
+   - No more localhost:5000 errors
+   - Works correctly in production
+
+✅ New Files:
+   - backend/routes/homepage.js
+   - backend/scripts/create-homepage-content-table.js
+   - client/src/pages/admin/HomePageManagement.jsx
+   - Plus documentation files
+
+═══════════════════════════════════════════════════════════
+
+Need help? Check FIX_RENDER_DEPLOYMENT.md for detailed guide.
