@@ -1,6 +1,16 @@
-import { Heart, Camera, Gift, Users, Award, Target, Sparkles } from 'lucide-react';
+import { Heart, Camera, Gift, Users, Award, Target, Sparkles, MapPin, Phone, Mail, Clock, MessageCircle } from 'lucide-react';
 
 const AboutPage = () => {
+  const handleWhatsApp = () => {
+    const message = 'Hi! I would like to know more about your services.';
+    const whatsappUrl = `https://wa.me/917416111271?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+  };
+
+  const handleCall = () => {
+    window.location.href = 'tel:+917416111271';
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -183,24 +193,161 @@ const AboutPage = () => {
         </section>
 
         {/* Contact CTA */}
-        <section className="bg-valentine-gradient text-white rounded-xl shadow-lg p-8 text-center">
+        <section className="bg-valentine-gradient text-white rounded-xl shadow-lg p-8 text-center mb-8">
           <h2 className="text-3xl font-bold mb-4">Let's Create Something Special Together</h2>
           <p className="text-lg mb-6">
             Have a question or want to discuss your requirements? We'd love to hear from you!
           </p>
           <div className="flex flex-wrap gap-4 justify-center">
-            <a
-              href="/contact"
+            <button
+              onClick={handleWhatsApp}
               className="bg-white text-valentine-red px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
             >
               Contact Us
-            </a>
+            </button>
             <a
               href="/shop"
               className="bg-valentine-red border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-valentine-red/90 transition-colors"
             >
               Shop Now
             </a>
+          </div>
+        </section>
+
+        {/* Contact Information Section */}
+        <section className="mb-8">
+          <h2 className="text-3xl font-bold text-valentine-red mb-6 text-center">Get In Touch</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Contact Details */}
+            <div className="space-y-6">
+              <div className="bg-white rounded-2xl shadow-lg p-8 border border-valentine-pink/20">
+                <h3 className="text-2xl font-bold mb-6 text-valentine-red">
+                  Contact Information
+                </h3>
+
+                <div className="space-y-4">
+                  <div className="flex items-start space-x-4">
+                    <div className="bg-valentine-red/10 p-3 rounded-lg flex-shrink-0">
+                      <MapPin className="w-6 h-6 text-valentine-red" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold mb-1">Address</h4>
+                      <p className="text-gray-600 mb-2">
+                        Geethika Digital World<br />
+                        Hyderabad, Telangana<br />
+                        India
+                      </p>
+                      <a
+                        href="https://maps.app.goo.gl/xWe5mszQAzkjj3iQA"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-valentine-red hover:underline text-sm inline-flex items-center"
+                      >
+                        View on Google Maps →
+                      </a>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start space-x-4">
+                    <div className="bg-valentine-red/10 p-3 rounded-lg flex-shrink-0">
+                      <Phone className="w-6 h-6 text-valentine-red" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold mb-1">Phone</h4>
+                      <p className="text-gray-600">+91 7416111271</p>
+                      <button
+                        onClick={handleCall}
+                        className="text-valentine-red hover:underline text-sm mt-1"
+                      >
+                        Call Now
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start space-x-4">
+                    <div className="bg-valentine-red/10 p-3 rounded-lg flex-shrink-0">
+                      <Mail className="w-6 h-6 text-valentine-red" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold mb-1">Email</h4>
+                      <p className="text-gray-600">info@geethikadigitalworld.com</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start space-x-4">
+                    <div className="bg-valentine-red/10 p-3 rounded-lg flex-shrink-0">
+                      <Clock className="w-6 h-6 text-valentine-red" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold mb-1">Business Hours</h4>
+                      <p className="text-gray-600">
+                        Monday - Saturday: 10:00 AM - 8:00 PM<br />
+                        Sunday: 11:00 AM - 6:00 PM
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleWhatsApp}
+                  className="w-full mt-6 bg-green-500 hover:bg-green-600 text-white px-6 py-4 rounded-xl font-semibold flex items-center justify-center space-x-2 transition-all shadow-lg hover:shadow-xl"
+                >
+                  <MessageCircle className="w-5 h-5" />
+                  <span>Chat on WhatsApp</span>
+                </button>
+              </div>
+
+              <div className="bg-white rounded-2xl shadow-lg p-8 border border-valentine-pink/20">
+                <h3 className="text-2xl font-bold mb-4 text-valentine-red">
+                  Valentine Special Offers
+                </h3>
+                <div className="space-y-3">
+                  <div className="bg-gradient-to-r from-valentine-pink/20 to-valentine-red/10 p-5 rounded-xl border border-valentine-pink/30">
+                    <p className="font-semibold text-valentine-red mb-1">
+                      💝 Flat 20% OFF on all products
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      Valid till February 14th
+                    </p>
+                  </div>
+                  <div className="bg-gradient-to-r from-valentine-pink/20 to-valentine-red/10 p-5 rounded-xl border border-valentine-pink/30">
+                    <p className="font-semibold text-valentine-red mb-1">
+                      📸 Free couple photoshoot with event booking
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      Limited slots available
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Map */}
+            <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-valentine-pink/20">
+              <div className="h-full min-h-[500px] relative">
+                <iframe
+                  src="https://www.google.com/maps?q=17.4167,78.4833&hl=en&z=14&output=embed"
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0 }}
+                  allowFullScreen=""
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title="Geethika Digital World Location - Hyderabad"
+                />
+              </div>
+              <div className="p-4 bg-gray-50 border-t border-gray-200">
+                <a
+                  href="https://maps.app.goo.gl/xWe5mszQAzkjj3iQA"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center space-x-2 text-valentine-red hover:text-valentine-red/80 font-semibold transition-colors"
+                >
+                  <MapPin className="w-5 h-5" />
+                  <span>Open in Google Maps</span>
+                </a>
+              </div>
+            </div>
           </div>
         </section>
       </div>

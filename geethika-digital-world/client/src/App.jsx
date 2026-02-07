@@ -11,7 +11,6 @@ import ShopPage from './pages/ShopPage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import ServicesPage from './pages/ServicesPage';
 import GalleryPage from './pages/GalleryPage';
-import ContactPage from './pages/ContactPage';
 import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
 import LoginPage from './pages/LoginPage';
@@ -91,7 +90,6 @@ function App() {
                       <Route path="/product/:id" element={<ProductDetailPage />} />
                       <Route path="/services" element={<ServicesPage />} />
                       <Route path="/gallery" element={<GalleryPage />} />
-                      <Route path="/contact" element={<ContactPage />} />
                       <Route path="/cart" element={<CartPage />} />
                       <Route path="/checkout" element={<CheckoutPage />} />
                       <Route path="/login" element={<LoginPage />} />
