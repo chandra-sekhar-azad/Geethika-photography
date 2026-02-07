@@ -1,8 +1,7 @@
 import express from 'express';
 import pool from '../config/database.js';
-import { authenticateToken, requireSuperAdmin } from '../middleware/auth.js';
+import { authenticate, isSuperAdmin } from '../middleware/auth.js';
 import upload from '../middleware/upload.js';
-import { logAudit } from '../middleware/auditLog.js';
 
 const router = express.Router();
 
@@ -34,7 +33,7 @@ router.get('/content', async (req, res) => {
 });
 
 // Get all homepage content for admin (includes inactive)
-router.get('/admin/content', authenticateToken, requireSuperAdmin, async (req, res) => {
+router.get('/admin/content', authenticate, isSuperAdmin, async (req, res) => {
   try {
     const result = await pool.query(
       'SELECT * FROM homepage_content ORDER BY content_type, display_order'
@@ -54,7 +53,7 @@ router.get('/admin/content', authenticateToken, requireSuperAdmin, async (req, r
 });
 
 // Get single content item
-router.get('/admin/content/:id', authenticateToken, requireSuperAdmin, async (req, res) => {
+router.get('/admin/content/:id', authenticate, isSuperAdmin, async (req, res) => {
   try {
     const result = await pool.query(
       'SELECT * FROM homepage_content WHERE id = $1',
@@ -82,7 +81,7 @@ router.get('/admin/content/:id', authenticateToken, requireSuperAdmin, async (re
 });
 
 // Update homepage content
-router.put('/admin/content/:id', authenticateToken, requireSuperAdmin, upload.single('image'), async (req, res) => {
+router.put('/admin/content/:id', authenticate, isSuperAdmin, upload.single('image'), async (req, res) => {
   try {
     const { id } = req.params;
     const { title, description, link_url, display_order, is_active } = req.body;
@@ -151,15 +150,6 @@ router.put('/admin/content/:id', authenticateToken, requireSuperAdmin, upload.si
       [id]
     );
 
-    // Log audit
-    await logAudit(
-      req.user.id,
-      'UPDATE',
-      'homepage_content',
-      id,
-      `Updated homepage content: ${existing.rows[0].section}`
-    );
-
     res.json({
       success: true,
       message: 'Content updated successfully',
@@ -175,7 +165,7 @@ router.put('/admin/content/:id', authenticateToken, requireSuperAdmin, upload.si
 });
 
 // Create new homepage content
-router.post('/admin/content', authenticateToken, requireSuperAdmin, upload.single('image'), async (req, res) => {
+router.post('/admin/content', authenticate, isSuperAdmin, upload.single('image'), async (req, res) => {
   try {
     const { section, content_type, title, description, link_url, display_order } = req.body;
 
@@ -194,15 +184,6 @@ router.post('/admin/content', authenticateToken, requireSuperAdmin, upload.singl
       [section, content_type, title, description, image_url, link_url, display_order || 0]
     );
 
-    // Log audit
-    await logAudit(
-      req.user.id,
-      'CREATE',
-      'homepage_content',
-      result.rows[0].id,
-      `Created homepage content: ${section}`
-    );
-
     res.status(201).json({
       success: true,
       message: 'Content created successfully',
@@ -218,7 +199,7 @@ router.post('/admin/content', authenticateToken, requireSuperAdmin, upload.singl
 });
 
 // Delete homepage content
-router.delete('/admin/content/:id', authenticateToken, requireSuperAdmin, async (req, res) => {
+router.delete('/admin/content/:id', authenticate, isSuperAdmin, async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -236,15 +217,6 @@ router.delete('/admin/content/:id', authenticateToken, requireSuperAdmin, async 
     }
 
     await pool.query('DELETE FROM homepage_content WHERE id = $1', [id]);
-
-    // Log audit
-    await logAudit(
-      req.user.id,
-      'DELETE',
-      'homepage_content',
-      id,
-      `Deleted homepage content: ${existing.rows[0].section}`
-    );
 
     res.json({
       success: true,
