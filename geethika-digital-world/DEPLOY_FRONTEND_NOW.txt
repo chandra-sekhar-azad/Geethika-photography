@@ -1,0 +1,95 @@
+═══════════════════════════════════════════════════════════════
+  🚨 URGENT: DEPLOY FRONTEND TO FIX REGISTRATION
+═══════════════════════════════════════════════════════════════
+
+PROBLEM: Registration shows success but user NOT saved to database
+CAUSE: Vercel is serving OLD code (before the fix)
+SOLUTION: Redeploy frontend to Vercel NOW
+
+═══════════════════════════════════════════════════════════════
+  OPTION 1: VERCEL DASHBOARD (EASIEST)
+═══════════════════════════════════════════════════════════════
+
+1. Go to: https://vercel.com/dashboard
+
+2. Find your project (geethika-digital-world or similar)
+
+3. Click on the project
+
+4. Click "Redeploy" button (top right)
+   OR
+   Go to "Deployments" tab → Click "..." on latest → "Redeploy"
+
+5. Wait 2-3 minutes for deployment
+
+6. Test registration again
+
+═══════════════════════════════════════════════════════════════
+  OPTION 2: COMMAND LINE (IF OPTION 1 FAILS)
+═══════════════════════════════════════════════════════════════
+
+Open terminal and run:
+
+cd geethika-digital-world/client
+vercel --prod
+
+(If vercel command not found, install first: npm install -g vercel)
+
+═══════════════════════════════════════════════════════════════
+  VERIFY DEPLOYMENT WORKED
+═══════════════════════════════════════════════════════════════
+
+After deployment:
+
+1. Open your website
+2. Press Ctrl + Shift + Delete (clear cache)
+3. Go to Sign Up page
+4. Open DevTools (F12) → Network tab
+5. Fill form and click Sign Up
+6. Look for POST request to /api/auth/register
+
+✅ If you see the API call → Deployment worked!
+❌ If no API call → Try hard refresh (Ctrl + F5)
+
+═══════════════════════════════════════════════════════════════
+  TEST REGISTRATION
+═══════════════════════════════════════════════════════════════
+
+After deployment:
+
+1. Go to Sign Up page
+2. Fill in:
+   - Name: Test User
+   - Email: test@example.com
+   - Password: Test@123456
+   - Confirm Password: Test@123456
+   - Accept Terms: ✓
+
+3. Click Sign Up
+
+4. Should redirect to home page
+
+5. Try logging in with same credentials
+
+6. Should work!
+
+═══════════════════════════════════════════════════════════════
+  IMPORTANT NOTES
+═══════════════════════════════════════════════════════════════
+
+• The fix is already in GitHub (committed and pushed)
+• Backend API is working correctly
+• Only frontend needs redeployment
+• After deployment, registration will work immediately
+• No database changes needed
+• No backend changes needed
+
+═══════════════════════════════════════════════════════════════
+  STATUS
+═══════════════════════════════════════════════════════════════
+
+✅ Code fixed in GitHub
+✅ Backend working
+❌ Frontend needs redeployment ← DO THIS NOW!
+
+═══════════════════════════════════════════════════════════════
