@@ -108,6 +108,13 @@ const AdminDashboard = () => {
       color: 'from-pink-500 to-pink-600'
     },
     { 
+      title: 'Homepage Management', 
+      description: 'Manage homepage images and content',
+      icon: ImageIcon,
+      link: '/admin/homepage',
+      color: 'from-rose-500 to-rose-600'
+    },
+    { 
       title: 'Customer Management', 
       description: 'View customer information',
       icon: Users,

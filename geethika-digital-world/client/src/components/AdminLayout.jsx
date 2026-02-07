@@ -1,7 +1,7 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, Package, ShoppingCart, Users, 
-  TrendingUp, LogOut, Menu, X, Shield, FileText, MessageSquare, Send 
+  TrendingUp, LogOut, Menu, X, Shield, FileText, MessageSquare, Send, Image 
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
@@ -24,6 +24,7 @@ const AdminLayout = ({ children }) => {
     { path: '/admin/services', icon: Package, label: 'Services' },
     { path: '/admin/orders', icon: ShoppingCart, label: 'Orders' },
     { path: '/admin/customers', icon: Users, label: 'Customers' },
+    { path: '/admin/homepage', icon: Image, label: 'Homepage' },
     { path: '/admin/sales-report', icon: TrendingUp, label: 'Sales Report' },
     { path: '/admin/whatsapp-templates', icon: MessageSquare, label: 'WhatsApp Templates' },
     { path: '/admin/whatsapp-campaigns', icon: Send, label: 'WhatsApp Campaigns' }

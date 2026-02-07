@@ -38,6 +38,7 @@ import WhatsAppTemplates from './pages/admin/WhatsAppTemplates';
 import WhatsAppCampaigns from './pages/admin/WhatsAppCampaigns';
 import GalleryManagement from './pages/admin/GalleryManagement';
 import Analytics from './pages/admin/Analytics';
+import HomePageManagement from './pages/admin/HomePageManagement';
 import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
 
@@ -68,6 +69,7 @@ function App() {
                       <Route path="whatsapp-templates" element={<WhatsAppTemplates />} />
                       <Route path="whatsapp-campaigns" element={<WhatsAppCampaigns />} />
                       <Route path="gallery" element={<GalleryManagement />} />
+                      <Route path="homepage" element={<HomePageManagement />} />
                       <Route path="analytics" element={<Analytics />} />
                       <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
                     </Routes>
