@@ -82,35 +82,35 @@ const ServicesPage = () => {
             <p className="text-gray-500 text-base sm:text-lg">No services available at the moment.</p>
           </div>
         ) : (
-          <div className="space-y-6 sm:space-y-8 md:space-y-12">
+          <div className="space-y-4 sm:space-y-6">
             {services.map((service) => (
-              <div key={service.id} className="bg-white rounded-xl sm:rounded-2xl shadow-lg overflow-hidden border border-valentine-pink/20">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+              <div key={service.id} className="bg-white rounded-lg sm:rounded-xl shadow-md overflow-hidden border border-valentine-pink/20">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
                   {service.image_url && (
                     <div className="lg:col-span-1">
                       <img
                         src={service.image_url}
                         alt={service.name}
-                        className="w-full h-48 sm:h-56 md:h-64 lg:h-full object-cover"
+                        className="w-full h-40 sm:h-48 lg:h-full object-cover"
                       />
                     </div>
                   )}
 
-                  <div className={`${service.image_url ? 'lg:col-span-2' : 'lg:col-span-3'} p-4 sm:p-6 md:p-8`}>
-                    <div className="flex items-center space-x-2 sm:space-x-3 mb-3 sm:mb-4">
-                      <h2 className="text-2xl sm:text-3xl font-display font-bold text-valentine-red italic">{service.name}</h2>
+                  <div className={`${service.image_url ? 'lg:col-span-2' : 'lg:col-span-3'} p-4 sm:p-5`}>
+                    <div className="flex items-center space-x-2 mb-2 sm:mb-3">
+                      <h2 className="text-xl sm:text-2xl font-display font-bold text-valentine-red italic">{service.name}</h2>
                     </div>
-                    <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">{service.description}</p>
+                    <p className="text-sm sm:text-base text-gray-600 mb-3 sm:mb-4">{service.description}</p>
 
                     {service.price_range && (
-                      <div className="mb-4 sm:mb-6">
-                        <span className="inline-block bg-valentine-pink/20 text-valentine-red px-3 py-1.5 sm:px-4 sm:py-2 rounded-full font-semibold text-xs sm:text-sm md:text-base">
+                      <div className="mb-3 sm:mb-4">
+                        <span className="inline-block bg-valentine-pink/20 text-valentine-red px-3 py-1 sm:px-4 sm:py-1.5 rounded-full font-semibold text-xs sm:text-sm">
                           {service.price_range}
                         </span>
                       </div>
                     )}
 
-                    <div className="space-y-3 sm:space-y-4">
+                    <div>
                       <button
                         onClick={() => {
                           const message = `Hi! I'm interested in ${service.name}. Can you provide more details?`;

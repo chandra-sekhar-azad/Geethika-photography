@@ -5,12 +5,12 @@ const HeroBanner = () => {
   const navigate = useNavigate();
 
   return (
-    <section className="relative w-full overflow-hidden bg-gradient-to-br from-pink-50 via-red-50 to-rose-50">
+    <section className="relative w-full overflow-hidden bg-gradient-to-br from-purple-50 via-lavender-50 to-violet-50">
       {/* Decorative Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-10 left-10 w-16 h-16 sm:w-20 sm:h-20 bg-valentine-pink/20 rounded-full blur-3xl animate-float" />
-        <div className="absolute top-40 right-20 w-24 h-24 sm:w-32 sm:h-32 bg-valentine-red/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '1s' }} />
-        <div className="absolute bottom-20 left-1/4 w-20 h-20 sm:w-24 sm:h-24 bg-valentine-rose/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-10 left-10 w-16 h-16 sm:w-20 sm:h-20 bg-purple-300/20 rounded-full blur-3xl animate-float" />
+        <div className="absolute top-40 right-20 w-24 h-24 sm:w-32 sm:h-32 bg-lavender-400/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '1s' }} />
+        <div className="absolute bottom-20 left-1/4 w-20 h-20 sm:w-24 sm:h-24 bg-violet-300/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }} />
       </div>
 
       {/* Background Image */}
@@ -29,7 +29,7 @@ const HeroBanner = () => {
           <div className="container mx-auto px-4 sm:px-6 md:px-8">
             <div className="max-w-xl lg:max-w-2xl animate-fade-in">
               {/* Valentine Badge */}
-              <div className="inline-flex items-center gap-1.5 sm:gap-2 bg-gradient-to-r from-valentine-red to-valentine-rose text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-full mb-4 sm:mb-6 shadow-lg">
+              <div className="inline-flex items-center gap-1.5 sm:gap-2 bg-gradient-to-r from-purple-500 to-lavender-400 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-full mb-4 sm:mb-6 shadow-lg">
                 <Heart className="w-3 h-3 sm:w-4 sm:h-4 fill-current" />
                 <span className="text-xs sm:text-sm font-semibold">Valentine Special Collection</span>
                 <Sparkles className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -54,22 +54,13 @@ const HeroBanner = () => {
                   <Heart className="w-4 h-4 sm:w-5 sm:h-5" />
                   <span>Book Now</span>
                 </button>
-                <a
-                  href="https://wa.me/918897536435?text=Hi%2C%20I%20want%20to%20book%20a%20photoshoot"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn-secondary text-sm sm:text-base md:text-lg inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-2.5 sm:py-3 transform hover:scale-105 transition-transform duration-300"
-                >
-                  <Sparkles className="w-4 h-4 sm:w-5 sm:h-5" />
-                  <span>Contact on WhatsApp</span>
-                </a>
               </div>
 
               {/* Offer Banner */}
               <div className="mt-4 sm:mt-6 md:mt-8 inline-block">
-                <div className="bg-white/80 backdrop-blur-sm border-2 border-valentine-red/30 rounded-xl sm:rounded-2xl px-4 py-2 sm:px-6 sm:py-3 shadow-lg">
-                  <p className="text-valentine-red font-semibold text-xs sm:text-sm md:text-base">
-                    🎉 Limited Time: <span className="text-valentine-darkRed font-bold">Flat 20% OFF</span> on Valentine Collection
+                <div className="bg-white/80 backdrop-blur-sm border-2 border-purple-400/30 rounded-xl sm:rounded-2xl px-4 py-2 sm:px-6 sm:py-3 shadow-lg">
+                  <p className="text-purple-600 font-semibold text-xs sm:text-sm md:text-base">
+                    🎉 Limited Time: <span className="text-purple-800 font-bold">Flat 20% OFF</span> on Valentine Collection
                   </p>
                 </div>
               </div>

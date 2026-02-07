@@ -9,11 +9,18 @@ const ProductCard = ({ product }) => {
   return (
     <div className="card group">
       <Link to={`/product/${product.id}`}>
-        <div className="relative overflow-hidden">
+        <div className="relative overflow-hidden bg-gray-100">
           <img
-            src={product.image_url || product.image}
+            src={
+              (product.image_url || product.image)?.startsWith('http')
+                ? (product.image_url || product.image)
+                : `${import.meta.env.VITE_API_URL}${product.image_url || product.image}`
+            }
             alt={product.name}
             className="w-full h-48 sm:h-56 md:h-64 object-cover group-hover:scale-110 transition-transform duration-300"
+            onError={(e) => {
+              e.target.src = 'https://images.unsplash.com/photo-1513885535751-8b9238bd345a?w=400&h=400&fit=crop';
+            }}
           />
           {product.valentine_special && (
             <div className="absolute top-2 left-2 bg-valentine-red text-white px-2 py-1 sm:px-3 sm:py-1 rounded-full text-[10px] sm:text-xs font-semibold">

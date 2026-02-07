@@ -72,7 +72,10 @@ const TrendingSection = () => {
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
                 <SimpleProductCard
-                  image={product.image_url}
+                  image={product.image_url?.startsWith('http') 
+                    ? product.image_url 
+                    : `${import.meta.env.VITE_API_URL}${product.image_url}`
+                  }
                   price={product.discount 
                     ? product.price - (product.price * product.discount / 100)
                     : product.price

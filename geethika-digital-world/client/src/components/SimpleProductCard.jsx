@@ -26,11 +26,14 @@ const SimpleProductCard = ({ image, price, onClick }) => {
         />
       </button>
 
-      <div className="aspect-[4/3] overflow-hidden relative">
+      <div className="aspect-[4/3] overflow-hidden relative bg-gray-100">
         <img
-          src={image}
+          src={image || 'https://images.unsplash.com/photo-1513885535751-8b9238bd345a?w=400&h=300&fit=crop'}
           alt="Gift product"
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+          onError={(e) => {
+            e.target.src = 'https://images.unsplash.com/photo-1513885535751-8b9238bd345a?w=400&h=300&fit=crop';
+          }}
         />
         {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
