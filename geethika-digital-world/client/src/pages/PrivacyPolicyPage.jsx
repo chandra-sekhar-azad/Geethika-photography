@@ -189,7 +189,7 @@ const PrivacyPolicyPage = () => {
               <div className="space-y-1">
                 <p><strong>Business Name:</strong> Geethika Digital World</p>
                 <p><strong>Email:</strong> <a href="mailto:info@geethikadigitalworld.com" className="text-valentine-red hover:underline">info@geethikadigitalworld.com</a></p>
-                <p><strong>Phone:</strong> <a href="tel:+917416111271" className="text-valentine-red hover:underline">+91 7416111271</a></p>
+                <p><strong>Phone:</strong> <a href="tel:+919492686421" className="text-valentine-red hover:underline">+91 94926 86421</a></p>
                 <p><strong>Address:</strong> 123 Main Street, City Center, Your City, State - 123456, India</p>
               </div>
             </div>

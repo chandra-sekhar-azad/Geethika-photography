@@ -348,7 +348,7 @@ FRONTEND_URL=http://localhost:5174
 
 ## 📞 Contact Integration
 
-- **WhatsApp**: +91 7416111271
+- **WhatsApp**: +91 9492686421
 - **WhatsApp Float Button**: Integrated on all pages
 - **Service Booking**: Via WhatsApp
 

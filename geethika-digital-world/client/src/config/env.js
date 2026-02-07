@@ -10,7 +10,7 @@ export const env = {
   razorpayKeyId: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_demo',
 
   // WhatsApp
-  whatsappNumber: import.meta.env.VITE_WHATSAPP_NUMBER || '917416111271',
+  whatsappNumber: import.meta.env.VITE_WHATSAPP_NUMBER || '919492686421',
 
   // App
   appName: import.meta.env.VITE_APP_NAME || 'Geethika Digital World',

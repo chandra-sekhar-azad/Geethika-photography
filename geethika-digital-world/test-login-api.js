@@ -1,5 +1,5 @@
 // Test login API with durga@gmail.com
-const API_URL = 'https://geethika-digital-world1.onrender.com';
+const API_URL = 'https://geethika-digital-world.onrender.com';
 
 async function testLogin() {
   console.log('\n' + '═'.repeat(80));

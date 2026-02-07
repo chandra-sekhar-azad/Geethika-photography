@@ -1,5 +1,5 @@
 // Test homepage API on production
-const API_URL = 'https://geethika-digital-world1.onrender.com';
+const API_URL = 'https://geethika-digital-world.onrender.com';
 
 async function testHomepageAPI() {
   console.log('🔍 Testing Homepage API...\n');

@@ -70,24 +70,24 @@ const GalleryPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="relative bg-gradient-to-r from-valentine-pink/30 to-valentine-red/20 py-16">
+      <div className="relative bg-gradient-to-r from-valentine-pink/30 to-valentine-red/20 py-8 sm:py-12 md:py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-4xl md:text-5xl font-display font-bold text-valentine-red mb-4 italic">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-display font-bold text-valentine-red mb-2 sm:mb-4 italic">
             Our Gallery
           </h1>
-          <p className="text-lg text-gray-700">
+          <p className="text-sm sm:text-base md:text-lg text-gray-700">
             Explore our portfolio of beautiful moments captured
           </p>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="flex flex-wrap gap-3 mb-8 justify-center">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 md:py-12">
+        <div className="flex flex-wrap gap-2 sm:gap-3 mb-6 sm:mb-8 justify-center">
           {categories.map((category) => (
             <button
               key={category}
               onClick={() => setSelectedCategory(category)}
-              className={`px-8 py-3 rounded-full font-semibold transition-all shadow-md ${
+              className={`px-4 py-2 sm:px-6 sm:py-2.5 md:px-8 md:py-3 rounded-full font-semibold transition-all shadow-md text-xs sm:text-sm md:text-base ${
                 selectedCategory === category
                   ? 'bg-valentine-red text-white shadow-lg scale-105'
                   : 'bg-white text-gray-700 hover:bg-valentine-pink/20 hover:scale-105'
@@ -98,22 +98,22 @@ const GalleryPage = () => {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {filteredImages.map((image) => (
             <div
               key={image.id}
               onClick={() => setSelectedImage(image)}
-              className="group relative overflow-hidden rounded-2xl shadow-lg cursor-pointer transform transition-all hover:scale-105 hover:shadow-2xl border border-valentine-pink/20"
+              className="group relative overflow-hidden rounded-xl sm:rounded-2xl shadow-lg cursor-pointer transform transition-all hover:scale-105 hover:shadow-2xl border border-valentine-pink/20"
             >
               <img
                 src={image.image}
                 alt={image.title}
-                className="w-full h-80 object-cover"
+                className="w-full h-56 sm:h-64 md:h-72 lg:h-80 object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                  <p className="text-sm font-semibold mb-1">{image.category}</p>
-                  <h3 className="text-xl font-bold">{image.title}</h3>
+                <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 text-white">
+                  <p className="text-xs sm:text-sm font-semibold mb-1">{image.category}</p>
+                  <h3 className="text-base sm:text-lg md:text-xl font-bold">{image.title}</h3>
                 </div>
               </div>
             </div>
@@ -128,9 +128,9 @@ const GalleryPage = () => {
         >
           <button
             onClick={() => setSelectedImage(null)}
-            className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors"
+            className="absolute top-3 right-3 sm:top-4 sm:right-4 text-white hover:text-gray-300 transition-colors z-10"
           >
-            <X className="w-8 h-8" />
+            <X className="w-6 h-6 sm:w-8 sm:h-8" />
           </button>
           <div className="max-w-5xl w-full">
             <img
@@ -138,9 +138,9 @@ const GalleryPage = () => {
               alt={selectedImage.title}
               className="w-full h-auto rounded-lg"
             />
-            <div className="text-white text-center mt-4">
-              <p className="text-sm mb-1">{selectedImage.category}</p>
-              <h3 className="text-2xl font-bold">{selectedImage.title}</h3>
+            <div className="text-white text-center mt-3 sm:mt-4">
+              <p className="text-xs sm:text-sm mb-1">{selectedImage.category}</p>
+              <h3 className="text-lg sm:text-xl md:text-2xl font-bold">{selectedImage.title}</h3>
             </div>
           </div>
         </div>

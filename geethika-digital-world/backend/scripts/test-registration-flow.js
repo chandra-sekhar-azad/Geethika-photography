@@ -1,5 +1,5 @@
 // Test registration and login flow
-const API_URL = 'https://geethika-digital-world1.onrender.com';
+const API_URL = 'https://geethika-digital-world.onrender.com';
 
 async function testRegistrationFlow() {
   console.log('\n' + '═'.repeat(80));

@@ -1,5 +1,5 @@
 // Check all users in production database
-const API_URL = 'https://geethika-digital-world1.onrender.com';
+const API_URL = 'https://geethika-digital-world.onrender.com';
 
 async function checkUsers() {
   console.log('🔍 Checking Users in Production Database...\n');

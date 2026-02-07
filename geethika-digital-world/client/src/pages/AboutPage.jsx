@@ -3,12 +3,12 @@ import { Heart, Camera, Gift, Users, Award, Target, Sparkles, MapPin, Phone, Mai
 const AboutPage = () => {
   const handleWhatsApp = () => {
     const message = 'Hi! I would like to know more about your services.';
-    const whatsappUrl = `https://wa.me/917416111271?text=${encodeURIComponent(message)}`;
+    const whatsappUrl = `https://wa.me/919492686421?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
   };
 
   const handleCall = () => {
-    window.location.href = 'tel:+917416111271';
+    window.location.href = 'tel:+919492686421';
   };
 
   return (
@@ -254,7 +254,7 @@ const AboutPage = () => {
                     </div>
                     <div>
                       <h4 className="font-semibold mb-1">Phone</h4>
-                      <p className="text-gray-600">+91 7416111271</p>
+                      <p className="text-gray-600">+91 94926 86421</p>
                       <button
                         onClick={handleCall}
                         className="text-valentine-red hover:underline text-sm mt-1"

@@ -145,26 +145,26 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-          <p className="text-gray-600 mt-2">Welcome back! Here's what's happening with your store.</p>
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+          <p className="text-sm sm:text-base text-gray-600 mt-1 sm:mt-2">Welcome back! Here's what's happening with your store.</p>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8">
           {statsCards.map((stat, index) => {
             const Icon = stat.icon;
             return (
-              <div key={index} className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+              <div key={index} className="bg-white rounded-lg sm:rounded-xl shadow-sm p-4 sm:p-6 border border-gray-200">
                 <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600 mb-1">{stat.label}</p>
-                    <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs sm:text-sm text-gray-600 mb-1 truncate">{stat.label}</p>
+                    <p className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 truncate">{stat.value}</p>
                   </div>
-                  <div className={`${stat.color} p-3 rounded-lg`}>
-                    <Icon className="w-6 h-6 text-white" />
+                  <div className={`${stat.color} p-2 sm:p-3 rounded-lg flex-shrink-0 ml-2`}>
+                    <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                   </div>
                 </div>
               </div>
@@ -173,22 +173,22 @@ const AdminDashboard = () => {
         </div>
 
         {/* Quick Links */}
-        <div className="mb-8">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="mb-6 sm:mb-8">
+          <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-3 sm:mb-4">Quick Actions</h2>
+          <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
             {allQuickLinks.map((link, index) => {
               const Icon = link.icon;
               return (
                 <Link
                   key={index}
                   to={link.link}
-                  className="group bg-white rounded-xl shadow-sm p-6 border border-gray-200 hover:shadow-lg transition-all duration-300"
+                  className="group bg-white rounded-lg sm:rounded-xl shadow-sm p-4 sm:p-6 border border-gray-200 hover:shadow-lg transition-all duration-300"
                 >
-                  <div className={`w-12 h-12 bg-gradient-to-r ${link.color} rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-                    <Icon className="w-6 h-6 text-white" />
+                  <div className={`w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r ${link.color} rounded-lg flex items-center justify-center mb-3 sm:mb-4 group-hover:scale-110 transition-transform`}>
+                    <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{link.title}</h3>
-                  <p className="text-sm text-gray-600">{link.description}</p>
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-1 sm:mb-2">{link.title}</h3>
+                  <p className="text-xs sm:text-sm text-gray-600">{link.description}</p>
                 </Link>
               );
             })}
@@ -196,10 +196,10 @@ const AdminDashboard = () => {
         </div>
 
         {/* Recent Activity */}
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Recent Activity</h2>
-          <div className="text-center py-8 text-gray-500">
-            <p>No recent activity to display</p>
+        <div className="bg-white rounded-lg sm:rounded-xl shadow-sm p-4 sm:p-6 border border-gray-200">
+          <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-3 sm:mb-4">Recent Activity</h2>
+          <div className="text-center py-6 sm:py-8 text-gray-500">
+            <p className="text-sm sm:text-base">No recent activity to display</p>
           </div>
         </div>
       </div>
