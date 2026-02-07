@@ -42,14 +42,9 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16 sm:h-18 md:h-20">
           <Link to="/" className="flex items-center space-x-1.5 sm:space-x-2 flex-shrink-0">
-            <div className="hidden xs:block">
-              <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-display font-bold text-valentine-red leading-tight">
-                Geethika Digital World
-              </h1>
-            </div>
-            <div className="block xs:hidden">
-              <h1 className="text-base font-display font-bold text-valentine-red">GDW</h1>
-            </div>
+            <h1 className="text-base sm:text-xl md:text-2xl lg:text-3xl font-display font-bold text-valentine-red leading-tight">
+              Geethika Digital World
+            </h1>
           </Link>
 
           <div className="hidden md:flex items-center space-x-8">
