@@ -65,8 +65,8 @@ const LoginPage = () => {
 
     try {
       // Check for demo admin credentials
-      const demoAdminEmail = 'admin@geethikadigitalworld.com';
-      const demoAdminPassword = 'Admin@123';
+      const demoAdminEmail = '    ';
+      const demoAdminPassword = '      ';
       
       if (formData.emailOrPhone === demoAdminEmail && formData.password === demoAdminPassword) {
         // Demo admin login - create a demo token
