@@ -154,13 +154,6 @@ const LoginPage = () => {
           </p>
         </div>
 
-        {/* Demo Credentials Info */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <p className="text-sm font-semibold text-blue-800 mb-2">Demo Admin Credentials:</p>
-          <p className="text-xs text-blue-700">Email: admin@geethikadigitalworld.com</p>
-          <p className="text-xs text-blue-700">Password: Admin@123</p>
-        </div>
-
         {/* Form */}
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {/* Success Message */}
