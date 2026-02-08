@@ -1,0 +1,56 @@
+Subject: UPI Payment Method Not Showing in Checkout - Urgent
+
+Dear Razorpay Support Team,
+
+I am writing regarding an issue with UPI payment method not appearing in the checkout flow for my customers.
+
+ACCOUNT DETAILS:
+- Business Name: Geethika Digital World
+- Key ID: rzp_live_SCXkFazIA5jEk0
+- Mode: Live
+- Website: https://geethika-digital-world.vercel.app
+
+ISSUE DESCRIPTION:
+UPI is showing as "ACTIVATED" in my Razorpay Dashboard (Account & Settings > UPI/QR), but it is NOT appearing in the checkout modal for customers. Only Cards, Netbanking, and Wallet options are visible.
+
+WHAT I'VE CHECKED:
+✓ UPI shows as ACTIVATED in dashboard
+✓ UPI Autopay shows as ACTIVATED in dashboard
+✓ Tested with multiple amounts (₹1, ₹151, etc.)
+✓ Cleared browser cache and tested in incognito mode
+✓ Tested on different browsers
+✓ Code integration is correct (no method restrictions)
+✓ Using live Razorpay keys
+
+EXPECTED BEHAVIOR:
+Customers should see UPI as a payment option with ability to:
+- Pay with UPI ID
+- Scan QR Code
+- Use Google Pay, PhonePe, Paytm, etc.
+
+ACTUAL BEHAVIOR:
+Only Cards, Netbanking, and Wallet options appear. No UPI option visible.
+
+SCREENSHOTS:
+[Attach screenshots showing:
+1. Dashboard with UPI ACTIVATED
+2. Checkout modal without UPI option]
+
+REQUEST:
+Please investigate why UPI is not appearing in the checkout flow despite being activated, and enable it for my account.
+
+This is affecting our business as many customers prefer UPI payments.
+
+Thank you for your prompt assistance.
+
+Best regards,
+Geethika Digital World
+Email: geethikaphotoplanet9@gmail.com
+Phone: +91 94926 86421
+
+---
+
+CONTACT RAZORPAY:
+Email: support@razorpay.com
+Phone: +91-80-6890-6890
+Dashboard: Click chat icon in bottom-right of dashboard

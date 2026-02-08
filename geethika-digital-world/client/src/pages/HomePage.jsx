@@ -8,10 +8,18 @@ const HomePage = () => {
   return (
     <div className="min-h-screen bg-background">
       <HeroBanner />
-      <SpecialOffers />
-      <CategoriesSection />
-      <TrendingSection />
-      <Testimonials />
+      <div className="py-8 sm:py-12 md:py-16">
+        <SpecialOffers />
+      </div>
+      <div className="py-8 sm:py-12 md:py-16">
+        <CategoriesSection />
+      </div>
+      <div className="py-8 sm:py-12 md:py-16">
+        <TrendingSection />
+      </div>
+      <div className="py-8 sm:py-12 md:py-16">
+        <Testimonials />
+      </div>
     </div>
   );
 };

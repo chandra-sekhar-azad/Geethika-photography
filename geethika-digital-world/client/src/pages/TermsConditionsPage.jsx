@@ -241,7 +241,7 @@ const TermsConditionsPage = () => {
               <p>For questions about these Terms and Conditions, contact us:</p>
               <div className="space-y-1">
                 <p><strong>Business Name:</strong> Geethika Digital World</p>
-                <p><strong>Email:</strong> <a href="mailto:info@geethikadigitalworld.com" className="text-valentine-red hover:underline">info@geethikadigitalworld.com</a></p>
+                <p><strong>Email:</strong> <a href="mailto:geethikaphotoplanet9@gmail.com" className="text-valentine-red hover:underline">geethikaphotoplanet9@gmail.com</a></p>
                 <p><strong>Phone:</strong> <a href="tel:+919492686421" className="text-valentine-red hover:underline">+91 94926 86421</a></p>
                 <p><strong>Address:</strong> 123 Main Street, City Center, Your City, State - 123456, India</p>
               </div>

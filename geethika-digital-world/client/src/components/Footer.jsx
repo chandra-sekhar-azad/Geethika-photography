@@ -81,7 +81,7 @@ const Footer = () => {
               </li>
               <li className="flex items-center justify-center sm:justify-start space-x-2">
                 <Mail className="w-4 h-4 sm:w-5 sm:h-5 text-valentine-pink" />
-                <a href="mailto:info@geethikadigitalworld.com" className="text-gray-400 hover:text-valentine-pink transition-colors text-xs sm:text-sm break-all">info@geethikadigitalworld.com</a>
+                <a href="mailto:geethikaphotoplanet9@gmail.com" className="text-gray-400 hover:text-valentine-pink transition-colors text-xs sm:text-sm break-all">geethikaphotoplanet9@gmail.com</a>
               </li>
             </ul>
 

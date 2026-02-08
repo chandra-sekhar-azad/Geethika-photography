@@ -270,7 +270,7 @@ const AboutPage = () => {
                     </div>
                     <div>
                       <h4 className="font-semibold mb-1">Email</h4>
-                      <p className="text-gray-600">info@geethikadigitalworld.com</p>
+                      <p className="text-gray-600">geethikaphotoplanet9@gmail.com</p>
                     </div>
                   </div>
 

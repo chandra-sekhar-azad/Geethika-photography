@@ -42,7 +42,7 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16 sm:h-18 md:h-20">
           <Link to="/" className="flex items-center space-x-1.5 sm:space-x-2 flex-shrink-0">
-            <h1 className="text-base sm:text-xl md:text-2xl lg:text-3xl font-display font-bold text-valentine-red leading-tight">
+            <h1 className="text-base sm:text-xl md:text-2xl lg:text-3xl font-display font-bold text-valentine-red leading-tight tracking-wide">
               Geethika Digital World
             </h1>
           </Link>
@@ -52,13 +52,16 @@ const Navbar = () => {
               <Link
                 key={link.path}
                 to={link.path}
-                className={`font-medium transition-colors ${
+                className={`font-medium transition-all duration-300 relative group ${
                   isActive(link.path)
                     ? 'text-valentine-red'
                     : 'text-gray-700 hover:text-valentine-red'
                 }`}
               >
                 {link.label}
+                <span className={`absolute bottom-0 left-0 w-full h-0.5 bg-valentine-red transform origin-left transition-transform duration-300 ${
+                  isActive(link.path) ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
+                }`} />
               </Link>
             ))}
             

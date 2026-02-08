@@ -31,10 +31,22 @@ const CheckoutPage = () => {
 
   const loadRazorpay = () => {
     return new Promise((resolve) => {
+      // Check if already loaded
+      if (window.Razorpay) {
+        resolve(true);
+        return;
+      }
+      
       const script = document.createElement('script');
       script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-      script.onload = () => resolve(true);
-      script.onerror = () => resolve(false);
+      script.onload = () => {
+        console.log('Razorpay script loaded successfully');
+        resolve(true);
+      };
+      script.onerror = () => {
+        console.error('Failed to load Razorpay script');
+        resolve(false);
+      };
       document.body.appendChild(script);
     });
   };
@@ -99,18 +111,21 @@ const CheckoutPage = () => {
         return;
       }
 
-      // Razorpay options - Clean configuration without method restrictions
+      console.log('Razorpay loaded successfully');
+      console.log('Order data received:', data);
+      console.log('Amount:', getCartTotal() * 100, 'paise');
+
+      // Razorpay options - Let Razorpay auto-detect all enabled payment methods
       const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_demo', // Use environment variable
-        amount: getCartTotal() * 100, // Amount in paise
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_demo',
+        amount: getCartTotal() * 100,
         currency: 'INR',
         name: 'Geethika Digital World',
         description: 'Order Payment',
+        image: 'https://geethika-digital-world.vercel.app/logo.png', // Add your logo
         order_id: data.razorpay_order_id,
         handler: async function (response) {
-          // Payment successful
           try {
-            // Update order with payment details
             await fetch(`${import.meta.env.VITE_API_URL}/api/orders/${data.order.id}/payment`, {
               method: 'PATCH',
               headers: {
@@ -137,17 +152,43 @@ const CheckoutPage = () => {
           email: shippingInfo.email,
           contact: shippingInfo.phone
         },
+        notes: {
+          order_type: 'ecommerce',
+          customer_name: shippingInfo.name
+        },
         theme: {
-          color: '#DC143C'
+          color: '#DC143C',
+          backdrop_color: '#000000'
         },
         modal: {
           ondismiss: function() {
+            console.log('Payment modal dismissed');
             setLoading(false);
-          }
+          },
+          escape: true,
+          backdropclose: false
+        },
+        retry: {
+          enabled: true,
+          max_count: 3
         }
       };
 
+      console.log('Razorpay options:', options);
+      console.log('Opening Razorpay checkout...');
+
+      console.log('Razorpay options:', options);
+      console.log('Opening Razorpay checkout...');
+
       const razorpay = new window.Razorpay(options);
+      
+      // Add event listeners for debugging
+      razorpay.on('payment.failed', function (response) {
+        console.error('Payment failed:', response.error);
+        alert(`Payment failed: ${response.error.description}`);
+        setLoading(false);
+      });
+
       razorpay.open();
 
     } catch (error) {
@@ -341,10 +382,21 @@ const CheckoutPage = () => {
                     />
                     <div className="flex-1">
                       <p className="font-semibold">Razorpay (Recommended)</p>
-                      <p className="text-sm text-gray-600">Pay securely with Credit/Debit Card, UPI, Net Banking</p>
+                      <p className="text-sm text-gray-600">Pay securely with UPI, Credit/Debit Card, Net Banking, Wallets</p>
                     </div>
                     <img src="https://razorpay.com/assets/razorpay-glyph.svg" alt="Razorpay" className="h-8" />
                   </label>
+
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <p className="text-xs text-blue-800 mb-2">
+                      💡 <strong>Finding UPI/QR Payment:</strong>
+                    </p>
+                    <ul className="text-xs text-blue-700 space-y-1 ml-4 list-disc">
+                      <li>Click on "All payment methods" or "All Wallet Options" in the payment modal</li>
+                      <li>Look for UPI/QR option - it may be under Wallet section</li>
+                      <li>You can pay via Google Pay, PhonePe, Paytm, or scan QR code</li>
+                    </ul>
+                  </div>
 
                   <label className="flex items-center p-4 border-2 border-gray-300 rounded-lg cursor-pointer opacity-50">
                     <input
