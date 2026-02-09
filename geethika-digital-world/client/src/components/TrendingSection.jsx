@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import SimpleProductCard from './SimpleProductCard';
-import { TrendingUp, Sparkles } from 'lucide-react';
+import { Sparkles, Heart } from 'lucide-react';
 
 const TrendingSection = () => {
   const navigate = useNavigate();
@@ -47,9 +47,9 @@ const TrendingSection = () => {
         {/* Section Title */}
         <div className="text-center mb-12 animate-slide-up">
           <div className="inline-flex items-center gap-2 mb-4">
-            <TrendingUp className="w-6 h-6 text-valentine-red" />
+            <Heart className="w-6 h-6 text-valentine-red fill-valentine-red" />
             <span className="text-valentine-red font-semibold uppercase tracking-wider text-sm">
-              Hot Picks
+              Valentine Hot Picks
             </span>
             <Sparkles className="w-6 h-6 text-valentine-red" />
           </div>

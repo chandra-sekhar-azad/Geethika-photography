@@ -41,6 +41,25 @@
   100% { background-position: 1000px 0; }
 }
 
+/* Valentine theme only */
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); }
+  14% { transform: scale(1.08); }
+  28% { transform: scale(1); }
+  42% { transform: scale(1.08); }
+  70% { transform: scale(1); }
+}
+
+@keyframes float-heart {
+  0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.6; }
+  50% { transform: translateY(-24px) rotate(8deg); opacity: 0.9; }
+}
+
+@keyframes valentine-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(220, 20, 60, 0.25); }
+  50% { box-shadow: 0 0 32px rgba(255, 105, 180, 0.4); }
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -191,7 +210,26 @@
   }
   
   .valentine-gradient {
-    background: linear-gradient(135deg, var(--color-valentine-lightPink), var(--color-valentine-pink), var(--color-valentine-red));
+    background: linear-gradient(135deg, var(--color-valentine-lightPink) 0%, var(--color-valentine-pink) 40%, var(--color-valentine-rose) 70%, var(--color-valentine-red) 100%);
+    background-size: 200% 200%;
+    animation: valentine-gradient-shift 8s ease infinite;
+  }
+
+  @keyframes valentine-gradient-shift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  .animate-heartbeat {
+    animation: heartbeat 1.2s ease-in-out infinite;
+  }
+
+  .animate-float-heart {
+    animation: float-heart 5s ease-in-out infinite;
+  }
+
+  .valentine-glow {
+    animation: valentine-glow 2.5s ease-in-out infinite;
   }
 
   .section-divider {

@@ -1,8 +1,16 @@
-import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { Filter } from 'lucide-react';
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { useParams } from 'react-router-dom';
+import { Filter, ChevronDown, X, ArrowUpDown } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
 import { categories } from '../data/categories';
+
+const SORT_OPTIONS = [
+  { value: 'default', label: 'Default' },
+  { value: 'price_asc', label: 'Price: Low to High' },
+  { value: 'price_desc', label: 'Price: High to Low' },
+  { value: 'name_asc', label: 'Name: A to Z' },
+  { value: 'name_desc', label: 'Name: Z to A' },
+];
 
 const ShopPage = () => {
   const { category } = useParams();
@@ -10,6 +18,33 @@ const ShopPage = () => {
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [showValentineOnly, setShowValentineOnly] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [sortBy, setSortBy] = useState('default');
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
+  const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
+  const filtersRef = useRef(null);
+  const categoryDropdownRef = useRef(null);
+  const sortDropdownRef = useRef(null);
+
+  const sortedProducts = useMemo(() => {
+    if (sortBy === 'default') return filteredProducts;
+    const list = [...filteredProducts];
+    if (sortBy === 'price_asc') return list.sort((a, b) => (a.price || 0) - (b.price || 0));
+    if (sortBy === 'price_desc') return list.sort((a, b) => (b.price || 0) - (a.price || 0));
+    if (sortBy === 'name_asc') return list.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    if (sortBy === 'name_desc') return list.sort((a, b) => (b.name || '').localeCompare(a.name || ''));
+    return list;
+  }, [filteredProducts, sortBy]);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (filtersRef.current && !filtersRef.current.contains(e.target)) setFiltersOpen(false);
+      if (categoryDropdownRef.current && !categoryDropdownRef.current.contains(e.target)) setCategoryDropdownOpen(false);
+      if (sortDropdownRef.current && !sortDropdownRef.current.contains(e.target)) setSortDropdownOpen(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     fetchProducts();
@@ -60,95 +95,170 @@ const ShopPage = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 md:py-12">
-        <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8">
-          {/* Sidebar Filters */}
-          <div className="lg:w-64 flex-shrink-0">
-            <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg lg:sticky lg:top-24 border border-valentine-pink/20 max-h-[calc(100vh-7rem)] overflow-y-auto">
-              <div className="p-4 sm:p-6">
-                <div className="flex items-center space-x-2 mb-4 sm:mb-6">
-                  <Filter className="w-4 h-4 sm:w-5 sm:h-5 text-valentine-red" />
-                  <h2 className="text-lg sm:text-xl font-bold text-valentine-red">Filters</h2>
-                </div>
+        <div className="flex-1">
+          {/* Filter bar with dropdown */}
+          <div className="mb-4 sm:mb-6 flex flex-wrap items-center gap-3">
+            <p className="text-sm sm:text-base text-gray-600 order-3 sm:order-1 sm:mr-auto">
+              {loading ? 'Loading...' : `Showing ${sortedProducts.length} products`}
+            </p>
 
-                {/* Valentine Special Filter */}
-                <div className="mb-4 sm:mb-6">
-                  <label className="flex items-center space-x-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={showValentineOnly}
-                      onChange={(e) => setShowValentineOnly(e.target.checked)}
-                      className="w-4 h-4 text-valentine-red rounded focus:ring-valentine-red"
-                    />
-                    <span className="text-xs sm:text-sm font-semibold">💝 Valentine Special Only</span>
-                  </label>
-                </div>
-
-                {/* Categories */}
-                <div>
-                  <h3 className="font-semibold mb-2 sm:mb-3 text-sm sm:text-base">Categories</h3>
-                  <div className="space-y-1.5 sm:space-y-2">
-                    <button
-                      onClick={() => setSelectedCategory('all')}
-                      className={`w-full text-left px-3 sm:px-4 py-2 sm:py-3 rounded-lg transition-all font-medium text-sm ${
-                        selectedCategory === 'all'
-                          ? 'bg-valentine-red text-white shadow-md'
-                          : 'hover:bg-valentine-pink/10 text-gray-700'
-                      }`}
-                    >
-                      All Products
-                    </button>
-                    {categories.map((cat) => (
+            <div className="relative order-1 sm:order-2" ref={sortDropdownRef}>
+              <button
+                type="button"
+                onClick={() => setSortDropdownOpen(!sortDropdownOpen)}
+                className="inline-flex items-center gap-2 px-4 py-2.5 sm:py-3 bg-white border-2 border-valentine-pink/30 rounded-xl text-valentine-red font-semibold shadow-md hover:border-valentine-red/50 hover:shadow-lg transition-all"
+              >
+                <ArrowUpDown className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span>Sort</span>
+                <ChevronDown className={`w-4 h-4 transition-transform ${sortDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+              {sortDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border-2 border-valentine-pink/20 overflow-hidden z-50">
+                  <div className="p-3 border-b border-gray-100">
+                    <h3 className="font-bold text-valentine-red text-sm">Sort by</h3>
+                  </div>
+                  <div className="py-1">
+                    {SORT_OPTIONS.map((opt) => (
                       <button
-                        key={cat.id}
-                        onClick={() => setSelectedCategory(cat.id)}
-                        className={`w-full text-left px-3 sm:px-4 py-2 sm:py-3 rounded-lg transition-all text-xs sm:text-sm font-medium ${
-                          selectedCategory === cat.id
-                            ? 'bg-valentine-red text-white shadow-md'
-                            : 'hover:bg-valentine-pink/10 text-gray-700'
+                        key={opt.value}
+                        type="button"
+                        onClick={() => {
+                          setSortBy(opt.value);
+                          setSortDropdownOpen(false);
+                        }}
+                        className={`w-full text-left px-4 py-2.5 text-sm font-medium ${
+                          sortBy === opt.value ? 'bg-valentine-red text-white' : 'hover:bg-valentine-pink/10 text-gray-700'
                         }`}
                       >
-                        {cat.icon} {cat.name}
+                        {opt.label}
                       </button>
                     ))}
                   </div>
                 </div>
-              </div>
+              )}
+            </div>
+
+            <div className="relative order-2 sm:order-3" ref={filtersRef}>
+              <button
+                type="button"
+                onClick={() => setFiltersOpen(!filtersOpen)}
+                className="inline-flex items-center gap-2 px-4 py-2.5 sm:py-3 bg-white border-2 border-valentine-pink/30 rounded-xl text-valentine-red font-semibold shadow-md hover:border-valentine-red/50 hover:shadow-lg transition-all"
+              >
+                <Filter className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span>Filters</span>
+                <ChevronDown className={`w-4 h-4 transition-transform ${filtersOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {filtersOpen && (
+                <div className="absolute right-0 mt-2 w-72 sm:w-80 bg-white rounded-xl shadow-xl border-2 border-valentine-pink/20 overflow-visible z-50">
+                  <div className="p-4 border-b border-gray-100 flex items-center justify-between">
+                    <h3 className="font-bold text-valentine-red flex items-center gap-2">
+                      <Filter className="w-4 h-4" />
+                      Filter by
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={() => setFiltersOpen(false)}
+                      className="p-1 rounded-lg hover:bg-gray-100 text-gray-500"
+                      aria-label="Close filters"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+                  <div className="p-4 space-y-4">
+                    {/* Category dropdown */}
+                    <div ref={categoryDropdownRef} className="relative">
+                      <label className="block font-semibold text-sm text-gray-700 mb-2">Category</label>
+                      <button
+                        type="button"
+                        onClick={() => setCategoryDropdownOpen(!categoryDropdownOpen)}
+                        className="w-full flex items-center justify-between px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-left font-medium text-gray-800 hover:border-valentine-pink/40 transition-colors"
+                      >
+                        <span>
+                          {selectedCategory === 'all'
+                            ? 'All Products'
+                            : categories.find((c) => c.id === selectedCategory)?.name || selectedCategory}
+                        </span>
+                        <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${categoryDropdownOpen ? 'rotate-180' : ''}`} />
+                      </button>
+                      {categoryDropdownOpen && (
+                        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-10">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedCategory('all');
+                              setCategoryDropdownOpen(false);
+                            }}
+                            className={`w-full text-left px-3 py-2.5 text-sm font-medium ${
+                              selectedCategory === 'all' ? 'bg-valentine-red text-white' : 'hover:bg-valentine-pink/10 text-gray-700'
+                            }`}
+                          >
+                            All Products
+                          </button>
+                          {categories.map((cat) => (
+                            <button
+                              key={cat.id}
+                              type="button"
+                              onClick={() => {
+                                setSelectedCategory(cat.id);
+                                setCategoryDropdownOpen(false);
+                              }}
+                              className={`w-full text-left px-3 py-2.5 text-sm font-medium flex items-center gap-2 ${
+                                selectedCategory === cat.id ? 'bg-valentine-red text-white' : 'hover:bg-valentine-pink/10 text-gray-700'
+                              }`}
+                            >
+                              <span>{cat.icon}</span>
+                              {cat.name}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Valentine Special */}
+                    <div>
+                      <label className="block font-semibold text-sm text-gray-700 mb-2">Type</label>
+                      <label className="flex items-center gap-2 cursor-pointer p-2 rounded-lg hover:bg-valentine-pink/5">
+                        <input
+                          type="checkbox"
+                          checked={showValentineOnly}
+                          onChange={(e) => setShowValentineOnly(e.target.checked)}
+                          className="w-4 h-4 text-valentine-red rounded focus:ring-valentine-red"
+                        />
+                        <span className="text-sm font-medium">💝 Valentine Special Only</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
-
-          {/* Products Grid */}
-          <div className="flex-1">
-            <div className="mb-4 sm:mb-6 flex justify-between items-center">
-              <p className="text-sm sm:text-base text-gray-600">
-                {loading ? 'Loading...' : `Showing ${filteredProducts.length} products`}
-              </p>
-            </div>
 
             {loading ? (
               <div className="flex justify-center items-center py-12">
                 <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-valentine-red"></div>
               </div>
-            ) : filteredProducts.length > 0 ? (
+            ) : sortedProducts.length > 0 ? (
               <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                {filteredProducts.map((product) => (
+                {sortedProducts.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}
               </div>
             ) : (
               <div className="text-center py-12">
-                <p className="text-gray-500 text-base sm:text-lg">No products found in this category.</p>
+                <p className="text-gray-500 text-base sm:text-lg">No products found with these filters.</p>
                 <button
                   onClick={() => {
                     setSelectedCategory('all');
                     setShowValentineOnly(false);
+                    setFiltersOpen(false);
                   }}
                   className="mt-4 text-valentine-red font-semibold hover:underline text-sm sm:text-base"
                 >
-                  View All Products
+                  Clear filters & view all
                 </button>
               </div>
             )}
-          </div>
         </div>
       </div>
     </div>

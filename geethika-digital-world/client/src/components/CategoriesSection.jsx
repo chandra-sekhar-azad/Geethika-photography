@@ -14,11 +14,11 @@ const CategoriesSection = () => {
   const displayCategories = categories.slice(0, 6);
 
   return (
-    <section className="py-16 md:py-20 bg-white relative overflow-hidden">
-      {/* Decorative Background */}
-      <div className="absolute inset-0 pointer-events-none opacity-30">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-valentine-pink/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-valentine-red/10 rounded-full blur-3xl" />
+    <section className="py-16 md:py-20 bg-gradient-to-b from-white via-valentine-lightPink/5 to-white relative overflow-hidden">
+      {/* Decorative Background - Valentine only */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-valentine-pink/15 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-valentine-rose/15 rounded-full blur-3xl" />
       </div>
 
       <div className="container mx-auto px-4 relative z-10">
@@ -35,7 +35,7 @@ const CategoriesSection = () => {
             Shop by Categories
           </h2>
           <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-            Find the perfect gift for your loved ones from our curated collection
+            Find the perfect Valentine gift for your loved one from our curated collection
           </p>
         </div>
 

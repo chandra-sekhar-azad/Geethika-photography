@@ -89,6 +89,7 @@ router.post('/',
         items,
         subtotal,
         shipping_cost = 0,
+        service_charge = 0,
         total,
         payment_method = 'razorpay',
         shipping_info // New: accept shipping_info object
@@ -129,10 +130,10 @@ router.post('/',
       const orderResult = await client.query(`
         INSERT INTO orders (
           order_number, customer_name, customer_email, customer_phone,
-          shipping_address, shipping_info, subtotal, shipping_cost, total,
+          shipping_address, shipping_info, subtotal, shipping_cost, service_charge, total,
           payment_method, razorpay_order_id,
           payment_status, order_status
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
         RETURNING *
       `, [
         orderNumber,
@@ -143,6 +144,7 @@ router.post('/',
         shippingAddressJson,
         subtotal,
         shipping_cost,
+        service_charge || 0,
         total,
         payment_method,
         razorpayOrderId,
@@ -223,9 +225,11 @@ router.get('/my-orders', authenticate, async (req, res) => {
     const { limit = 50, offset = 0 } = req.query;
     const userEmail = req.user.email;
 
+    // Only fetch orders with successful payment
     const ordersResult = await pool.query(`
       SELECT * FROM orders 
-      WHERE customer_email = $1
+      WHERE customer_email = $1 
+      AND payment_status = 'paid'
       ORDER BY created_at DESC 
       LIMIT $2 OFFSET $3
     `, [userEmail, limit, offset]);

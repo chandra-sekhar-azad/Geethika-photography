@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
-  const { cart, getCartTotal, clearCart } = useCart();
+  const { cart, getCartSubtotal, getServiceCharge, getFinalTotal, clearCart } = useCart();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
@@ -80,9 +80,10 @@ const CheckoutPage = () => {
           finalPrice: item.finalPrice || item.price,
           customization: item.customization || null
         })),
-        subtotal: getCartTotal(),
+        subtotal: getCartSubtotal(),
         shipping_cost: 0,
-        total: getCartTotal(),
+        service_charge: getServiceCharge(),
+        total: getFinalTotal(),
         payment_method: paymentMethod
       };
 
@@ -113,12 +114,12 @@ const CheckoutPage = () => {
 
       console.log('Razorpay loaded successfully');
       console.log('Order data received:', data);
-      console.log('Amount:', getCartTotal() * 100, 'paise');
+      console.log('Amount:', getFinalTotal() * 100, 'paise');
 
       // Razorpay options - Let Razorpay auto-detect all enabled payment methods
       const options = {
         key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_demo',
-        amount: getCartTotal() * 100,
+        amount: getFinalTotal() * 100,
         currency: 'INR',
         name: 'Geethika Digital World',
         description: 'Order Payment',
@@ -419,7 +420,7 @@ const CheckoutPage = () => {
                 disabled={loading}
                 className="w-full btn-primary text-lg py-4 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? 'Processing...' : `Pay ₹${getCartTotal()}`}
+                {loading ? 'Processing...' : `Pay ₹${getFinalTotal()}`}
               </button>
             </form>
           </div>
@@ -454,7 +455,11 @@ const CheckoutPage = () => {
               <div className="border-t pt-4 space-y-3">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Subtotal</span>
-                  <span className="font-semibold">₹{getCartTotal()}</span>
+                  <span className="font-semibold">₹{getCartSubtotal()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Service Charge</span>
+                  <span className="font-semibold">₹{getServiceCharge()}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Shipping</span>
@@ -463,7 +468,7 @@ const CheckoutPage = () => {
                 <div className="border-t pt-3 flex justify-between">
                   <span className="text-lg font-bold">Total</span>
                   <span className="text-2xl font-bold text-valentine-red">
-                    ₹{getCartTotal()}
+                    ₹{getFinalTotal()}
                   </span>
                 </div>
               </div>

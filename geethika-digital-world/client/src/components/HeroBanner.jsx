@@ -6,11 +6,23 @@ const HeroBanner = () => {
 
   return (
     <section className="relative w-full overflow-hidden bg-gradient-to-br from-pink-50 via-red-50 to-rose-50">
-      {/* Decorative Elements */}
+      {/* Decorative Elements - Valentine only */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-10 left-10 w-16 h-16 sm:w-20 sm:h-20 bg-valentine-pink/20 rounded-full blur-3xl animate-float" />
-        <div className="absolute top-40 right-20 w-24 h-24 sm:w-32 sm:h-32 bg-valentine-red/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '1s' }} />
-        <div className="absolute bottom-20 left-1/4 w-20 h-20 sm:w-24 sm:h-24 bg-valentine-rose/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-10 left-10 w-16 h-16 sm:w-20 sm:h-20 bg-valentine-pink/25 rounded-full blur-3xl animate-float" />
+        <div className="absolute top-40 right-20 w-24 h-24 sm:w-32 sm:h-32 bg-valentine-red/25 rounded-full blur-3xl animate-float" style={{ animationDelay: '1s' }} />
+        <div className="absolute bottom-20 left-1/4 w-20 h-20 sm:w-24 sm:h-24 bg-valentine-rose/25 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }} />
+        {/* Floating hearts */}
+        {[...Array(6)].map((_, i) => (
+          <Heart
+            key={i}
+            className="absolute w-4 h-4 sm:w-5 sm:h-5 text-valentine-pink/40 fill-valentine-pink/30 animate-float-heart pointer-events-none"
+            style={{
+              left: `${12 + i * 14}%`,
+              top: `${20 + (i % 3) * 25}%`,
+              animationDelay: `${i * 0.7}s`,
+            }}
+          />
+        ))}
       </div>
 
       {/* Background Image */}
@@ -29,9 +41,9 @@ const HeroBanner = () => {
           <div className="container mx-auto px-4 sm:px-6 md:px-8">
             <div className="max-w-lg lg:max-w-xl animate-fade-in">
               {/* Valentine Badge */}
-              <div className="inline-flex items-center gap-1.5 sm:gap-2 bg-gradient-to-r from-valentine-red to-valentine-rose text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-full mb-3 sm:mb-4 shadow-lg">
-                <Heart className="w-3 h-3 sm:w-4 sm:h-4 fill-current" />
-                <span className="text-xs sm:text-sm font-semibold">Valentine Special Collection</span>
+              <div className="inline-flex items-center gap-1.5 sm:gap-2 bg-gradient-to-r from-valentine-red to-valentine-rose text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-full mb-3 sm:mb-4 shadow-lg valentine-glow border border-white/20">
+                <Heart className="w-3 h-3 sm:w-4 sm:h-4 fill-current animate-heartbeat" />
+                <span className="text-xs sm:text-sm font-semibold">Valentine's Day Special Collection</span>
                 <Sparkles className="w-3 h-3 sm:w-4 sm:h-4" />
               </div>
 
@@ -48,21 +60,22 @@ const HeroBanner = () => {
 
               <div className="flex flex-col xs:flex-row gap-2 sm:gap-3">
                 <button 
-                  className="group relative inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base font-semibold text-white bg-gradient-to-r from-valentine-red to-valentine-rose rounded-full shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300 overflow-hidden"
+                  className="group relative inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base font-semibold text-white bg-gradient-to-r from-valentine-red to-valentine-rose rounded-full shadow-xl shadow-valentine-red/30 hover:shadow-2xl hover:shadow-valentine-rose/40 transform hover:scale-105 transition-all duration-300 overflow-hidden valentine-glow border border-white/20"
                   onClick={() => navigate('/shop')}
                 >
                   <span className="absolute inset-0 bg-gradient-to-r from-valentine-rose to-valentine-red opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <Heart className="w-4 h-4 sm:w-5 sm:h-5 relative z-10 group-hover:animate-pulse" />
-                  <span className="relative z-10">Explore Collection</span>
+                  <Heart className="w-4 h-4 sm:w-5 sm:h-5 relative z-10 group-hover:animate-heartbeat fill-current" />
+                  <span className="relative z-10">Explore Valentine Collection</span>
                   <span className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-30 blur-xl bg-valentine-red transition-opacity duration-300" />
                 </button>
               </div>
 
               {/* Offer Banner */}
               <div className="mt-4 sm:mt-5 md:mt-8 inline-block">
-                <div className="bg-white/80 backdrop-blur-sm border-2 border-valentine-red/30 rounded-lg sm:rounded-xl px-3 py-1.5 sm:px-4 sm:py-2 shadow-lg">
+                <div className="bg-white/90 backdrop-blur-sm border-2 border-valentine-red/40 rounded-lg sm:rounded-xl px-3 py-1.5 sm:px-4 sm:py-2 shadow-lg flex items-center gap-2">
+                  <Heart className="w-4 h-4 text-valentine-red fill-valentine-red animate-heartbeat hidden sm:block" />
                   <p className="text-valentine-red font-semibold text-xs sm:text-sm">
-                    🎉 Limited Time: <span className="text-valentine-darkRed font-bold">Flat 20% OFF</span> on Valentine Collection
+                    💝 Limited Time: <span className="text-valentine-darkRed font-bold">Flat 20% OFF</span> on Valentine's Day Collection
                   </p>
                 </div>
               </div>
@@ -71,8 +84,8 @@ const HeroBanner = () => {
         </div>
       </div>
 
-      {/* Trust & Credibility Section */}
-      <div className="bg-white border-t border-gray-100 py-6 sm:py-8">
+      {/* Trust & Credibility Section - Valentine theme */}
+      <div className="bg-gradient-to-r from-valentine-lightPink/10 via-white to-valentine-pink/10 border-t-2 border-valentine-pink/20 py-6 sm:py-8">
         <div className="container mx-auto px-4 sm:px-6 md:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 max-w-5xl mx-auto">
             {/* Happy Customers */}

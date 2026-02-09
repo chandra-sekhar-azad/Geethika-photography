@@ -80,6 +80,12 @@ router.post('/register',
 
       const user = result.rows[0];
 
+      // Send welcome email (non-blocking)
+      sendWelcomeEmail(email, name).catch(err => {
+        console.error('Failed to send welcome email:', err);
+        // Don't fail registration if email fails
+      });
+
       // Generate token
       const token = jwt.sign(
         { id: user.id, email: user.email, role: user.role },

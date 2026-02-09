@@ -40,12 +40,21 @@ const SpecialOffers = () => {
   ];
 
   return (
-    <section className="py-12 md:py-16 lg:py-20 bg-white">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="py-12 md:py-16 lg:py-20 bg-gradient-to-b from-valentine-lightPink/5 via-white to-valentine-pink/5 relative overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-0 left-1/4 w-48 h-48 bg-valentine-pink/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 right-1/4 w-48 h-48 bg-valentine-rose/10 rounded-full blur-3xl" />
+      </div>
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="text-center mb-8 md:mb-12">
+          <div className="inline-flex items-center gap-2 mb-2">
+            <Heart className="w-5 h-5 text-valentine-red fill-valentine-red" />
+            <span className="text-valentine-red font-semibold uppercase tracking-wider text-sm">Valentine's Day</span>
+            <Heart className="w-5 h-5 text-valentine-red fill-valentine-red" />
+          </div>
           <h2 className="section-title text-2xl md:text-3xl lg:text-4xl">Special Offers</h2>
           <p className="text-gray-600 text-base md:text-lg mt-2">
-            Limited time deals you don't want to miss
+            Limited time deals for your special someone
           </p>
         </div>
 
@@ -55,7 +64,7 @@ const SpecialOffers = () => {
             return (
               <div
                 key={index}
-                className="group relative overflow-hidden rounded-xl md:rounded-2xl cursor-pointer transition-all duration-300 hover:shadow-2xl bg-white border border-gray-200"
+                className="group relative overflow-hidden rounded-xl md:rounded-2xl cursor-pointer transition-all duration-300 hover:shadow-2xl hover:shadow-valentine-red/15 bg-white border-2 border-valentine-pink/20 hover:border-valentine-red/40"
                 onClick={offer.action}
               >
                 {/* Image */}
@@ -78,11 +87,11 @@ const SpecialOffers = () => {
                   >
                     <Icon className="w-12 h-12 md:w-16 md:h-16 text-white opacity-50" />
                   </div>
-                  {/* Overlay gradient */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                  {/* Overlay gradient - Valentine tint */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-valentine-darkRed/50 via-valentine-red/20 to-transparent" />
                   
                   {/* Icon badge */}
-                  <div className="absolute top-3 right-3 md:top-4 md:right-4 bg-white/90 backdrop-blur-sm w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center shadow-lg">
+                  <div className="absolute top-3 right-3 md:top-4 md:right-4 bg-white/95 backdrop-blur-sm w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center shadow-lg border-2 border-valentine-pink/30 group-hover:border-valentine-red/50 transition-colors">
                     <Icon className="w-5 h-5 md:w-6 md:h-6 text-valentine-red" />
                   </div>
                 </div>
@@ -95,7 +104,8 @@ const SpecialOffers = () => {
                   <p className="text-gray-600 text-sm md:text-base mb-3 md:mb-4 line-clamp-2">
                     {offer.description}
                   </p>
-                  <div className="inline-flex items-center text-valentine-red font-semibold text-sm group-hover:gap-2 transition-all">
+                  <div className="inline-flex items-center gap-1 text-valentine-red font-semibold text-sm group-hover:gap-2 transition-all">
+                    <Heart className="w-4 h-4 fill-valentine-red opacity-80" />
                     <span>Shop Now</span>
                     <span className="ml-1 group-hover:ml-2 transition-all">→</span>
                   </div>

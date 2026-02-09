@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Heart, ShoppingCart, Menu, X, User, LogOut } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useWishlist } from '../context/WishlistContext';
 import { useAuth } from '../context/AuthContext';
 
 const Navbar = () => {
@@ -9,6 +10,7 @@ const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { getCartCount } = useCart();
+  const { getWishlistCount } = useWishlist();
   const { user, logout, isAuthenticated } = useAuth();
 
   // Don't render navbar on admin pages
@@ -38,7 +40,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-white shadow-md sticky top-0 z-50">
+    <nav className="bg-white/95 backdrop-blur-sm shadow-md sticky top-0 z-50 border-b-2 border-valentine-pink/20">
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16 sm:h-18 md:h-20">
           <Link to="/" className="flex items-center space-x-1.5 sm:space-x-2 flex-shrink-0">
@@ -98,10 +100,19 @@ const Navbar = () => {
               </Link>
             )}
 
+            <Link to="/wishlist" className="relative">
+              <Heart className="w-6 h-6 text-gray-700 hover:text-valentine-red transition-colors" />
+              {getWishlistCount() > 0 && (
+                <span className="absolute -top-2 -right-2 bg-valentine-red text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold animate-heartbeat shadow-lg shadow-valentine-red/30">
+                  {getWishlistCount()}
+                </span>
+              )}
+            </Link>
+
             <Link to="/cart" className="relative">
               <ShoppingCart className="w-6 h-6 text-gray-700 hover:text-valentine-red transition-colors" />
               {getCartCount() > 0 && (
-                <span className="absolute -top-2 -right-2 bg-valentine-red text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                <span className="absolute -top-2 -right-2 bg-valentine-red text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold animate-heartbeat shadow-lg shadow-valentine-red/30">
                   {getCartCount()}
                 </span>
               )}
@@ -118,10 +129,18 @@ const Navbar = () => {
                 <User className="w-5 h-5 sm:w-6 sm:h-6 text-gray-700" />
               </Link>
             )}
+            <Link to="/wishlist" className="relative p-1.5">
+              <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-gray-700" />
+              {getWishlistCount() > 0 && (
+                <span className="absolute -top-1 -right-1 bg-valentine-red text-white text-[10px] sm:text-xs rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center font-semibold animate-heartbeat shadow shadow-valentine-red/30">
+                  {getWishlistCount()}
+                </span>
+              )}
+            </Link>
             <Link to="/cart" className="relative p-1.5">
               <ShoppingCart className="w-5 h-5 sm:w-6 sm:h-6 text-gray-700" />
               {getCartCount() > 0 && (
-                <span className="absolute -top-1 -right-1 bg-valentine-red text-white text-[10px] sm:text-xs rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center font-semibold">
+                <span className="absolute -top-1 -right-1 bg-valentine-red text-white text-[10px] sm:text-xs rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center font-semibold animate-heartbeat shadow shadow-valentine-red/30">
                   {getCartCount()}
                 </span>
               )}
@@ -154,6 +173,13 @@ const Navbar = () => {
               ))}
               {isAuthenticated() ? (
                 <>
+                  <Link
+                    to="/wishlist"
+                    onClick={() => setIsOpen(false)}
+                    className="block py-2.5 px-3 font-medium text-gray-700 rounded-lg hover:bg-gray-50"
+                  >
+                    My Wishlist
+                  </Link>
                   <Link
                     to="/my-orders"
                     onClick={() => setIsOpen(false)}

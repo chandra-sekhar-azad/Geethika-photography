@@ -3,6 +3,9 @@ import { useAuth } from './AuthContext';
 
 const CartContext = createContext();
 
+// Service charge constant
+export const SERVICE_CHARGE = 2;
+
 export const useCart = () => {
   const context = useContext(CartContext);
   if (!context) {
@@ -93,6 +96,18 @@ export const CartProvider = ({ children }) => {
     return cart.reduce((total, item) => total + (item.finalPrice * item.quantity), 0);
   };
 
+  const getCartSubtotal = () => {
+    return cart.reduce((total, item) => total + (item.finalPrice * item.quantity), 0);
+  };
+
+  const getServiceCharge = () => {
+    return cart.length > 0 ? SERVICE_CHARGE : 0;
+  };
+
+  const getFinalTotal = () => {
+    return getCartSubtotal() + getServiceCharge();
+  };
+
   const getCartCount = () => {
     return cart.reduce((count, item) => count + item.quantity, 0);
   };
@@ -105,6 +120,9 @@ export const CartProvider = ({ children }) => {
       updateQuantity,
       clearCart,
       getCartTotal,
+      getCartSubtotal,
+      getServiceCharge,
+      getFinalTotal,
       getCartCount
     }}>
       {children}

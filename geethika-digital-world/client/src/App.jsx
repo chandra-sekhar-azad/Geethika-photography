@@ -12,6 +12,7 @@ import ProductDetailPage from './pages/ProductDetailPage';
 import ServicesPage from './pages/ServicesPage';
 import GalleryPage from './pages/GalleryPage';
 import CartPage from './pages/CartPage';
+import WishlistPage from './pages/WishlistPage';
 import CheckoutPage from './pages/CheckoutPage';
 import LoginPage from './pages/LoginPage';
 import SignUpPage from './pages/SignUpPage';
@@ -41,12 +42,14 @@ import Analytics from './pages/admin/Analytics';
 import HomePageManagement from './pages/admin/HomePageManagement';
 import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
+import { WishlistProvider } from './context/WishlistContext';
 
 function App() {
   return (
     <AuthProvider>
       <CartProvider>
-        <Router>
+        <WishlistProvider>
+          <Router>
           <BackendWakeup />
           <Routes>
             {/* Admin Login Route (no layout) */}
@@ -93,6 +96,7 @@ function App() {
                       <Route path="/services" element={<ServicesPage />} />
                       <Route path="/gallery" element={<GalleryPage />} />
                       <Route path="/cart" element={<CartPage />} />
+                      <Route path="/wishlist" element={<ProtectedRoute><WishlistPage /></ProtectedRoute>} />
                       <Route path="/checkout" element={<CheckoutPage />} />
                       <Route path="/login" element={<LoginPage />} />
                       <Route path="/signup" element={<SignUpPage />} />
@@ -115,6 +119,7 @@ function App() {
             } />
           </Routes>
         </Router>
+        </WishlistProvider>
       </CartProvider>
     </AuthProvider>
   );

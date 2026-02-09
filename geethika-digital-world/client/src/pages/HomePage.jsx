@@ -6,7 +6,7 @@ import Testimonials from '../components/Testimonials';
 
 const HomePage = () => {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-b from-valentine-lightPink/5 via-background to-valentine-pink/5">
       <HeroBanner />
       <div className="py-8 sm:py-12 md:py-16">
         <SpecialOffers />

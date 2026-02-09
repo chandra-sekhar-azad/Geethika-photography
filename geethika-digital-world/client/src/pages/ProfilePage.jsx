@@ -72,8 +72,14 @@ const ProfilePage = () => {
       }
 
       // Update user in context and localStorage
-      const updatedUser = { ...user, ...data.user };
+      const updatedUser = { 
+        ...user, 
+        name: data.user.name,
+        fullName: data.user.name, // Also update fullName for navbar
+        phone: data.user.phone 
+      };
       login(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
 
       setMessage({ type: 'success', text: 'Profile updated successfully!' });
     } catch (error) {

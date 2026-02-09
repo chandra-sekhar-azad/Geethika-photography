@@ -26,12 +26,12 @@ const Testimonials = () => {
   ];
 
   return (
-    <section className="py-16 md:py-20 bg-gradient-to-br from-rose-50 via-pink-50 to-white">
+    <section className="py-16 md:py-20 bg-gradient-to-br from-valentine-lightPink/10 via-valentine-pink/5 to-white">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="section-title">What Our Customers Say</h2>
           <p className="text-gray-600 text-lg">
-            Love stories from our happy customers
+            Love stories from our happy Valentine customers
           </p>
         </div>
 
@@ -39,15 +39,15 @@ const Testimonials = () => {
           {testimonials.map((testimonial, index) => (
             <div
               key={index}
-              className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 relative"
+              className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl hover:shadow-valentine-pink/10 transition-all duration-300 relative border-2 border-valentine-pink/10 hover:border-valentine-red/20"
             >
-              <Quote className="absolute top-4 right-4 w-8 h-8 text-valentine-pink/20" />
+              <Quote className="absolute top-4 right-4 w-8 h-8 text-valentine-pink/30" />
               
               <div className="flex items-center gap-4 mb-4">
                 <img
                   src={testimonial.image}
                   alt={testimonial.name}
-                  className="w-16 h-16 rounded-full object-cover border-2 border-valentine-pink"
+                  className="w-16 h-16 rounded-full object-cover border-2 border-valentine-red/30 ring-2 ring-valentine-pink/20"
                 />
                 <div>
                   <h4 className="font-semibold text-gray-900">{testimonial.name}</h4>

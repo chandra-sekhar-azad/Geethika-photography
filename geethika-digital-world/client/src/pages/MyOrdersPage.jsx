@@ -165,8 +165,8 @@ const MyOrdersPage = () => {
             <h2 className="text-2xl font-bold mb-2">No Orders Found</h2>
             <p className="text-gray-600 mb-6">
               {filter === 'all' 
-                ? "You haven't placed any orders yet."
-                : `You don't have any ${filter} orders.`}
+                ? "You haven't placed any successful orders yet. Complete your payment to see orders here."
+                : `You don't have any ${filter} orders with successful payment.`}
             </p>
             <button
               onClick={() => navigate('/shop')}
@@ -263,10 +263,16 @@ const MyOrdersPage = () => {
                   {/* Payment Info */}
                   <div className="mt-6 pt-6 border-t flex justify-between items-center">
                     <div>
-                      <p className="text-sm text-gray-600">Payment Method</p>
-                      <p className="font-semibold">{order.payment_method || 'Online Payment'}</p>
-                      {order.razorpay_order_id && (
-                        <p className="text-xs text-gray-500">ID: {order.razorpay_order_id}</p>
+                      <p className="text-sm text-gray-600">Payment Status</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <CheckCircle className="w-4 h-4 text-green-500" />
+                        <span className="font-semibold text-green-600">Payment Successful</span>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Method: {order.payment_method || 'Online Payment'}
+                      </p>
+                      {order.razorpay_payment_id && (
+                        <p className="text-xs text-gray-500">Payment ID: {order.razorpay_payment_id}</p>
                       )}
                     </div>
                     <button

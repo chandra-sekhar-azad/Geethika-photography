@@ -1,12 +1,42 @@
 import { useNavigate } from 'react-router-dom';
-import { Trash2, Plus, Minus, ShoppingBag, ArrowRight } from 'lucide-react';
+import { Trash2, Plus, Minus, ShoppingBag, ArrowRight, AlertCircle, Upload } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import { useState } from 'react';
 
 const CartPage = () => {
   const navigate = useNavigate();
-  const { cart, removeFromCart, updateQuantity, getCartTotal } = useCart();
+  const { cart, removeFromCart, updateQuantity, getCartSubtotal, getServiceCharge, getFinalTotal } = useCart();
   const { isAuthenticated } = useAuth();
+  const [showCustomizationAlert, setShowCustomizationAlert] = useState(false);
+  const [itemsNeedingCustomization, setItemsNeedingCustomization] = useState([]);
+
+  // Check if any customizable items are missing images
+  const checkCustomizationComplete = () => {
+    const incompleteItems = cart.filter(item => {
+      // Check if item is customizable and doesn't have an uploaded image
+      return item.is_customizable && (!item.customization || !item.customization.image);
+    });
+
+    if (incompleteItems.length > 0) {
+      setItemsNeedingCustomization(incompleteItems);
+      setShowCustomizationAlert(true);
+      return false;
+    }
+    return true;
+  };
+
+  const handleProceedToCheckout = () => {
+    if (!isAuthenticated()) {
+      navigate('/login', { state: { from: { pathname: '/cart' } } });
+      return;
+    }
+
+    // Check if all customizable items have images uploaded
+    if (checkCustomizationComplete()) {
+      navigate('/checkout');
+    }
+  };
 
   // Show login prompt if not authenticated
   if (!isAuthenticated()) {
@@ -89,6 +119,23 @@ const CartPage = () => {
                       </div>
                     )}
 
+                    {/* Show warning if customizable but no image */}
+                    {item.is_customizable && (!item.customization || !item.customization.image) && (
+                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-2 mb-2 sm:mb-3">
+                        <div className="flex items-start gap-2">
+                          <AlertCircle className="w-4 h-4 text-yellow-600 flex-shrink-0 mt-0.5" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs sm:text-sm text-yellow-800 font-medium">
+                              Image upload required
+                            </p>
+                            <p className="text-xs text-yellow-700 mt-0.5">
+                              This item needs customization. Please upload your image.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                     <div className="flex flex-col xs:flex-row xs:items-center xs:justify-between gap-3">
                       <div className="flex items-center space-x-2 sm:space-x-3 md:space-x-4">
                         <button
@@ -141,7 +188,11 @@ const CartPage = () => {
               <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
                 <div className="flex justify-between text-sm sm:text-base">
                   <span className="text-gray-600">Subtotal</span>
-                  <span className="font-semibold">₹{getCartTotal()}</span>
+                  <span className="font-semibold">₹{getCartSubtotal()}</span>
+                </div>
+                <div className="flex justify-between text-sm sm:text-base">
+                  <span className="text-gray-600">Service Charge</span>
+                  <span className="font-semibold">₹{getServiceCharge()}</span>
                 </div>
                 <div className="flex justify-between text-sm sm:text-base">
                   <span className="text-gray-600">Shipping</span>
@@ -150,19 +201,13 @@ const CartPage = () => {
                 <div className="border-t pt-2 sm:pt-3 flex justify-between">
                   <span className="text-base sm:text-lg font-bold">Total</span>
                   <span className="text-xl sm:text-2xl font-bold text-valentine-red">
-                    ₹{getCartTotal()}
+                    ₹{getFinalTotal()}
                   </span>
                 </div>
               </div>
 
               <button
-                onClick={() => {
-                  if (!isAuthenticated()) {
-                    navigate('/login', { state: { from: { pathname: '/cart' } } });
-                  } else {
-                    navigate('/checkout');
-                  }
-                }}
+                onClick={handleProceedToCheckout}
                 className="w-full btn-primary flex items-center justify-center space-x-2 text-sm sm:text-base py-3"
               >
                 <span>Proceed to Checkout</span>
@@ -179,6 +224,66 @@ const CartPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Customization Alert Modal */}
+      {showCustomizationAlert && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 sm:p-8 animate-fade-in">
+            <div className="flex items-center justify-center w-16 h-16 bg-yellow-100 rounded-full mx-auto mb-4">
+              <Upload className="w-8 h-8 text-yellow-600" />
+            </div>
+            
+            <h2 className="text-2xl font-bold text-center mb-3">
+              Customization Required
+            </h2>
+            
+            <p className="text-gray-600 text-center mb-6">
+              The following items need custom images uploaded before checkout:
+            </p>
+
+            <div className="space-y-3 mb-6 max-h-60 overflow-y-auto">
+              {itemsNeedingCustomization.map((item) => (
+                <div key={item.id} className="flex items-center gap-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <img
+                    src={item.image}
+                    alt={item.name}
+                    className="w-12 h-12 object-cover rounded"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm line-clamp-2">{item.name}</p>
+                    <p className="text-xs text-yellow-700">Upload required</p>
+                  </div>
+                  <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0" />
+                </div>
+              ))}
+            </div>
+
+            <div className="space-y-3">
+              <button
+                onClick={() => {
+                  setShowCustomizationAlert(false);
+                  // Navigate to shop to customize items
+                  navigate('/shop');
+                }}
+                className="w-full btn-primary"
+              >
+                Go to Shop & Customize
+              </button>
+              
+              <button
+                onClick={() => setShowCustomizationAlert(false)}
+                className="w-full px-6 py-3 border-2 border-gray-300 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
+              >
+                Continue Shopping
+              </button>
+            </div>
+
+            <p className="text-xs text-gray-500 text-center mt-4">
+              💡 Tip: Remove these items from cart or upload custom images to proceed
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
