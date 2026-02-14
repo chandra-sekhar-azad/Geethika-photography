@@ -108,12 +108,9 @@ const AdminLayout = ({ children }) => {
             <div className="flex items-center justify-between">
               <div className="flex-1 lg:hidden"></div>
               <div className="flex items-center space-x-4">
-                <Link
-                  to="/"
-                  className="text-sm text-gray-600 hover:text-valentine-red"
-                >
-                  View Website →
-                </Link>
+                <div className="text-sm text-gray-600">
+                  Logged in as: <span className="font-semibold text-valentine-red">{user?.name || user?.email || 'Admin'}</span>
+                </div>
               </div>
             </div>
           </div>

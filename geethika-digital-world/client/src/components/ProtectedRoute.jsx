@@ -1,25 +1,46 @@
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useEffect } from 'react';
 
 const ProtectedRoute = ({ children, requireAdmin = false }) => {
   const { user, isLoading } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Prevent browser back button from leaving admin area
     if (requireAdmin && user && (user.role === 'admin' || user.role === 'super_admin')) {
+      // Push a state to prevent going back to non-admin pages
+      window.history.pushState(null, '', window.location.href);
+      
       const handlePopState = (e) => {
-        if (!location.pathname.startsWith('/admin')) {
-          e.preventDefault();
-          window.history.pushState(null, '', location.pathname);
+        // If trying to navigate away from admin area, stay in admin
+        if (location.pathname.startsWith('/admin')) {
+          window.history.pushState(null, '', window.location.href);
+          // Redirect to admin dashboard if trying to go back
+          if (location.pathname === '/admin/login') {
+            navigate('/admin/dashboard', { replace: true });
+          }
         }
       };
 
       window.addEventListener('popstate', handlePopState);
-      return () => window.removeEventListener('popstate', handlePopState);
+      
+      return () => {
+        window.removeEventListener('popstate', handlePopState);
+      };
     }
-  }, [requireAdmin, user, location]);
+  }, [requireAdmin, user, location, navigate]);
+
+  // Redirect admin users away from customer pages
+  useEffect(() => {
+    if (user && (user.role === 'admin' || user.role === 'super_admin')) {
+      // If admin is on a non-admin page, redirect to admin dashboard
+      if (!location.pathname.startsWith('/admin') && !requireAdmin) {
+        navigate('/admin/dashboard', { replace: true });
+      }
+    }
+  }, [user, location, navigate, requireAdmin]);
 
   if (isLoading) {
     return (

@@ -1,4 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import WhatsAppFloat from './components/WhatsAppFloat';
@@ -43,6 +45,17 @@ import HomePageManagement from './pages/admin/HomePageManagement';
 import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
 import { WishlistProvider } from './context/WishlistContext';
+
+// Component to redirect admins to admin dashboard
+const AdminRedirect = () => {
+  const { user } = useAuth();
+  
+  if (user && (user.role === 'admin' || user.role === 'super_admin')) {
+    return <Navigate to="/admin/dashboard" replace />;
+  }
+  
+  return <HomePage />;
+};
 
 function App() {
   return (
@@ -89,7 +102,7 @@ function App() {
                 <main className="grow">
                   <PageTransition>
                     <Routes>
-                      <Route path="/" element={<HomePage />} />
+                      <Route path="/" element={<AdminRedirect />} />
                       <Route path="/shop" element={<ShopPage />} />
                       <Route path="/shop/:category" element={<ShopPage />} />
                       <Route path="/product/:id" element={<ProductDetailPage />} />

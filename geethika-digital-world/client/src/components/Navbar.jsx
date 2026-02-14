@@ -30,12 +30,9 @@ const Navbar = () => {
 
   const handleLogout = () => {
     logout();
-    // If admin, redirect to admin login, otherwise to home
-    if (user?.role === 'admin' || user?.role === 'super_admin') {
-      navigate('/admin/login');
-    } else {
-      navigate('/');
-    }
+    // Always redirect to home for customer logout
+    // Admin logout is handled separately in AdminLayout
+    navigate('/', { replace: true });
     setIsOpen(false);
   };
 

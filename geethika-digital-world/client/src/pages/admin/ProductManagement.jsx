@@ -9,6 +9,7 @@ const ProductManagement = () => {
   const [editingProduct, setEditingProduct] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all'); // 'all', 'trending', 'regular'
+  const [filterCategory, setFilterCategory] = useState('all'); // Category filter
   const [loading, setLoading] = useState(true);
 
   const [formData, setFormData] = useState({
@@ -330,11 +331,14 @@ const ProductManagement = () => {
         {/* Search and Filter */}
         <div className="mb-6 space-y-4">
           {/* Filter Tabs */}
-          <div className="flex gap-2 border-b border-gray-200">
+          <div className="flex gap-2 border-b border-gray-200 overflow-x-auto pb-2">
             <button
-              onClick={() => setFilterType('all')}
-              className={`px-4 py-2 font-medium transition-colors ${
-                filterType === 'all'
+              onClick={() => {
+                setFilterType('all');
+                setFilterCategory('all');
+              }}
+              className={`px-4 py-2 font-medium transition-colors whitespace-nowrap ${
+                filterType === 'all' && filterCategory === 'all'
                   ? 'text-valentine-red border-b-2 border-valentine-red'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
@@ -342,9 +346,12 @@ const ProductManagement = () => {
               All Products ({products.length})
             </button>
             <button
-              onClick={() => setFilterType('trending')}
-              className={`px-4 py-2 font-medium transition-colors ${
-                filterType === 'trending'
+              onClick={() => {
+                setFilterType('trending');
+                setFilterCategory('all');
+              }}
+              className={`px-4 py-2 font-medium transition-colors whitespace-nowrap ${
+                filterType === 'trending' && filterCategory === 'all'
                   ? 'text-valentine-red border-b-2 border-valentine-red'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
@@ -352,15 +359,40 @@ const ProductManagement = () => {
               🔥 Trending Now ({products.filter(p => p.valentine_special).length})
             </button>
             <button
-              onClick={() => setFilterType('regular')}
-              className={`px-4 py-2 font-medium transition-colors ${
-                filterType === 'regular'
+              onClick={() => {
+                setFilterType('regular');
+                setFilterCategory('all');
+              }}
+              className={`px-4 py-2 font-medium transition-colors whitespace-nowrap ${
+                filterType === 'regular' && filterCategory === 'all'
                   ? 'text-valentine-red border-b-2 border-valentine-red'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
               Regular Products ({products.filter(p => !p.valentine_special).length})
             </button>
+            
+            {/* Category Tabs */}
+            <div className="border-l border-gray-300 mx-2"></div>
+            {categories.map((category) => {
+              const categoryProductCount = products.filter(p => p.category_id === category.id).length;
+              return (
+                <button
+                  key={category.id}
+                  onClick={() => {
+                    setFilterType('all');
+                    setFilterCategory(category.id.toString());
+                  }}
+                  className={`px-4 py-2 font-medium transition-colors whitespace-nowrap ${
+                    filterCategory === category.id.toString()
+                      ? 'text-valentine-red border-b-2 border-valentine-red'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  {category.name} ({categoryProductCount})
+                </button>
+              );
+            })}
           </div>
 
           {/* Search */}
@@ -376,12 +408,30 @@ const ProductManagement = () => {
           </div>
 
           {/* Info Banner for Trending */}
-          {filterType === 'trending' && (
+          {filterType === 'trending' && filterCategory === 'all' && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <p className="text-sm text-blue-800">
                 <strong>💡 Tip:</strong> Products marked as "Valentine Special" appear in the "Trending Now" section on the homepage. 
                 Edit the "Valentine Special" checkbox when editing a product to add/remove it from trending.
               </p>
+            </div>
+          )}
+          
+          {/* Info Banner for Category Filter */}
+          {filterCategory !== 'all' && (
+            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 flex items-center justify-between">
+              <p className="text-sm text-purple-800">
+                <strong>📂 Filtered by:</strong> {categories.find(c => c.id.toString() === filterCategory)?.name || 'Category'}
+              </p>
+              <button
+                onClick={() => {
+                  setFilterCategory('all');
+                  setFilterType('all');
+                }}
+                className="text-sm text-purple-600 hover:text-purple-800 font-semibold underline"
+              >
+                Clear Filter
+              </button>
             </div>
           )}
         </div>
