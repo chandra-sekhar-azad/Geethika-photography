@@ -39,7 +39,7 @@ const ServicesPage = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     const bookingDetails = {
       service: selectedService.name,
       package: selectedPackage.name,
@@ -48,25 +48,25 @@ const ServicesPage = () => {
     };
 
     console.log('Booking Details:', bookingDetails);
-    
+
     const message = `New Service Booking!\n\nService: ${selectedService.name}\nPackage: ${selectedPackage.name}\nName: ${formData.name}\nPhone: ${formData.phone}\nDate: ${formData.date}\nLocation: ${formData.location}\nRequirements: ${formData.requirements}`;
-    
+
     const whatsappUrl = `https://wa.me/919492686421?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
-    
+
     alert('Booking request sent! We will contact you shortly.');
     setShowBookingForm(false);
     setFormData({ name: '', phone: '', date: '', location: '', requirements: '' });
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="relative bg-gradient-to-r from-valentine-pink/30 to-valentine-red/20 py-8 sm:py-12 md:py-16">
+    <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black">
+      <div className="relative bg-black/50 py-8 sm:py-12 md:py-16 border-b border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-display font-bold text-valentine-red mb-2 sm:mb-4 italic">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-display font-bold text-white mb-2 sm:mb-4 uppercase tracking-wide">
             Our Services
           </h1>
-          <p className="text-sm sm:text-base md:text-lg text-gray-700">
+          <p className="text-sm sm:text-base md:text-lg text-gray-400">
             Professional photography, videography, and decoration services
           </p>
         </div>
@@ -75,7 +75,7 @@ const ServicesPage = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 md:py-12">
         {loading ? (
           <div className="flex justify-center items-center py-12">
-            <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-valentine-red"></div>
+            <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-orange-primary"></div>
           </div>
         ) : services.length === 0 ? (
           <div className="text-center py-12">
@@ -84,24 +84,24 @@ const ServicesPage = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {services.map((service) => (
-              <div key={service.id} className="bg-white rounded-lg shadow-md overflow-hidden border border-valentine-pink/20 hover:shadow-xl transition-shadow">
+              <div key={service.id} className="bg-gray-900 rounded-xl shadow-lg overflow-hidden border border-gray-800 hover:border-orange-primary/50 hover:shadow-orange-primary/10 transition-all duration-300 group">
                 {service.image_url && (
                   <div className="h-48 overflow-hidden">
                     <img
                       src={service.image_url}
                       alt={service.name}
-                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                     />
                   </div>
                 )}
 
                 <div className="p-5">
-                  <h2 className="text-xl font-display font-bold text-valentine-red italic mb-2">{service.name}</h2>
-                  <p className="text-sm text-gray-600 mb-3 line-clamp-3">{service.description}</p>
+                  <h2 className="text-xl font-display font-bold text-white mb-2 uppercase tracking-wide group-hover:text-orange-primary transition-colors">{service.name}</h2>
+                  <p className="text-sm text-gray-400 mb-3 line-clamp-3">{service.description}</p>
 
                   {service.price_range && (
                     <div className="mb-3">
-                      <span className="inline-block bg-valentine-pink/20 text-valentine-red px-3 py-1 rounded-full font-semibold text-sm">
+                      <span className="inline-block bg-orange-primary/10 text-orange-primary px-3 py-1 rounded-full font-semibold text-sm border border-orange-primary/20">
                         {service.price_range}
                       </span>
                     </div>
@@ -113,9 +113,9 @@ const ServicesPage = () => {
                       const whatsappUrl = `https://wa.me/919492686421?text=${encodeURIComponent(message)}`;
                       window.open(whatsappUrl, '_blank');
                     }}
-                    className="btn-romantic text-sm w-full"
+                    className="w-full py-3 px-4 bg-orange-primary text-black font-semibold rounded-lg hover:bg-orange-hover transition-colors flex items-center justify-center gap-2 uppercase tracking-wide text-sm"
                   >
-                    Book Now via WhatsApp
+                    <span>Book Now via WhatsApp</span>
                   </button>
                 </div>
               </div>
@@ -125,21 +125,21 @@ const ServicesPage = () => {
       </div>
 
       {showBookingForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl sm:rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-valentine-pink/20">
-            <div className="bg-gradient-to-r from-valentine-pink/30 to-valentine-red/20 p-4 sm:p-6 md:p-8">
-              <h2 className="text-xl sm:text-2xl font-display font-bold mb-2 text-valentine-red italic">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-900 rounded-xl sm:rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-700 shadow-2xl">
+            <div className="bg-gray-800 p-4 sm:p-6 md:p-8 border-b border-gray-700">
+              <h2 className="text-xl sm:text-2xl font-display font-bold mb-2 text-white uppercase tracking-wide">
                 Book {selectedService?.name}
               </h2>
-              <p className="text-xs sm:text-sm text-gray-700">
+              <p className="text-xs sm:text-sm text-orange-primary font-medium">
                 Package: {selectedPackage?.name} - ₹{selectedPackage?.price}
               </p>
             </div>
 
             <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-3 sm:space-y-4">
               <div>
-                <label className="flex items-center text-xs sm:text-sm font-semibold mb-1.5 sm:mb-2">
-                  <User className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
+                <label className="flex items-center text-xs sm:text-sm font-semibold mb-1.5 sm:mb-2 text-gray-300">
+                  <User className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 text-orange-primary" />
                   Full Name *
                 </label>
                 <input
@@ -147,14 +147,14 @@ const ServicesPage = () => {
                   required
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-2 sm:px-4 sm:py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-valentine-red focus:border-transparent"
+                  className="w-full px-3 py-2 sm:px-4 sm:py-2 text-sm sm:text-base bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-orange-primary focus:border-transparent text-white placeholder-gray-500"
                   placeholder="Enter your name"
                 />
               </div>
 
               <div>
-                <label className="flex items-center text-xs sm:text-sm font-semibold mb-1.5 sm:mb-2">
-                  <Phone className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
+                <label className="flex items-center text-xs sm:text-sm font-semibold mb-1.5 sm:mb-2 text-gray-300">
+                  <Phone className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 text-orange-primary" />
                   Phone Number *
                 </label>
                 <input
@@ -162,14 +162,14 @@ const ServicesPage = () => {
                   required
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="w-full px-3 py-2 sm:px-4 sm:py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-valentine-red focus:border-transparent"
+                  className="w-full px-3 py-2 sm:px-4 sm:py-2 text-sm sm:text-base bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-orange-primary focus:border-transparent text-white placeholder-gray-500"
                   placeholder="Enter your phone number"
                 />
               </div>
 
               <div>
-                <label className="flex items-center text-xs sm:text-sm font-semibold mb-1.5 sm:mb-2">
-                  <Calendar className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
+                <label className="flex items-center text-xs sm:text-sm font-semibold mb-1.5 sm:mb-2 text-gray-300">
+                  <Calendar className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 text-orange-primary" />
                   Preferred Date *
                 </label>
                 <input
@@ -177,14 +177,14 @@ const ServicesPage = () => {
                   required
                   value={formData.date}
                   onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                  className="w-full px-3 py-2 sm:px-4 sm:py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-valentine-red focus:border-transparent"
+                  className="w-full px-3 py-2 sm:px-4 sm:py-2 text-sm sm:text-base bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-orange-primary focus:border-transparent text-white placeholder-gray-500 [color-scheme:dark]"
                   min={new Date().toISOString().split('T')[0]}
                 />
               </div>
 
               <div>
-                <label className="flex items-center text-xs sm:text-sm font-semibold mb-1.5 sm:mb-2">
-                  <MapPin className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
+                <label className="flex items-center text-xs sm:text-sm font-semibold mb-1.5 sm:mb-2 text-gray-300">
+                  <MapPin className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 text-orange-primary" />
                   Location *
                 </label>
                 <input
@@ -192,34 +192,34 @@ const ServicesPage = () => {
                   required
                   value={formData.location}
                   onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                  className="w-full px-3 py-2 sm:px-4 sm:py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-valentine-red focus:border-transparent"
+                  className="w-full px-3 py-2 sm:px-4 sm:py-2 text-sm sm:text-base bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-orange-primary focus:border-transparent text-white placeholder-gray-500"
                   placeholder="Enter event location"
                 />
               </div>
 
               <div>
-                <label className="flex items-center text-xs sm:text-sm font-semibold mb-1.5 sm:mb-2">
-                  <MessageSquare className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
+                <label className="flex items-center text-xs sm:text-sm font-semibold mb-1.5 sm:mb-2 text-gray-300">
+                  <MessageSquare className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 text-orange-primary" />
                   Requirements
                 </label>
                 <textarea
                   value={formData.requirements}
                   onChange={(e) => setFormData({ ...formData, requirements: e.target.value })}
-                  className="w-full px-3 py-2 sm:px-4 sm:py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-valentine-red focus:border-transparent"
+                  className="w-full px-3 py-2 sm:px-4 sm:py-2 text-sm sm:text-base bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-orange-primary focus:border-transparent text-white placeholder-gray-500"
                   rows="4"
                   placeholder="Tell us about your requirements..."
                 />
               </div>
 
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 sm:p-4">
+              <div className="bg-yellow-900/20 border border-yellow-700/50 rounded-lg p-3 sm:p-4">
                 <div className="flex items-start">
-                  <CreditCard className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-600 mr-2 mt-0.5 flex-shrink-0" />
+                  <CreditCard className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-500 mr-2 mt-0.5 flex-shrink-0" />
                   <div className="text-xs sm:text-sm">
-                    <p className="font-semibold text-yellow-800 mb-1">
+                    <p className="font-semibold text-yellow-500 mb-1">
                       Advance Payment Required
                     </p>
-                    <p className="text-yellow-700">
-                      A 30% advance payment is required to confirm your booking. 
+                    <p className="text-yellow-400/80">
+                      A 30% advance payment is required to confirm your booking.
                       You will be redirected to Razorpay for secure payment.
                     </p>
                   </div>
@@ -230,13 +230,13 @@ const ServicesPage = () => {
                 <button
                   type="button"
                   onClick={() => setShowBookingForm(false)}
-                  className="flex-1 px-4 py-2.5 sm:px-6 sm:py-3 border-2 border-gray-300 rounded-lg font-semibold hover:bg-gray-50 transition-colors text-sm sm:text-base"
+                  className="flex-1 px-4 py-2.5 sm:px-6 sm:py-3 border border-gray-600 rounded-lg font-semibold text-gray-300 hover:bg-gray-800 transition-colors text-sm sm:text-base"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 btn-primary text-sm sm:text-base py-2.5 sm:py-3"
+                  className="flex-1 bg-orange-primary text-black font-bold text-sm sm:text-base py-2.5 sm:py-3 rounded-lg hover:bg-orange-hover transition-colors uppercase tracking-wide"
                 >
                   Proceed to Payment
                 </button>

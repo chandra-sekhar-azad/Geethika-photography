@@ -198,7 +198,7 @@ const ServiceManagement = () => {
                   required
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-valentine-red focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-primary focus:border-transparent text-gray-900 bg-white"
                   placeholder="e.g., Photography, Event Decor"
                 />
               </div>
@@ -211,7 +211,7 @@ const ServiceManagement = () => {
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   rows="4"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-valentine-red focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-primary focus:border-transparent text-gray-900 bg-white"
                   placeholder="Describe your service..."
                 />
               </div>
@@ -224,7 +224,7 @@ const ServiceManagement = () => {
                   type="text"
                   value={formData.price_range}
                   onChange={(e) => setFormData({ ...formData, price_range: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-valentine-red focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-primary focus:border-transparent text-gray-900 bg-white"
                   placeholder="e.g., ₹5,000 - ₹50,000"
                 />
               </div>
@@ -276,7 +276,7 @@ const ServiceManagement = () => {
                   id="is_active"
                   checked={formData.is_active}
                   onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                  className="w-4 h-4 text-valentine-red border-gray-300 rounded focus:ring-valentine-red"
+                  className="w-4 h-4 text-orange-primary border-gray-300 rounded focus:ring-orange-primary"
                 />
                 <label htmlFor="is_active" className="text-sm font-medium text-gray-700">
                   Active (visible to customers)

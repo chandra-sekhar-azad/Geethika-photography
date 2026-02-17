@@ -146,7 +146,7 @@ const LoginPage = () => {
       <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-2xl shadow-xl">
         {/* Header */}
         <div className="text-center">
-          <h2 className="text-3xl font-display font-bold text-valentine-red">
+          <h2 className="text-3xl font-display font-bold text-orange-primary">
             Welcome Back
           </h2>
           <p className="mt-2 text-sm text-gray-600">
@@ -176,7 +176,7 @@ const LoginPage = () => {
                 type="text"
                 value={formData.emailOrPhone}
                 onChange={handleChange}
-                className={`pl-10 w-full px-4 py-3 border ${errors.emailOrPhone ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-valentine-red focus:border-transparent`}
+                className={`pl-10 w-full px-4 py-3 border ${errors.emailOrPhone ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-orange-primary focus:border-transparent text-gray-900 bg-white`}
                 placeholder="Enter email or phone number"
               />
             </div>
@@ -196,7 +196,7 @@ const LoginPage = () => {
                 type={showPassword ? 'text' : 'password'}
                 value={formData.password}
                 onChange={handleChange}
-                className={`pl-10 pr-10 w-full px-4 py-3 border ${errors.password ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-valentine-red focus:border-transparent`}
+                className={`pl-10 pr-10 w-full px-4 py-3 border ${errors.password ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-orange-primary focus:border-transparent text-gray-900 bg-white`}
                 placeholder="Enter your password"
               />
               <button
@@ -218,11 +218,11 @@ const LoginPage = () => {
                 name="rememberMe"
                 checked={formData.rememberMe}
                 onChange={handleChange}
-                className="w-4 h-4 text-valentine-red border-gray-300 rounded focus:ring-valentine-red"
+                className="w-4 h-4 text-orange-primary border-gray-300 rounded focus:ring-orange-primary"
               />
               <span className="ml-2 text-sm text-gray-600">Remember me</span>
             </label>
-            <Link to="/forgot-password" className="text-sm text-valentine-red hover:underline">
+            <Link to="/forgot-password" className="text-sm text-orange-primary hover:underline">
               Forgot Password?
             </Link>
           </div>
@@ -238,7 +238,7 @@ const LoginPage = () => {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full bg-valentine-red text-white py-3 px-4 rounded-lg font-semibold hover:bg-valentine-darkRed transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-orange-primary text-white py-3 px-4 rounded-lg font-semibold hover:bg-orange-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSubmitting ? 'Logging in...' : 'Login'}
           </button>
@@ -246,7 +246,7 @@ const LoginPage = () => {
           {/* Sign Up Link */}
           <p className="text-center text-sm text-gray-600">
             Don't have an account?{' '}
-            <Link to="/signup" className="text-valentine-red font-semibold hover:underline">
+            <Link to="/signup" className="text-orange-primary font-semibold hover:underline">
               Sign Up
             </Link>
           </p>

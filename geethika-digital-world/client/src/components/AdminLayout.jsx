@@ -1,7 +1,7 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { 
-  LayoutDashboard, Package, ShoppingCart, Users, 
-  TrendingUp, LogOut, Menu, X, Shield, FileText, MessageSquare, Send, Image 
+import {
+  LayoutDashboard, Package, ShoppingCart, Users, Tag,
+  TrendingUp, LogOut, Menu, X, Shield, FileText, MessageSquare, Send, Image
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
@@ -20,6 +20,7 @@ const AdminLayout = ({ children }) => {
 
   const menuItems = [
     { path: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+    { path: '/admin/categories', icon: Tag, label: 'Categories' },
     { path: '/admin/products', icon: Package, label: 'Products' },
     { path: '/admin/services', icon: Package, label: 'Services' },
     { path: '/admin/orders', icon: ShoppingCart, label: 'Orders' },
@@ -58,7 +59,7 @@ const AdminLayout = ({ children }) => {
         lg:translate-x-0
       `}>
         <div className="p-6 border-b flex-shrink-0">
-          <h1 className="text-2xl font-bold text-valentine-red">Admin Panel</h1>
+          <h1 className="text-2xl font-bold text-orange-primary">Admin Panel</h1>
           <p className="text-sm text-gray-600 mt-1">Geethika Digital World</p>
         </div>
 
@@ -67,7 +68,7 @@ const AdminLayout = ({ children }) => {
             {menuItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path;
-              
+
               return (
                 <li key={item.path}>
                   <Link
@@ -75,8 +76,8 @@ const AdminLayout = ({ children }) => {
                     onClick={() => setSidebarOpen(false)}
                     className={`
                       flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors
-                      ${isActive 
-                        ? 'bg-valentine-red text-white' 
+                      ${isActive
+                        ? 'bg-orange-primary text-white'
                         : 'text-gray-700 hover:bg-gray-100'
                       }
                     `}
@@ -109,7 +110,7 @@ const AdminLayout = ({ children }) => {
               <div className="flex-1 lg:hidden"></div>
               <div className="flex items-center space-x-4">
                 <div className="text-sm text-gray-600">
-                  Logged in as: <span className="font-semibold text-valentine-red">{user?.name || user?.email || 'Admin'}</span>
+                  Logged in as: <span className="font-semibold text-orange-primary">{user?.name || user?.email || 'Admin'}</span>
                 </div>
               </div>
             </div>

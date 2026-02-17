@@ -66,8 +66,8 @@
     --foreground: 0 0% 3.9%;
     --card: 0 0% 100%;
     --card-foreground: 0 0% 3.9%;
-    --primary: 348 83% 47%;
-    --primary-foreground: 0 0% 98%;
+    --primary: 24 100% 50%;
+    --primary-foreground: 0 0% 0%;
     --secondary: 0 0% 96.1%;
     --secondary-foreground: 0 0% 9%;
     --muted: 0 0% 96.1%;
@@ -76,17 +76,17 @@
     --accent-foreground: 0 0% 9%;
     --border: 0 0% 89.8%;
     --input: 0 0% 89.8%;
-    --ring: 348 83% 47%;
-    --rose-medium: 330 81% 60%;
-    --color-valentine-red: #DC143C;
-    --color-valentine-rose: #FF007F;
-    --color-valentine-pink: #FF69B4;
-    --color-valentine-lightPink: #FFB6C1;
+    --ring: 24 100% 50%;
+    --rose-medium: 24 100% 60%;
+    --color-valentine-red: #FF6B00;
+    --color-valentine-rose: #FF8533;
+    --color-valentine-pink: #FFA366;
+    --color-valentine-lightPink: #FFB899;
   }
 
   body {
     font-family: var(--font-family-body);
-    background-color: hsl(var(--background));
+    background-color: #000000;
     color: hsl(var(--foreground));
   }
 
@@ -96,12 +96,34 @@
     transition-duration: 150ms;
   }
 
+  /* Ensure all inputs have visible text */
+  input, textarea, select {
+    color: #111827 !important;
+    background-color: #ffffff !important;
+  }
+
+  input::placeholder, textarea::placeholder {
+    color: #9CA3AF !important;
+  }
+
   a, button {
     transition: all 0.3s ease;
   }
 }
 
 @layer components {
+  /* Ensure all inputs have visible text - CRITICAL FIX */
+  input:not([type="checkbox"]):not([type="radio"]),
+  textarea,
+  select {
+    @apply text-gray-900 bg-white;
+  }
+
+  input::placeholder, 
+  textarea::placeholder {
+    @apply text-gray-400;
+  }
+
   .btn-primary {
     background: linear-gradient(to right, var(--color-valentine-red), var(--color-valentine-rose));
     color: white;
@@ -117,14 +139,14 @@
   }
 
   .btn-romantic {
-    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--rose-medium)) 100%);
+    background: linear-gradient(135deg, #FF6B00 0%, #FF8533 100%);
     color: white;
     padding: 0.875rem 2.5rem;
     border-radius: 9999px;
     font-weight: 600;
     font-size: 1.125rem;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(220, 20, 60, 0.3);
+    box-shadow: 0 4px 15px rgba(255, 107, 0, 0.3);
     position: relative;
     overflow: hidden;
   }
@@ -146,7 +168,7 @@
 
   .btn-romantic:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(220, 20, 60, 0.5);
+    box-shadow: 0 8px 25px rgba(255, 107, 0, 0.5);
   }
   
   .btn-secondary {
@@ -177,12 +199,12 @@
   }
 
   .card-romantic {
-    background: hsl(var(--card));
+    background: hsl(0 0% 9%);
     border-radius: 1.25rem;
     overflow: hidden;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    border: 1px solid hsl(var(--border));
+    border: 1px solid hsl(0 0% 20%);
     position: relative;
   }
 
@@ -192,7 +214,7 @@
     inset: 0;
     border-radius: 1.25rem;
     padding: 2px;
-    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--rose-medium)));
+    background: linear-gradient(135deg, #FF6B00, #FF8533);
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
@@ -202,7 +224,7 @@
 
   .card-romantic:hover {
     transform: translateY(-8px);
-    box-shadow: 0 12px 40px rgba(220, 20, 60, 0.2);
+    box-shadow: 0 12px 40px rgba(255, 107, 0, 0.2);
   }
 
   .card-romantic:hover::after {
@@ -261,7 +283,7 @@
     font-weight: 700;
     text-align: center;
     margin-bottom: 3rem;
-    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--rose-medium)));
+    background: linear-gradient(135deg, #FF6B00, #FF8533);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;

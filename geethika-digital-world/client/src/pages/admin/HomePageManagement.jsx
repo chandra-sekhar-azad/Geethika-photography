@@ -316,7 +316,7 @@ const HomePageManagement = () => {
                 <div className="flex gap-3 pt-4">
                   <button
                     type="submit"
-                    className="flex-1 bg-valentine-red text-white px-6 py-2 rounded-lg hover:bg-valentine-darkRed transition-colors flex items-center justify-center gap-2"
+                    className="flex-1 bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center gap-2"
                   >
                     <Save className="w-5 h-5" />
                     Save Changes
@@ -324,7 +324,7 @@ const HomePageManagement = () => {
                   <button
                     type="button"
                     onClick={() => setShowModal(false)}
-                    className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                   >
                     Cancel
                   </button>

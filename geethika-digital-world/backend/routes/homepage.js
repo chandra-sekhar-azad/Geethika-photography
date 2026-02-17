@@ -1,6 +1,6 @@
 import express from 'express';
 import pool from '../config/database.js';
-import { authenticate, isSuperAdmin } from '../middleware/auth.js';
+import { authenticate, isAdmin, isSuperAdmin } from '../middleware/auth.js';
 import { upload } from '../middleware/upload.js';
 import { logAdminAction } from '../middleware/auditLog.js';
 
@@ -34,7 +34,7 @@ router.get('/content', async (req, res) => {
 });
 
 // Get all homepage content for admin (includes inactive)
-router.get('/admin/content', authenticate, isSuperAdmin, async (req, res) => {
+router.get('/admin/content', authenticate, isAdmin, async (req, res) => {
   try {
     const result = await pool.query(
       'SELECT * FROM homepage_content ORDER BY content_type, display_order'
@@ -54,7 +54,7 @@ router.get('/admin/content', authenticate, isSuperAdmin, async (req, res) => {
 });
 
 // Get single content item
-router.get('/admin/content/:id', authenticate, isSuperAdmin, async (req, res) => {
+router.get('/admin/content/:id', authenticate, isAdmin, async (req, res) => {
   try {
     const result = await pool.query(
       'SELECT * FROM homepage_content WHERE id = $1',
@@ -82,7 +82,7 @@ router.get('/admin/content/:id', authenticate, isSuperAdmin, async (req, res) =>
 });
 
 // Update homepage content
-router.put('/admin/content/:id', authenticate, isSuperAdmin, upload.single('image'), async (req, res) => {
+router.put('/admin/content/:id', authenticate, isAdmin, upload.single('image'), async (req, res) => {
   try {
     const { id } = req.params;
     const { title, description, link_url, display_order, is_active } = req.body;
@@ -175,7 +175,7 @@ router.put('/admin/content/:id', authenticate, isSuperAdmin, upload.single('imag
 });
 
 // Create new homepage content
-router.post('/admin/content', authenticate, isSuperAdmin, upload.single('image'), async (req, res) => {
+router.post('/admin/content', authenticate, isAdmin, upload.single('image'), async (req, res) => {
   try {
     const { section, content_type, title, description, link_url, display_order } = req.body;
 
@@ -218,7 +218,7 @@ router.post('/admin/content', authenticate, isSuperAdmin, upload.single('image')
 });
 
 // Delete homepage content
-router.delete('/admin/content/:id', authenticate, isSuperAdmin, async (req, res) => {
+router.delete('/admin/content/:id', authenticate, isAdmin, async (req, res) => {
   try {
     const { id } = req.params;
 

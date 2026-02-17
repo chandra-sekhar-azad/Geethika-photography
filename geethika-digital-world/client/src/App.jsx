@@ -42,6 +42,7 @@ import WhatsAppMessaging from './pages/admin/WhatsAppMessaging';
 import GalleryManagement from './pages/admin/GalleryManagement';
 import Analytics from './pages/admin/Analytics';
 import HomePageManagement from './pages/admin/HomePageManagement';
+import CategoryManagement from './pages/admin/CategoryManagement';
 import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
 import { WishlistProvider } from './context/WishlistContext';
@@ -49,11 +50,11 @@ import { WishlistProvider } from './context/WishlistContext';
 // Component to redirect admins to admin dashboard
 const AdminRedirect = () => {
   const { user } = useAuth();
-  
+
   if (user && (user.role === 'admin' || user.role === 'super_admin')) {
     return <Navigate to="/admin/dashboard" replace />;
   }
-  
+
   return <HomePage />;
 };
 
@@ -63,75 +64,76 @@ function App() {
       <CartProvider>
         <WishlistProvider>
           <Router>
-          <BackendWakeup />
-          <Routes>
-            {/* Admin Login Route (no layout) */}
-            <Route path="/admin/login" element={<AdminLogin />} />
+            <BackendWakeup />
+            <Routes>
+              {/* Admin Login Route (no layout) */}
+              <Route path="/admin/login" element={<AdminLogin />} />
 
-            {/* Admin Routes */}
-            <Route path="/admin/*" element={
-              <ProtectedRoute requireAdmin={true}>
-                <AdminLayout>
-                  <PageTransition>
-                    <Routes>
-                      <Route path="dashboard" element={<AdminDashboard />} />
-                      <Route path="products" element={<ProductManagement />} />
-                      <Route path="services" element={<ServiceManagement />} />
-                      <Route path="orders" element={<OrderManagement />} />
-                      <Route path="customers" element={<CustomerDatabase />} />
-                      <Route path="sales-report" element={<SalesReport />} />
-                      <Route path="admin-management" element={<AdminManagement />} />
-                      <Route path="audit-log" element={<AuditLog />} />
-                      <Route path="whatsapp-templates" element={<WhatsAppTemplates />} />
-                      <Route path="whatsapp-campaigns" element={<WhatsAppCampaigns />} />
-                      <Route path="whatsapp" element={<WhatsAppMessaging />} />
-                      <Route path="gallery" element={<GalleryManagement />} />
-                      <Route path="homepage" element={<HomePageManagement />} />
-                      <Route path="analytics" element={<Analytics />} />
-                      <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
-                    </Routes>
-                  </PageTransition>
-                </AdminLayout>
-              </ProtectedRoute>
-            } />
+              {/* Admin Routes */}
+              <Route path="/admin/*" element={
+                <ProtectedRoute requireAdmin={true}>
+                  <AdminLayout>
+                    <PageTransition>
+                      <Routes>
+                        <Route path="dashboard" element={<AdminDashboard />} />
+                        <Route path="products" element={<ProductManagement />} />
+                        <Route path="services" element={<ServiceManagement />} />
+                        <Route path="orders" element={<OrderManagement />} />
+                        <Route path="customers" element={<CustomerDatabase />} />
+                        <Route path="sales-report" element={<SalesReport />} />
+                        <Route path="admin-management" element={<AdminManagement />} />
+                        <Route path="audit-log" element={<AuditLog />} />
+                        <Route path="whatsapp-templates" element={<WhatsAppTemplates />} />
+                        <Route path="whatsapp-campaigns" element={<WhatsAppCampaigns />} />
+                        <Route path="whatsapp" element={<WhatsAppMessaging />} />
+                        <Route path="gallery" element={<GalleryManagement />} />
+                        <Route path="homepage" element={<HomePageManagement />} />
+                        <Route path="categories" element={<CategoryManagement />} />
+                        <Route path="analytics" element={<Analytics />} />
+                        <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
+                      </Routes>
+                    </PageTransition>
+                  </AdminLayout>
+                </ProtectedRoute>
+              } />
 
-            {/* Public Routes */}
-            <Route path="/*" element={
-              <div className="min-h-screen flex flex-col">
-                <Navbar />
-                <main className="grow">
-                  <PageTransition>
-                    <Routes>
-                      <Route path="/" element={<AdminRedirect />} />
-                      <Route path="/shop" element={<ShopPage />} />
-                      <Route path="/shop/:category" element={<ShopPage />} />
-                      <Route path="/product/:id" element={<ProductDetailPage />} />
-                      <Route path="/services" element={<ServicesPage />} />
-                      <Route path="/gallery" element={<GalleryPage />} />
-                      <Route path="/cart" element={<CartPage />} />
-                      <Route path="/wishlist" element={<ProtectedRoute><WishlistPage /></ProtectedRoute>} />
-                      <Route path="/checkout" element={<CheckoutPage />} />
-                      <Route path="/login" element={<LoginPage />} />
-                      <Route path="/signup" element={<SignUpPage />} />
-                      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-                      <Route path="/reset-password" element={<ResetPasswordPage />} />
-                      <Route path="/my-orders" element={<ProtectedRoute><MyOrdersPage /></ProtectedRoute>} />
-                      <Route path="/order/:id" element={<ProtectedRoute><OrderDetailPage /></ProtectedRoute>} />
-                      <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-                      <Route path="/about" element={<AboutPage />} />
-                      <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
-                      <Route path="/terms-conditions" element={<TermsConditionsPage />} />
-                      <Route path="/refund-policy" element={<RefundPolicyPage />} />
-                      <Route path="*" element={<Navigate to="/" replace />} />
-                    </Routes>
-                  </PageTransition>
-                </main>
-                <Footer />
-                <WhatsAppFloat />
-              </div>
-            } />
-          </Routes>
-        </Router>
+              {/* Public Routes */}
+              <Route path="/*" element={
+                <div className="min-h-screen flex flex-col">
+                  <Navbar />
+                  <main className="grow">
+                    <PageTransition>
+                      <Routes>
+                        <Route path="/" element={<AdminRedirect />} />
+                        <Route path="/shop" element={<ShopPage />} />
+                        <Route path="/shop/:category" element={<ShopPage />} />
+                        <Route path="/product/:id" element={<ProductDetailPage />} />
+                        <Route path="/services" element={<ServicesPage />} />
+                        <Route path="/gallery" element={<GalleryPage />} />
+                        <Route path="/cart" element={<CartPage />} />
+                        <Route path="/wishlist" element={<ProtectedRoute><WishlistPage /></ProtectedRoute>} />
+                        <Route path="/checkout" element={<CheckoutPage />} />
+                        <Route path="/login" element={<LoginPage />} />
+                        <Route path="/signup" element={<SignUpPage />} />
+                        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                        <Route path="/reset-password" element={<ResetPasswordPage />} />
+                        <Route path="/my-orders" element={<ProtectedRoute><MyOrdersPage /></ProtectedRoute>} />
+                        <Route path="/order/:id" element={<ProtectedRoute><OrderDetailPage /></ProtectedRoute>} />
+                        <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+                        <Route path="/about" element={<AboutPage />} />
+                        <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+                        <Route path="/terms-conditions" element={<TermsConditionsPage />} />
+                        <Route path="/refund-policy" element={<RefundPolicyPage />} />
+                        <Route path="*" element={<Navigate to="/" replace />} />
+                      </Routes>
+                    </PageTransition>
+                  </main>
+                  <Footer />
+                  <WhatsAppFloat />
+                </div>
+              } />
+            </Routes>
+          </Router>
         </WishlistProvider>
       </CartProvider>
     </AuthProvider>

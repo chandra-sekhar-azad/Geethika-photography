@@ -37,12 +37,12 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-white/95 backdrop-blur-sm shadow-md sticky top-0 z-50 border-b-2 border-valentine-pink/20">
+    <nav className="bg-black/95 backdrop-blur-sm shadow-lg sticky top-0 z-50 border-b border-gray-800">
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16 sm:h-18 md:h-20">
           <Link to="/" className="flex items-center space-x-1.5 sm:space-x-2 flex-shrink-0">
-            <h1 className="text-base sm:text-xl md:text-2xl lg:text-3xl font-display font-bold text-valentine-red leading-tight tracking-wide">
-              Geethika Digital World
+            <h1 className="text-base sm:text-xl md:text-2xl font-display font-bold text-white leading-tight tracking-wider uppercase">
+              Geethika <span className="text-orange-primary">Digital World</span>
             </h1>
           </Link>
 
@@ -51,14 +51,14 @@ const Navbar = () => {
               <Link
                 key={link.path}
                 to={link.path}
-                className={`font-medium transition-all duration-300 relative group ${
+                className={`font-medium transition-all duration-300 relative group uppercase tracking-wider text-sm ${
                   isActive(link.path)
-                    ? 'text-valentine-red'
-                    : 'text-gray-700 hover:text-valentine-red'
+                    ? 'text-orange-primary'
+                    : 'text-gray-300 hover:text-orange-primary'
                 }`}
               >
                 {link.label}
-                <span className={`absolute bottom-0 left-0 w-full h-0.5 bg-valentine-red transform origin-left transition-transform duration-300 ${
+                <span className={`absolute bottom-0 left-0 w-full h-0.5 bg-orange-primary transform origin-left transition-transform duration-300 ${
                   isActive(link.path) ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
                 }`} />
               </Link>
@@ -68,48 +68,48 @@ const Navbar = () => {
               <div className="flex items-center space-x-4">
                 <Link
                   to="/my-orders"
-                  className="font-medium text-gray-700 hover:text-valentine-red transition-colors"
+                  className="font-medium text-gray-300 hover:text-orange-primary transition-colors uppercase tracking-wider text-sm"
                 >
                   My Orders
                 </Link>
                 <Link
                   to="/profile"
-                  className="flex items-center space-x-2 text-gray-700 hover:text-valentine-red transition-colors"
+                  className="flex items-center space-x-2 text-gray-300 hover:text-orange-primary transition-colors"
                 >
                   <User className="w-5 h-5" />
-                  <span className="font-medium">{user?.fullName || user?.name || 'User'}</span>
+                  <span className="font-medium text-sm">{user?.fullName || user?.name || 'User'}</span>
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="flex items-center space-x-1 text-gray-700 hover:text-valentine-red transition-colors"
+                  className="flex items-center space-x-1 text-gray-300 hover:text-orange-primary transition-colors"
                 >
                   <LogOut className="w-5 h-5" />
-                  <span className="font-medium">Logout</span>
+                  <span className="font-medium text-sm">Logout</span>
                 </button>
               </div>
             ) : (
               <Link 
                 to="/login" 
-                className="flex items-center space-x-1 text-gray-700 hover:text-valentine-red transition-colors"
+                className="flex items-center space-x-1 text-gray-300 hover:text-orange-primary transition-colors"
               >
                 <User className="w-5 h-5" />
-                <span className="font-medium">Login</span>
+                <span className="font-medium text-sm uppercase tracking-wider">Login</span>
               </Link>
             )}
 
             <Link to="/wishlist" className="relative">
-              <Heart className="w-6 h-6 text-gray-700 hover:text-valentine-red transition-colors" />
+              <Heart className="w-6 h-6 text-gray-300 hover:text-orange-primary transition-colors" />
               {getWishlistCount() > 0 && (
-                <span className="absolute -top-2 -right-2 bg-valentine-red text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold animate-heartbeat shadow-lg shadow-valentine-red/30">
+                <span className="absolute -top-2 -right-2 bg-orange-primary text-black text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold shadow-lg shadow-orange-primary/30">
                   {getWishlistCount()}
                 </span>
               )}
             </Link>
 
             <Link to="/cart" className="relative">
-              <ShoppingCart className="w-6 h-6 text-gray-700 hover:text-valentine-red transition-colors" />
+              <ShoppingCart className="w-6 h-6 text-gray-300 hover:text-orange-primary transition-colors" />
               {getCartCount() > 0 && (
-                <span className="absolute -top-2 -right-2 bg-valentine-red text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold animate-heartbeat shadow-lg shadow-valentine-red/30">
+                <span className="absolute -top-2 -right-2 bg-orange-primary text-black text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold shadow-lg shadow-orange-primary/30">
                   {getCartCount()}
                 </span>
               )}
@@ -119,32 +119,32 @@ const Navbar = () => {
           <div className="md:hidden flex items-center space-x-2 sm:space-x-3">
             {isAuthenticated() ? (
               <button onClick={handleLogout} className="p-1.5">
-                <LogOut className="w-5 h-5 sm:w-6 sm:h-6 text-gray-700" />
+                <LogOut className="w-5 h-5 sm:w-6 sm:h-6 text-gray-300" />
               </button>
             ) : (
               <Link to="/login" className="p-1.5">
-                <User className="w-5 h-5 sm:w-6 sm:h-6 text-gray-700" />
+                <User className="w-5 h-5 sm:w-6 sm:h-6 text-gray-300" />
               </Link>
             )}
             <Link to="/wishlist" className="relative p-1.5">
-              <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-gray-700" />
+              <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-gray-300" />
               {getWishlistCount() > 0 && (
-                <span className="absolute -top-1 -right-1 bg-valentine-red text-white text-[10px] sm:text-xs rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center font-semibold animate-heartbeat shadow shadow-valentine-red/30">
+                <span className="absolute -top-1 -right-1 bg-orange-primary text-black text-[10px] sm:text-xs rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center font-semibold shadow shadow-orange-primary/30">
                   {getWishlistCount()}
                 </span>
               )}
             </Link>
             <Link to="/cart" className="relative p-1.5">
-              <ShoppingCart className="w-5 h-5 sm:w-6 sm:h-6 text-gray-700" />
+              <ShoppingCart className="w-5 h-5 sm:w-6 sm:h-6 text-gray-300" />
               {getCartCount() > 0 && (
-                <span className="absolute -top-1 -right-1 bg-valentine-red text-white text-[10px] sm:text-xs rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center font-semibold animate-heartbeat shadow shadow-valentine-red/30">
+                <span className="absolute -top-1 -right-1 bg-orange-primary text-black text-[10px] sm:text-xs rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center font-semibold shadow shadow-orange-primary/30">
                   {getCartCount()}
                 </span>
               )}
             </Link>
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="text-gray-700 hover:text-valentine-red p-1.5"
+              className="text-gray-300 hover:text-orange-primary p-1.5"
             >
               {isOpen ? <X className="w-5 h-5 sm:w-6 sm:h-6" /> : <Menu className="w-5 h-5 sm:w-6 sm:h-6" />}
             </button>
@@ -152,17 +152,17 @@ const Navbar = () => {
         </div>
 
         {isOpen && (
-          <div className="md:hidden pb-4 border-t border-gray-100 mt-2">
+          <div className="md:hidden pb-4 border-t border-gray-800 mt-2">
             <div className="py-2 space-y-1">
               {navLinks.map((link) => (
                 <Link
                   key={link.path}
                   to={link.path}
                   onClick={() => setIsOpen(false)}
-                  className={`block py-2.5 px-3 font-medium rounded-lg transition-colors ${
+                  className={`block py-2.5 px-3 font-medium rounded-lg transition-colors uppercase tracking-wider text-sm ${
                     isActive(link.path)
-                      ? 'text-valentine-red bg-valentine-pink/10'
-                      : 'text-gray-700 hover:bg-gray-50'
+                      ? 'text-orange-primary bg-orange-primary/10'
+                      : 'text-gray-300 hover:bg-gray-800'
                   }`}
                 >
                   {link.label}
@@ -173,27 +173,27 @@ const Navbar = () => {
                   <Link
                     to="/wishlist"
                     onClick={() => setIsOpen(false)}
-                    className="block py-2.5 px-3 font-medium text-gray-700 rounded-lg hover:bg-gray-50"
+                    className="block py-2.5 px-3 font-medium text-gray-300 rounded-lg hover:bg-gray-800 uppercase tracking-wider text-sm"
                   >
                     My Wishlist
                   </Link>
                   <Link
                     to="/my-orders"
                     onClick={() => setIsOpen(false)}
-                    className="block py-2.5 px-3 font-medium text-gray-700 rounded-lg hover:bg-gray-50"
+                    className="block py-2.5 px-3 font-medium text-gray-300 rounded-lg hover:bg-gray-800 uppercase tracking-wider text-sm"
                   >
                     My Orders
                   </Link>
                   <Link
                     to="/profile"
                     onClick={() => setIsOpen(false)}
-                    className="block py-2.5 px-3 font-medium text-gray-700 rounded-lg hover:bg-gray-50"
+                    className="block py-2.5 px-3 font-medium text-gray-300 rounded-lg hover:bg-gray-800 text-sm"
                   >
                     Profile ({user?.fullName || user?.name || 'User'})
                   </Link>
                   <button
                     onClick={handleLogout}
-                    className="block w-full text-left py-2.5 px-3 font-medium text-gray-700 rounded-lg hover:bg-gray-50"
+                    className="block w-full text-left py-2.5 px-3 font-medium text-gray-300 rounded-lg hover:bg-gray-800 uppercase tracking-wider text-sm"
                   >
                     Logout
                   </button>
@@ -202,7 +202,7 @@ const Navbar = () => {
                 <Link
                   to="/login"
                   onClick={() => setIsOpen(false)}
-                  className="block py-2.5 px-3 font-medium text-gray-700 rounded-lg hover:bg-gray-50"
+                  className="block py-2.5 px-3 font-medium text-gray-300 rounded-lg hover:bg-gray-800 uppercase tracking-wider text-sm"
                 >
                   Login
                 </Link>

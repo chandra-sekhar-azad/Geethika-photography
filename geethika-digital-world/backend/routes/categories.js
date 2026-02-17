@@ -1,6 +1,7 @@
 import express from 'express';
 import pool from '../config/database.js';
 import { authenticate, isAdmin } from '../middleware/auth.js';
+import { upload } from '../middleware/upload.js';
 
 const router = express.Router();
 
@@ -16,13 +17,18 @@ router.get('/', async (req, res) => {
 });
 
 // Create category (admin only)
-router.post('/', authenticate, isAdmin, async (req, res) => {
+router.post('/', authenticate, isAdmin, upload.single('image'), async (req, res) => {
   try {
     const { name, slug, icon } = req.body;
+    let image_url = null;
+
+    if (req.file) {
+      image_url = `/uploads/${req.file.filename}`;
+    }
 
     const result = await pool.query(
-      'INSERT INTO categories (name, slug, icon) VALUES ($1, $2, $3) RETURNING *',
-      [name, slug || name.toLowerCase().replace(/\s+/g, '-'), icon]
+      'INSERT INTO categories (name, slug, icon, image_url) VALUES ($1, $2, $3, $4) RETURNING *',
+      [name, slug || name.toLowerCase().replace(/\s+/g, '-'), icon, image_url]
     );
 
     res.status(201).json({
@@ -36,15 +42,25 @@ router.post('/', authenticate, isAdmin, async (req, res) => {
 });
 
 // Update category (admin only)
-router.put('/:id', authenticate, isAdmin, async (req, res) => {
+router.put('/:id', authenticate, isAdmin, upload.single('image'), async (req, res) => {
   try {
     const { id } = req.params;
     const { name, slug, icon } = req.body;
 
-    const result = await pool.query(
-      'UPDATE categories SET name = $1, slug = $2, icon = $3 WHERE id = $4 RETURNING *',
-      [name, slug, icon, id]
-    );
+    let updateQuery = 'UPDATE categories SET name = $1, slug = $2, icon = $3';
+    let updateValues = [name, slug, icon];
+    let paramCount = 4;
+
+    if (req.file) {
+      updateQuery += `, image_url = $${paramCount}`;
+      updateValues.push(`/uploads/${req.file.filename}`);
+      paramCount++;
+    }
+
+    updateQuery += ` WHERE id = $${paramCount} RETURNING *`;
+    updateValues.push(id);
+
+    const result = await pool.query(updateQuery, updateValues);
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Category not found' });

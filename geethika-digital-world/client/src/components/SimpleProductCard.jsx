@@ -20,8 +20,8 @@ const SimpleProductCard = ({ image, price, onClick }) => {
         <Heart 
           className={`w-5 h-5 transition-all ${
             isLiked 
-              ? 'fill-valentine-red text-valentine-red' 
-              : 'text-gray-400 hover:text-valentine-red'
+              ? 'fill-orange-primary text-orange-primary' 
+              : 'text-gray-400 hover:text-orange-primary'
           }`}
         />
       </button>
@@ -40,7 +40,7 @@ const SimpleProductCard = ({ image, price, onClick }) => {
       </div>
       
       <div className="p-4 text-center bg-card space-y-3">
-        <p className="font-display text-xl md:text-2xl font-bold bg-gradient-to-r from-valentine-red to-valentine-rose bg-clip-text text-transparent">
+        <p className="font-display text-xl md:text-2xl font-bold text-orange-primary">
           ₹{Math.round(price)}
         </p>
         <button className="btn-romantic w-full text-sm py-2.5 inline-flex items-center justify-center gap-2 group-hover:shadow-xl">

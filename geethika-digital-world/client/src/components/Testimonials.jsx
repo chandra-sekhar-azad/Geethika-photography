@@ -26,11 +26,11 @@ const Testimonials = () => {
   ];
 
   return (
-    <section className="py-8 xs:py-10 sm:py-12 md:py-16 lg:py-20 bg-gradient-to-br from-valentine-lightPink/10 via-valentine-pink/5 to-white">
+    <section className="py-8 xs:py-10 sm:py-12 md:py-16 lg:py-20 bg-gradient-to-br from-black via-gray-900 to-black">
       <div className="container mx-auto px-3 xs:px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-6 xs:mb-8 sm:mb-10 md:mb-12">
-          <h2 className="section-title text-xl xs:text-2xl sm:text-3xl md:text-4xl">What Our Customers Say</h2>
-          <p className="text-gray-600 text-xs xs:text-sm sm:text-base md:text-lg px-2">
+          <h2 className="section-title text-xl xs:text-2xl sm:text-3xl md:text-4xl text-white">What Our Customers Say</h2>
+          <p className="text-gray-300 text-xs xs:text-sm sm:text-base md:text-lg px-2">
             Love stories from our happy customers
           </p>
         </div>
@@ -39,19 +39,19 @@ const Testimonials = () => {
           {testimonials.map((testimonial, index) => (
             <div
               key={index}
-              className="bg-white rounded-xl sm:rounded-2xl p-4 xs:p-5 sm:p-6 shadow-lg hover:shadow-xl hover:shadow-valentine-pink/10 transition-all duration-300 relative border-2 border-valentine-pink/10 hover:border-valentine-red/20"
+              className="bg-gray-800 rounded-xl sm:rounded-2xl p-4 xs:p-5 sm:p-6 shadow-lg hover:shadow-xl hover:shadow-orange-primary/20 transition-all duration-300 relative border-2 border-gray-700 hover:border-orange-primary"
             >
-              <Quote className="absolute top-3 right-3 xs:top-4 xs:right-4 w-6 h-6 xs:w-7 xs:h-7 sm:w-8 sm:h-8 text-valentine-pink/30" />
+              <Quote className="absolute top-3 right-3 xs:top-4 xs:right-4 w-6 h-6 xs:w-7 xs:h-7 sm:w-8 sm:h-8 text-orange-primary/30" />
               
               <div className="flex items-center gap-2.5 xs:gap-3 sm:gap-4 mb-3 xs:mb-4">
                 <img
                   src={testimonial.image}
                   alt={testimonial.name}
-                  className="w-12 h-12 xs:w-14 xs:h-14 sm:w-16 sm:h-16 rounded-full object-cover border-2 border-valentine-red/30 ring-2 ring-valentine-pink/20"
+                  className="w-12 h-12 xs:w-14 xs:h-14 sm:w-16 sm:h-16 rounded-full object-cover border-2 border-orange-primary/50 ring-2 ring-orange-primary/20"
                 />
                 <div>
-                  <h4 className="font-semibold text-gray-900 text-sm xs:text-base">{testimonial.name}</h4>
-                  <p className="text-xs xs:text-sm text-gray-600">{testimonial.role}</p>
+                  <h4 className="font-semibold text-white text-sm xs:text-base">{testimonial.name}</h4>
+                  <p className="text-xs xs:text-sm text-gray-400">{testimonial.role}</p>
                 </div>
               </div>
 
@@ -61,7 +61,7 @@ const Testimonials = () => {
                 ))}
               </div>
 
-              <p className="text-gray-700 italic text-xs xs:text-sm sm:text-base">
+              <p className="text-gray-300 italic text-xs xs:text-sm sm:text-base">
                 "{testimonial.text}"
               </p>
             </div>

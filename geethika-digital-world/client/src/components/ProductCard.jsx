@@ -76,9 +76,9 @@ const ProductCard = ({ product }) => {
   };
 
   return (
-    <div className="card-romantic group relative">
+    <div className="group relative bg-gray-900 rounded-xl overflow-hidden border border-gray-800 hover:border-orange-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-orange-primary/10 hover:-translate-y-1">
       {showLoginPrompt && (
-        <div className="absolute top-2 left-1/2 transform -translate-x-1/2 bg-valentine-red text-white px-4 py-2 rounded-lg shadow-lg z-50 text-sm font-semibold animate-bounce">
+        <div className="absolute top-2 left-1/2 transform -translate-x-1/2 bg-orange-primary text-black px-4 py-2 rounded-lg shadow-lg z-50 text-sm font-semibold animate-bounce">
           Please login first
         </div>
       )}
@@ -96,7 +96,7 @@ const ProductCard = ({ product }) => {
       )}
       
       {/* Image - clickable to product detail */}
-      <div className="relative overflow-hidden bg-gray-100 cursor-pointer" onClick={handleCardClick}>
+      <div className="relative overflow-hidden bg-gray-800 cursor-pointer" onClick={handleCardClick}>
         <img
           src={
             (product.image_url || product.image)?.startsWith('http')
@@ -111,13 +111,13 @@ const ProductCard = ({ product }) => {
         />
         
         {product.valentine_special && (
-          <div className="absolute top-2 left-2 bg-valentine-red text-white px-2 py-1 sm:px-3 sm:py-1 rounded-full text-[10px] sm:text-xs font-semibold pointer-events-none">
-            💝 Valentine Special
+          <div className="absolute top-2 left-2 bg-orange-primary text-black px-2 py-1 sm:px-3 sm:py-1 rounded-full text-[10px] sm:text-xs font-semibold pointer-events-none">
+            ✨ Special Item
           </div>
         )}
         {product.discount > 0 && (
-          <div className="absolute top-2 right-2 bg-gradient-to-r from-valentine-red to-valentine-rose text-white px-2 py-1 sm:px-3 sm:py-1 rounded-full text-[10px] sm:text-xs font-semibold shadow-lg pointer-events-none">
-            💝 {product.discount}% OFF
+          <div className="absolute top-2 right-2 bg-red-600 text-white px-2 py-1 sm:px-3 sm:py-1 rounded-full text-[10px] sm:text-xs font-semibold shadow-lg pointer-events-none">
+            {product.discount}% OFF
           </div>
         )}
       </div>
@@ -125,22 +125,22 @@ const ProductCard = ({ product }) => {
       <div className="p-3 sm:p-4">
         {/* Title - clickable to product detail */}
         <div onClick={handleCardClick} className="cursor-pointer relative z-10 mb-2">
-          <h3 className="font-semibold text-sm sm:text-base md:text-lg hover:text-valentine-red transition-colors line-clamp-2">
+          <h3 className="font-display font-bold text-sm sm:text-base md:text-lg text-white hover:text-orange-primary transition-colors line-clamp-2 uppercase tracking-wide">
             {product.name}
           </h3>
         </div>
         
-        <p className="text-gray-600 text-xs sm:text-sm mb-2 sm:mb-3 line-clamp-2">{product.description}</p>
+        <p className="text-gray-400 text-xs sm:text-sm mb-2 sm:mb-3 line-clamp-2">{product.description}</p>
         
         <div className="flex items-center justify-between relative z-10">
           <div>
             {product.discount ? (
               <div className="flex items-center space-x-1.5 sm:space-x-2">
-                <span className="text-base sm:text-lg md:text-xl font-bold text-valentine-red">₹{finalPrice}</span>
+                <span className="text-base sm:text-lg md:text-xl font-bold text-orange-primary">₹{finalPrice}</span>
                 <span className="text-xs sm:text-sm text-gray-500 line-through">₹{product.price}</span>
               </div>
             ) : (
-              <span className="text-base sm:text-lg md:text-xl font-bold text-valentine-red">₹{product.price}</span>
+              <span className="text-base sm:text-lg md:text-xl font-bold text-orange-primary">₹{product.price}</span>
             )}
           </div>
           
@@ -150,8 +150,8 @@ const ProductCard = ({ product }) => {
               onClick={handleWishlistClick}
               className={`p-1.5 sm:p-2 rounded-full transition-all duration-300 hover:scale-110 cursor-pointer ${
                 inWishlist 
-                  ? 'bg-valentine-red text-white shadow-lg' 
-                  : 'bg-gray-100 text-gray-600 hover:bg-valentine-pink hover:text-valentine-red'
+                  ? 'bg-orange-primary text-black shadow-lg' 
+                  : 'bg-gray-800 text-gray-400 hover:bg-orange-primary hover:text-black'
               }`}
               aria-label={inWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
             >
@@ -166,10 +166,10 @@ const ProductCard = ({ product }) => {
               disabled={isProductInCart}
               className={`p-1.5 sm:p-2 rounded-full transition-all duration-300 hover:scale-110 cursor-pointer ${
                 isProductInCart
-                  ? 'bg-blue-500 text-white shadow-lg cursor-not-allowed'
+                  ? 'bg-blue-600 text-white shadow-lg cursor-not-allowed'
                   : addedToCart
-                  ? 'bg-green-500 text-white shadow-lg'
-                  : 'bg-gradient-to-r from-valentine-red to-valentine-rose text-white hover:shadow-lg hover:shadow-valentine-red/30'
+                  ? 'bg-green-600 text-white shadow-lg'
+                  : 'bg-orange-primary text-black hover:shadow-lg hover:shadow-orange-primary/30'
               }`}
               aria-label={isProductInCart ? 'Already in cart' : 'Add to cart'}
               title={isProductInCart ? 'Already in cart - adjust quantity in cart page' : 'Add to cart'}
@@ -180,7 +180,7 @@ const ProductCard = ({ product }) => {
         </div>
 
         {product.customizable && (
-          <div className="mt-2 sm:mt-3 text-[10px] sm:text-xs text-valentine-pink font-semibold">
+          <div className="mt-2 sm:mt-3 text-[10px] sm:text-xs text-orange-400 font-semibold uppercase tracking-wider">
             ✨ Customizable
           </div>
         )}

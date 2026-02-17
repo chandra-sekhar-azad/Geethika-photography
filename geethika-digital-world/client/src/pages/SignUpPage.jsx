@@ -140,7 +140,7 @@ const SignUpPage = () => {
       <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-2xl shadow-xl">
         {/* Header */}
         <div className="text-center">
-          <h2 className="text-3xl font-display font-bold text-valentine-red">
+          <h2 className="text-3xl font-display font-bold text-orange-primary">
             Create Account
           </h2>
           <p className="mt-2 text-sm text-gray-600">
@@ -163,7 +163,7 @@ const SignUpPage = () => {
                 type="text"
                 value={formData.fullName}
                 onChange={handleChange}
-                className={`pl-10 w-full px-4 py-3 border ${errors.fullName ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-valentine-red focus:border-transparent`}
+                className={`pl-10 w-full px-4 py-3 border ${errors.fullName ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-orange-primary focus:border-transparent text-gray-900 bg-white`}
                 placeholder="Enter your full name"
               />
             </div>
@@ -183,7 +183,7 @@ const SignUpPage = () => {
                 type="email"
                 value={formData.email}
                 onChange={handleChange}
-                className={`pl-10 w-full px-4 py-3 border ${errors.email ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-valentine-red focus:border-transparent`}
+                className={`pl-10 w-full px-4 py-3 border ${errors.email ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-orange-primary focus:border-transparent text-gray-900 bg-white`}
                 placeholder="your@email.com"
               />
             </div>
@@ -203,7 +203,7 @@ const SignUpPage = () => {
                 type="tel"
                 value={formData.phone}
                 onChange={handleChange}
-                className={`pl-10 w-full px-4 py-3 border ${errors.phone ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-valentine-red focus:border-transparent`}
+                className={`pl-10 w-full px-4 py-3 border ${errors.phone ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-orange-primary focus:border-transparent text-gray-900 bg-white`}
                 placeholder="10-digit phone number"
                 maxLength="10"
               />
@@ -224,7 +224,7 @@ const SignUpPage = () => {
                 type={showPassword ? 'text' : 'password'}
                 value={formData.password}
                 onChange={handleChange}
-                className={`pl-10 pr-10 w-full px-4 py-3 border ${errors.password ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-valentine-red focus:border-transparent`}
+                className={`pl-10 pr-10 w-full px-4 py-3 border ${errors.password ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-orange-primary focus:border-transparent text-gray-900 bg-white`}
                 placeholder="Min 8 chars, 1 number, 1 special char"
               />
               <button
@@ -251,7 +251,7 @@ const SignUpPage = () => {
                 type={showConfirmPassword ? 'text' : 'password'}
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                className={`pl-10 pr-10 w-full px-4 py-3 border ${errors.confirmPassword ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-valentine-red focus:border-transparent`}
+                className={`pl-10 pr-10 w-full px-4 py-3 border ${errors.confirmPassword ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-orange-primary focus:border-transparent text-gray-900 bg-white`}
                 placeholder="Re-enter your password"
               />
               <button
@@ -273,15 +273,15 @@ const SignUpPage = () => {
                 name="acceptTerms"
                 checked={formData.acceptTerms}
                 onChange={handleChange}
-                className="mt-1 w-4 h-4 text-valentine-red border-gray-300 rounded focus:ring-valentine-red"
+                className="mt-1 w-4 h-4 text-orange-primary border-gray-300 rounded focus:ring-orange-primary"
               />
               <span className="ml-2 text-sm text-gray-600">
                 I accept the{' '}
-                <Link to="/terms" className="text-valentine-red hover:underline">
+                <Link to="/terms" className="text-orange-primary hover:underline">
                   Terms & Conditions
                 </Link>{' '}
                 and{' '}
-                <Link to="/privacy" className="text-valentine-red hover:underline">
+                <Link to="/privacy" className="text-orange-primary hover:underline">
                   Privacy Policy
                 </Link>
               </span>
@@ -300,7 +300,7 @@ const SignUpPage = () => {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full bg-valentine-red text-white py-3 px-4 rounded-lg font-semibold hover:bg-valentine-darkRed transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-orange-primary text-white py-3 px-4 rounded-lg font-semibold hover:bg-orange-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSubmitting ? 'Creating Account...' : 'Sign Up'}
           </button>
@@ -308,7 +308,7 @@ const SignUpPage = () => {
           {/* Login Link */}
           <p className="text-center text-sm text-gray-600">
             Already have an account?{' '}
-            <Link to="/login" className="text-valentine-red font-semibold hover:underline">
+            <Link to="/login" className="text-orange-primary font-semibold hover:underline">
               Login
             </Link>
           </p>

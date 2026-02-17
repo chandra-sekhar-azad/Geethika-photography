@@ -10,18 +10,21 @@ export default {
         'xs': '475px',
       },
       colors: {
-        valentine: {
-          pink: '#FF69B4',
-          red: '#DC143C',
-          lightPink: '#FFB6C1',
-          darkRed: '#8B0000',
-          rose: '#FF007F',
+        orange: {
+          primary: '#FF6B00',
+          hover: '#FF8533',
+          light: '#FFA366',
+          dark: '#CC5500',
         },
-        premium: {
-          black: '#111111',
-          gold: '#d4af37',
-          royalBlue: '#1e3a8a',
-          lightGrey: '#f5f5f5',
+        dark: {
+          bg: '#000000',
+          card: '#121212',
+          border: '#333333',
+        },
+        gray: {
+          light: '#A0A0A0',
+          medium: '#666666',
+          dark: '#333333',
         },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -50,10 +53,10 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['Open Sans', 'Roboto', 'system-ui', 'sans-serif'],
-        display: ['Poppins', 'Montserrat', 'sans-serif'],
-        heading: ['Poppins', 'Montserrat', 'sans-serif'],
-        body: ['Open Sans', 'Roboto', 'system-ui', 'sans-serif'],
+        sans: ['Inter', 'Roboto', 'system-ui', 'sans-serif'],
+        display: ['Oswald', 'sans-serif'],
+        heading: ['Oswald', 'sans-serif'],
+        body: ['Inter', 'Roboto', 'system-ui', 'sans-serif'],
       },
       keyframes: {
         fadeIn: {
