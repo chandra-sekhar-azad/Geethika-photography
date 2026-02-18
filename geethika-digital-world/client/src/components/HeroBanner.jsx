@@ -103,7 +103,7 @@ const HeroBanner = () => {
             </div>
 
             {/* Projects */}
-            <div className="text-center col-span-2 md:col-span-1">
+            <div className="text-center">
               <div className="text-3xl sm:text-4xl md:text-5xl font-bold text-orange-primary mb-2">1000+</div>
               <div className="text-xs sm:text-sm text-white font-medium uppercase tracking-wider">Projects Done</div>
             </div>

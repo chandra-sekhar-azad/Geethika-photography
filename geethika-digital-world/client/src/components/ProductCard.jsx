@@ -122,25 +122,25 @@ const ProductCard = ({ product }) => {
         )}
       </div>
 
-      <div className="p-3 sm:p-4">
+      <div className="p-2 sm:p-4">
         {/* Title - clickable to product detail */}
-        <div onClick={handleCardClick} className="cursor-pointer relative z-10 mb-2">
-          <h3 className="font-display font-bold text-sm sm:text-base md:text-lg text-white hover:text-orange-primary transition-colors line-clamp-2 uppercase tracking-wide">
+        <div onClick={handleCardClick} className="cursor-pointer relative z-10 mb-1.5 sm:mb-2">
+          <h3 className="font-display font-bold text-xs sm:text-base md:text-lg text-white hover:text-orange-primary transition-colors line-clamp-2 uppercase tracking-wide">
             {product.name}
           </h3>
         </div>
 
-        <p className="text-gray-400 text-xs sm:text-sm mb-2 sm:mb-3 line-clamp-2">{product.description}</p>
+        <p className="text-gray-400 text-[10px] sm:text-sm mb-2 sm:mb-3 line-clamp-2">{product.description}</p>
 
         <div className="flex items-center justify-between relative z-10">
           <div>
             {product.discount ? (
-              <div className="flex items-center space-x-1.5 sm:space-x-2">
-                <span className="text-base sm:text-lg md:text-xl font-bold text-orange-primary">₹{finalPrice}</span>
-                <span className="text-xs sm:text-sm text-gray-500 line-through">₹{product.price}</span>
+              <div className="flex items-center space-x-1 sm:space-x-2">
+                <span className="text-sm sm:text-lg md:text-xl font-bold text-orange-primary">₹{finalPrice}</span>
+                <span className="text-[10px] sm:text-sm text-gray-500 line-through">₹{product.price}</span>
               </div>
             ) : (
-              <span className="text-base sm:text-lg md:text-xl font-bold text-orange-primary">₹{product.price}</span>
+              <span className="text-sm sm:text-lg md:text-xl font-bold text-orange-primary">₹{product.price}</span>
             )}
           </div>
 
@@ -149,8 +149,8 @@ const ProductCard = ({ product }) => {
               type="button"
               onClick={handleWishlistClick}
               className={`p-1.5 sm:p-2 rounded-full transition-all duration-300 hover:scale-110 cursor-pointer ${inWishlist
-                  ? 'bg-orange-primary text-black shadow-lg'
-                  : 'bg-gray-800 text-gray-400 hover:bg-orange-primary hover:text-black'
+                ? 'bg-orange-primary text-black shadow-lg'
+                : 'bg-gray-800 text-gray-400 hover:bg-orange-primary hover:text-black'
                 }`}
               aria-label={inWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
             >
@@ -164,10 +164,10 @@ const ProductCard = ({ product }) => {
               onClick={handleAddToCart}
               disabled={isProductInCart}
               className={`p-1.5 sm:p-2 rounded-full transition-all duration-300 hover:scale-110 cursor-pointer ${isProductInCart
-                  ? 'bg-blue-600 text-white shadow-lg cursor-not-allowed'
-                  : addedToCart
-                    ? 'bg-green-600 text-white shadow-lg'
-                    : 'bg-orange-primary text-black hover:shadow-lg hover:shadow-orange-primary/30'
+                ? 'bg-blue-600 text-white shadow-lg cursor-not-allowed'
+                : addedToCart
+                  ? 'bg-green-600 text-white shadow-lg'
+                  : 'bg-orange-primary text-black hover:shadow-lg hover:shadow-orange-primary/30'
                 }`}
               aria-label={isProductInCart ? 'Already in cart' : 'Add to cart'}
               title={isProductInCart ? 'Already in cart - adjust quantity in cart page' : 'Add to cart'}

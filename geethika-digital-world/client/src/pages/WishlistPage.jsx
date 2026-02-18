@@ -80,7 +80,7 @@ const WishlistPage = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
           {wishlist.map((product) => {
             const finalPrice = product.discount
               ? product.price - (product.price * product.discount / 100)
@@ -129,23 +129,23 @@ const WishlistPage = () => {
                   </div>
                 </Link>
 
-                <div className="p-3 sm:p-4">
+                <div className="p-2 sm:p-4">
                   <Link to={`/product/${product.id}`}>
-                    <h3 className="font-bold text-sm sm:text-base md:text-lg mb-1.5 sm:mb-2 text-white hover:text-orange-primary transition-colors line-clamp-2 uppercase tracking-wide">
+                    <h3 className="font-bold text-xs sm:text-base md:text-lg mb-1.5 sm:mb-2 text-white hover:text-orange-primary transition-colors line-clamp-2 uppercase tracking-wide">
                       {product.name}
                     </h3>
                   </Link>
-                  <p className="text-gray-400 text-xs sm:text-sm mb-2 sm:mb-3 line-clamp-2">{product.description}</p>
+                  <p className="text-gray-400 text-[10px] sm:text-sm mb-2 sm:mb-3 line-clamp-2">{product.description}</p>
 
-                  <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center justify-between mb-2 sm:mb-3">
                     <div>
                       {product.discount ? (
-                        <div className="flex items-center space-x-1.5 sm:space-x-2">
-                          <span className="text-base sm:text-lg md:text-xl font-bold text-orange-primary">₹{finalPrice}</span>
-                          <span className="text-xs sm:text-sm text-gray-500 line-through">₹{product.price}</span>
+                        <div className="flex items-center space-x-1 sm:space-x-2">
+                          <span className="text-sm sm:text-lg md:text-xl font-bold text-orange-primary">₹{finalPrice}</span>
+                          <span className="text-[10px] sm:text-sm text-gray-500 line-through">₹{product.price}</span>
                         </div>
                       ) : (
-                        <span className="text-base sm:text-lg md:text-xl font-bold text-orange-primary">₹{product.price}</span>
+                        <span className="text-sm sm:text-lg md:text-xl font-bold text-orange-primary">₹{product.price}</span>
                       )}
                     </div>
                   </div>
