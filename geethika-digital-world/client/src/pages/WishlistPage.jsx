@@ -80,7 +80,7 @@ const WishlistPage = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
           {wishlist.map((product) => {
             const finalPrice = product.discount
               ? product.price - (product.price * product.discount / 100)
@@ -97,7 +97,7 @@ const WishlistPage = () => {
                           : `${import.meta.env.VITE_API_URL}${product.image_url || product.image}`
                       }
                       alt={product.name}
-                      className="w-full h-48 sm:h-56 md:h-64 object-cover group-hover:scale-110 transition-transform duration-300"
+                      className="w-full aspect-[4/3] object-cover group-hover:scale-110 transition-transform duration-300"
                       onError={(e) => {
                         e.target.src = 'https://images.unsplash.com/photo-1513885535751-8b9238bd345a?w=400&h=400&fit=crop';
                       }}
@@ -153,8 +153,8 @@ const WishlistPage = () => {
                   <button
                     onClick={() => handleAddToCart(product)}
                     className={`w-full py-2.5 rounded-lg font-bold transition-all duration-300 flex items-center justify-center gap-2 uppercase tracking-wide text-sm ${addedToCart[product.id]
-                        ? 'bg-green-600 text-white'
-                        : 'bg-orange-primary text-black hover:bg-orange-hover hover:shadow-lg'
+                      ? 'bg-green-600 text-white'
+                      : 'bg-orange-primary text-black hover:bg-orange-hover hover:shadow-lg'
                       }`}
                   >
                     <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />

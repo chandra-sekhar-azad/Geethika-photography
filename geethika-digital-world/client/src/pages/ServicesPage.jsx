@@ -82,7 +82,7 @@ const ServicesPage = () => {
             <p className="text-gray-500 text-base sm:text-lg">No services available at the moment.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {services.map((service) => (
               <div key={service.id} className="bg-gray-900 rounded-xl shadow-lg overflow-hidden border border-gray-800 hover:border-orange-primary/50 hover:shadow-orange-primary/10 transition-all duration-300 group">
                 {service.image_url && (

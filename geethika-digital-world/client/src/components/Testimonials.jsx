@@ -35,14 +35,14 @@ const Testimonials = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 xs:gap-5 sm:gap-6 md:gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 xs:gap-5 sm:gap-6 md:gap-8">
           {testimonials.map((testimonial, index) => (
             <div
               key={index}
               className="bg-gray-800 rounded-xl sm:rounded-2xl p-4 xs:p-5 sm:p-6 shadow-lg hover:shadow-xl hover:shadow-orange-primary/20 transition-all duration-300 relative border-2 border-gray-700 hover:border-orange-primary"
             >
               <Quote className="absolute top-3 right-3 xs:top-4 xs:right-4 w-6 h-6 xs:w-7 xs:h-7 sm:w-8 sm:h-8 text-orange-primary/30" />
-              
+
               <div className="flex items-center gap-2.5 xs:gap-3 sm:gap-4 mb-3 xs:mb-4">
                 <img
                   src={testimonial.image}

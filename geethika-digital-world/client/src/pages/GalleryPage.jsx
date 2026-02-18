@@ -78,8 +78,8 @@ const GalleryPage = () => {
               key={category}
               onClick={() => setSelectedCategory(category)}
               className={`px-4 py-2 sm:px-6 sm:py-2.5 md:px-8 md:py-3 rounded-full font-semibold transition-all shadow-md text-xs sm:text-sm md:text-base uppercase tracking-wider ${selectedCategory === category
-                  ? 'bg-orange-primary text-black shadow-lg shadow-orange-primary/20 scale-105'
-                  : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white hover:scale-105 border border-gray-700'
+                ? 'bg-orange-primary text-black shadow-lg shadow-orange-primary/20 scale-105'
+                : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white hover:scale-105 border border-gray-700'
                 }`}
             >
               {category}
@@ -97,7 +97,7 @@ const GalleryPage = () => {
             <p className="text-gray-400 text-lg">No images available in this category.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
             {filteredImages.map((image) => (
               <div
                 key={image.id}

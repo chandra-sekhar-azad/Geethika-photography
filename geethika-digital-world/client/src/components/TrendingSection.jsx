@@ -16,7 +16,7 @@ const TrendingSection = () => {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/products?valentine=true&limit=6`);
       const data = await response.json();
-      
+
       // If no valentine products, fetch regular products
       if (data.products.length === 0) {
         const fallbackResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/products?limit=6`);
@@ -25,7 +25,7 @@ const TrendingSection = () => {
       } else {
         setProducts(data.products || []);
       }
-      
+
       // Debug: Log product images
       console.log('Trending Products:', data.products?.map(p => ({ id: p.id, name: p.name, image: p.image_url })));
     } catch (error) {
@@ -67,19 +67,19 @@ const TrendingSection = () => {
             <div className="animate-spin rounded-full h-10 w-10 xs:h-12 xs:w-12 border-b-2 border-orange-primary"></div>
           </div>
         ) : products.length > 0 ? (
-          <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 xs:gap-4 md:gap-6">
+          <div className="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 xs:gap-4 md:gap-6">
             {products.map((product) => (
-              <div 
+              <div
                 key={`product-${product.id}-${product.image_url}`}
                 className="animate-slide-up"
                 style={{ animationDelay: `${products.indexOf(product) * 0.1}s` }}
               >
                 <SimpleProductCard
-                  image={product.image_url?.startsWith('http') 
-                    ? product.image_url 
+                  image={product.image_url?.startsWith('http')
+                    ? product.image_url
                     : `${import.meta.env.VITE_API_URL}${product.image_url}`
                   }
-                  price={product.discount 
+                  price={product.discount
                     ? product.price - (product.price * product.discount / 100)
                     : product.price
                   }

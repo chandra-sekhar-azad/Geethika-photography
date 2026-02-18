@@ -13,13 +13,13 @@ const ProductCard = ({ product }) => {
   const [addedToCart, setAddedToCart] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [alreadyInCart, setAlreadyInCart] = useState(false);
-  
-  const finalPrice = product.discount 
+
+  const finalPrice = product.discount
     ? product.price - (product.price * product.discount / 100)
     : product.price;
 
   const inWishlist = isInWishlist(product.id);
-  
+
   // Check if product is already in cart
   const isProductInCart = cart.some(item => item.id === product.id);
 
@@ -30,7 +30,7 @@ const ProductCard = ({ product }) => {
   const handleAddToCart = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     if (!isAuthenticated()) {
       navigate('/login');
       return;
@@ -54,7 +54,7 @@ const ProductCard = ({ product }) => {
     };
 
     const success = addToCart(cartItem);
-    
+
     if (success) {
       setAddedToCart(true);
       setTimeout(() => setAddedToCart(false), 2000);
@@ -64,7 +64,7 @@ const ProductCard = ({ product }) => {
   const handleWishlistClick = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     if (!isAuthenticated()) {
       setShowLoginPrompt(true);
       setTimeout(() => setShowLoginPrompt(false), 3000);
@@ -82,19 +82,19 @@ const ProductCard = ({ product }) => {
           Please login first
         </div>
       )}
-      
+
       {addedToCart && (
         <div className="absolute top-2 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 text-sm font-semibold animate-bounce">
           Added to cart!
         </div>
       )}
-      
+
       {alreadyInCart && (
         <div className="absolute top-2 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 text-sm font-semibold animate-bounce">
           Already in cart!
         </div>
       )}
-      
+
       {/* Image - clickable to product detail */}
       <div className="relative overflow-hidden bg-gray-800 cursor-pointer" onClick={handleCardClick}>
         <img
@@ -104,12 +104,12 @@ const ProductCard = ({ product }) => {
               : `${import.meta.env.VITE_API_URL}${product.image_url || product.image}`
           }
           alt={product.name}
-          className="w-full h-48 sm:h-56 md:h-64 object-cover group-hover:scale-110 transition-transform duration-300"
+          className="w-full aspect-[4/3] object-cover group-hover:scale-110 transition-transform duration-300"
           onError={(e) => {
             e.target.src = 'https://images.unsplash.com/photo-1513885535751-8b9238bd345a?w=400&h=400&fit=crop';
           }}
         />
-        
+
         {product.valentine_special && (
           <div className="absolute top-2 left-2 bg-orange-primary text-black px-2 py-1 sm:px-3 sm:py-1 rounded-full text-[10px] sm:text-xs font-semibold pointer-events-none">
             ✨ Special Item
@@ -129,9 +129,9 @@ const ProductCard = ({ product }) => {
             {product.name}
           </h3>
         </div>
-        
+
         <p className="text-gray-400 text-xs sm:text-sm mb-2 sm:mb-3 line-clamp-2">{product.description}</p>
-        
+
         <div className="flex items-center justify-between relative z-10">
           <div>
             {product.discount ? (
@@ -143,34 +143,32 @@ const ProductCard = ({ product }) => {
               <span className="text-base sm:text-lg md:text-xl font-bold text-orange-primary">₹{product.price}</span>
             )}
           </div>
-          
+
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={handleWishlistClick}
-              className={`p-1.5 sm:p-2 rounded-full transition-all duration-300 hover:scale-110 cursor-pointer ${
-                inWishlist 
-                  ? 'bg-orange-primary text-black shadow-lg' 
+              className={`p-1.5 sm:p-2 rounded-full transition-all duration-300 hover:scale-110 cursor-pointer ${inWishlist
+                  ? 'bg-orange-primary text-black shadow-lg'
                   : 'bg-gray-800 text-gray-400 hover:bg-orange-primary hover:text-black'
-              }`}
+                }`}
               aria-label={inWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
             >
-              <Heart 
+              <Heart
                 className={`w-4 h-4 sm:w-5 sm:h-5 transition-all ${inWishlist ? 'fill-current' : ''}`}
               />
             </button>
-            
+
             <button
               type="button"
               onClick={handleAddToCart}
               disabled={isProductInCart}
-              className={`p-1.5 sm:p-2 rounded-full transition-all duration-300 hover:scale-110 cursor-pointer ${
-                isProductInCart
+              className={`p-1.5 sm:p-2 rounded-full transition-all duration-300 hover:scale-110 cursor-pointer ${isProductInCart
                   ? 'bg-blue-600 text-white shadow-lg cursor-not-allowed'
                   : addedToCart
-                  ? 'bg-green-600 text-white shadow-lg'
-                  : 'bg-orange-primary text-black hover:shadow-lg hover:shadow-orange-primary/30'
-              }`}
+                    ? 'bg-green-600 text-white shadow-lg'
+                    : 'bg-orange-primary text-black hover:shadow-lg hover:shadow-orange-primary/30'
+                }`}
               aria-label={isProductInCart ? 'Already in cart' : 'Add to cart'}
               title={isProductInCart ? 'Already in cart - adjust quantity in cart page' : 'Add to cart'}
             >

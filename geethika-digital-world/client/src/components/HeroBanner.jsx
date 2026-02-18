@@ -7,9 +7,10 @@ const HeroBanner = () => {
   return (
     <section className="relative w-full overflow-hidden bg-black">
       {/* Hero Content */}
-      <div className="relative h-[450px] xs:h-[500px] sm:h-[550px] md:h-[600px] lg:h-[700px]">
+      {/* Hero Content */}
+      <div className="relative min-h-[450px] xs:min-h-[500px] sm:min-h-[550px] md:min-h-[600px] lg:min-h-[700px] flex items-center">
         {/* Background Image */}
-        <div className="absolute inset-0">
+        <div className="absolute inset-0 z-0">
           <img
             src="/images/bokeh-background.jpg"
             alt="Photography studio with bokeh lighting"
@@ -27,51 +28,47 @@ const HeroBanner = () => {
         </div>
 
         {/* Content */}
-        <div className="absolute inset-0 flex items-center z-20">
-          <div className="container mx-auto px-4 sm:px-6 md:px-8">
-            <div className="max-w-2xl animate-fade-in">
-              {/* Badge */}
-              <div className="inline-block mb-6 sm:mb-8">
-                <div className="border border-orange-primary/30 px-4 py-2 inline-block">
-                  <p className="text-gray-400 text-xs sm:text-sm tracking-[0.3em] uppercase">
-                    ESTD 2012
-                  </p>
-                </div>
-              </div>
-
-              {/* Text removed as per request */}
-
-              <div className="border-l-2 border-orange-primary pl-4 sm:pl-6 mb-6 sm:mb-8">
-                <p className="font-body text-base sm:text-lg md:text-xl text-gray-300 leading-relaxed tracking-wide uppercase text-sm">
-                  PHOTOGRAPHER
+        <div className="container mx-auto px-4 sm:px-6 md:px-8 relative z-20 py-12">
+          <div className="max-w-2xl animate-fade-in">
+            {/* Badge */}
+            <div className="inline-block mb-6 sm:mb-8">
+              <div className="border border-orange-primary/30 px-4 py-2 inline-block">
+                <p className="text-gray-400 text-xs sm:text-sm tracking-[0.3em] uppercase">
+                  ESTD 2012
                 </p>
               </div>
+            </div>
 
-              <p className="font-body text-sm sm:text-base md:text-lg text-gray-400 mb-6 sm:mb-8 max-w-xl leading-relaxed">
-                Luxury photography, custom gifts, and premium prints crafted for your once-in-a-lifetime memories.
+            {/* Text removed as per request */}
+
+            <div className="border-l-2 border-orange-primary pl-4 sm:pl-6 mb-6 sm:mb-8">
+              <p className="font-body text-base sm:text-lg md:text-xl text-gray-300 leading-relaxed tracking-wide uppercase text-sm">
+                PHOTOGRAPHER
               </p>
+            </div>
 
-              <div className="flex flex-col xs:flex-row gap-3 sm:gap-4">
-                <button
-                  className="group relative inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base font-semibold text-black bg-orange-primary hover:bg-orange-hover transition-all duration-300 uppercase tracking-wider"
-                  onClick={() => navigate('/shop')}
-                >
-                  <span>Explore Collection</span>
-                  <span className="group-hover:translate-x-1 transition-transform">→</span>
-                </button>
+            <p className="font-body text-sm sm:text-base md:text-lg text-gray-400 mb-6 sm:mb-8 max-w-xl leading-relaxed">
+              Luxury photography, custom gifts, and premium prints crafted for your once-in-a-lifetime memories.
+            </p>
 
-                <button
-                  className="group relative inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base font-semibold text-white border border-white/30 hover:border-orange-primary hover:text-orange-primary transition-all duration-300 uppercase tracking-wider"
-                  onClick={() => navigate('/services')}
-                >
-                  <span>View Services</span>
-                </button>
-              </div>
+            <div className="flex flex-col xs:flex-row gap-3 sm:gap-4">
+              <button
+                className="group relative inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base font-semibold text-black bg-orange-primary hover:bg-orange-hover transition-all duration-300 uppercase tracking-wider"
+                onClick={() => navigate('/shop')}
+              >
+                <span>Explore Collection</span>
+                <span className="group-hover:translate-x-1 transition-transform">→</span>
+              </button>
+
+              <button
+                className="group relative inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base font-semibold text-white border border-white/30 hover:border-orange-primary hover:text-orange-primary transition-all duration-300 uppercase tracking-wider"
+                onClick={() => navigate('/services')}
+              >
+                <span>View Services</span>
+              </button>
             </div>
           </div>
         </div>
-
-        {/* Scroll indicator - REMOVED */}
       </div>
 
       {/* Trust & Credibility Section */}

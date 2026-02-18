@@ -116,7 +116,7 @@ const SpecialOffers = () => {
                   onClick={offer.action}
                 >
                   {/* Image */}
-                  <div className="relative h-36 xs:h-40 sm:h-44 md:h-48 overflow-hidden">
+                  <div className="relative aspect-[16/9] overflow-hidden">
                     <img
                       src={offer.image}
                       alt={offer.title}
