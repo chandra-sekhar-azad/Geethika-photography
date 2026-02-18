@@ -7,6 +7,10 @@ const WHATSAPP_API_URL = 'https://graph.facebook.com/v18.0';
 const ACCESS_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN;
 const PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
 
+const formatPhoneNumber = (phone) => {
+  return phone.replace(/\D/g, '');
+};
+
 /**
  * Send a WhatsApp message using Facebook Graph API
  * @param {string} to - Recipient phone number (with country code, no + sign)
@@ -15,11 +19,12 @@ const PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
  */
 export const sendWhatsAppMessage = async (to, message) => {
   try {
+    const formattedTo = formatPhoneNumber(to);
     const response = await axios.post(
       `${WHATSAPP_API_URL}/${PHONE_NUMBER_ID}/messages`,
       {
         messaging_product: 'whatsapp',
-        to: to,
+        to: formattedTo,
         type: 'text',
         text: {
           body: message
@@ -37,9 +42,9 @@ export const sendWhatsAppMessage = async (to, message) => {
     return { success: true, data: response.data };
   } catch (error) {
     console.error('❌ WhatsApp message failed:', error.response?.data || error.message);
-    return { 
-      success: false, 
-      error: error.response?.data || error.message 
+    return {
+      success: false,
+      error: error.response?.data || error.message
     };
   }
 };
@@ -80,9 +85,9 @@ export const sendWhatsAppTemplate = async (to, templateName, languageCode = 'en'
     return { success: true, data: response.data };
   } catch (error) {
     console.error('❌ WhatsApp template failed:', error.response?.data || error.message);
-    return { 
-      success: false, 
-      error: error.response?.data || error.message 
+    return {
+      success: false,
+      error: error.response?.data || error.message
     };
   }
 };
@@ -125,9 +130,9 @@ export const sendWhatsAppMedia = async (to, mediaType, mediaUrl, caption = '') =
     return { success: true, data: response.data };
   } catch (error) {
     console.error('❌ WhatsApp media failed:', error.response?.data || error.message);
-    return { 
-      success: false, 
-      error: error.response?.data || error.message 
+    return {
+      success: false,
+      error: error.response?.data || error.message
     };
   }
 };
@@ -141,12 +146,12 @@ export const sendWhatsAppMedia = async (to, mediaType, mediaUrl, caption = '') =
  */
 export const verifyWebhook = (mode, token, challenge) => {
   const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN || 'geethika_verify_token';
-  
+
   if (mode === 'subscribe' && token === VERIFY_TOKEN) {
     console.log('✅ Webhook verified');
     return challenge;
   }
-  
+
   console.log('❌ Webhook verification failed');
   return null;
 };
