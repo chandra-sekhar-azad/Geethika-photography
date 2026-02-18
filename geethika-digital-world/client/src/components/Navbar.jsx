@@ -51,19 +51,17 @@ const Navbar = () => {
               <Link
                 key={link.path}
                 to={link.path}
-                className={`font-medium transition-all duration-300 relative group uppercase tracking-wider text-sm ${
-                  isActive(link.path)
+                className={`font-medium transition-all duration-300 relative group uppercase tracking-wider text-sm ${isActive(link.path)
                     ? 'text-orange-primary'
                     : 'text-gray-300 hover:text-orange-primary'
-                }`}
+                  }`}
               >
                 {link.label}
-                <span className={`absolute bottom-0 left-0 w-full h-0.5 bg-orange-primary transform origin-left transition-transform duration-300 ${
-                  isActive(link.path) ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
-                }`} />
+                <span className={`absolute bottom-0 left-0 w-full h-0.5 bg-orange-primary transform origin-left transition-transform duration-300 ${isActive(link.path) ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
+                  }`} />
               </Link>
             ))}
-            
+
             {isAuthenticated() ? (
               <div className="flex items-center space-x-4">
                 <Link
@@ -88,8 +86,8 @@ const Navbar = () => {
                 </button>
               </div>
             ) : (
-              <Link 
-                to="/login" 
+              <Link
+                to="/login"
                 className="flex items-center space-x-1 text-gray-300 hover:text-orange-primary transition-colors"
               >
                 <User className="w-5 h-5" />
@@ -117,15 +115,7 @@ const Navbar = () => {
           </div>
 
           <div className="md:hidden flex items-center space-x-2 sm:space-x-3">
-            {isAuthenticated() ? (
-              <button onClick={handleLogout} className="p-1.5">
-                <LogOut className="w-5 h-5 sm:w-6 sm:h-6 text-gray-300" />
-              </button>
-            ) : (
-              <Link to="/login" className="p-1.5">
-                <User className="w-5 h-5 sm:w-6 sm:h-6 text-gray-300" />
-              </Link>
-            )}
+
             <Link to="/wishlist" className="relative p-1.5">
               <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-gray-300" />
               {getWishlistCount() > 0 && (
@@ -159,11 +149,10 @@ const Navbar = () => {
                   key={link.path}
                   to={link.path}
                   onClick={() => setIsOpen(false)}
-                  className={`block py-2.5 px-3 font-medium rounded-lg transition-colors uppercase tracking-wider text-sm ${
-                    isActive(link.path)
+                  className={`block py-2.5 px-3 font-medium rounded-lg transition-colors uppercase tracking-wider text-sm ${isActive(link.path)
                       ? 'text-orange-primary bg-orange-primary/10'
                       : 'text-gray-300 hover:bg-gray-800'
-                  }`}
+                    }`}
                 >
                   {link.label}
                 </Link>
