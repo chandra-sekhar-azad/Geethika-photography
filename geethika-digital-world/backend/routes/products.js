@@ -5,65 +5,108 @@ import { authenticate, isAdmin } from '../middleware/auth.js';
 import { upload } from '../middleware/upload.js';
 import { uploadToCloudinary, deleteFromCloudinary } from '../config/cloudinary.js';
 import { logAdminAction, getChanges } from '../middleware/auditLog.js';
+import { cacheMiddleware, invalidateCache } from '../middleware/cache.js';
 
 const router = express.Router();
 
 // Get all products (public)
-router.get('/', async (req, res) => {
-  try {
-    const { category, valentine, search, limit = 50, offset = 0 } = req.query;
-    
-    let query = `
-      SELECT p.*, c.name as category_name, c.slug as category_slug
-      FROM products p
-      LEFT JOIN categories c ON p.category_id = c.id
-      WHERE p.is_active = true
-    `;
-    const params = [];
-    let paramCount = 1;
+router.get(
+  '/',
+  cacheMiddleware(30),
+  async (req, res) => {
+    try {
+      const { category, valentine, search } = req.query;
 
-    if (category) {
-      query += ` AND c.slug = $${paramCount}`;
-      params.push(category);
-      paramCount++;
+      const rawLimit = Number(req.query.limit) || 50;
+      const rawOffset = Number(req.query.offset) || 0;
+      const limit = Math.min(Math.max(rawLimit, 1), 100);
+      const offset = Math.max(rawOffset, 0);
+      
+      let query = `
+        SELECT
+          p.id,
+          p.name,
+          p.slug,
+          p.description,
+          p.category_id,
+          p.price,
+          p.discount,
+          p.image_url,
+          p.customizable,
+          p.valentine_special,
+          p.stock_quantity,
+          p.created_at,
+          c.name AS category_name,
+          c.slug AS category_slug
+        FROM products p
+        LEFT JOIN categories c ON p.category_id = c.id
+        WHERE p.is_active = true
+      `;
+      const params = [];
+      let paramCount = 1;
+
+      if (category) {
+        query += ` AND c.slug = $${paramCount}`;
+        params.push(category);
+        paramCount++;
+      }
+
+      if (valentine === 'true') {
+        query += ` AND p.valentine_special = true`;
+      }
+
+      if (search) {
+        query += ` AND (p.name ILIKE $${paramCount} OR p.description ILIKE $${paramCount})`;
+        params.push(`%${search}%`);
+        paramCount++;
+      }
+
+      query += ` ORDER BY p.created_at DESC LIMIT $${paramCount} OFFSET $${paramCount + 1}`;
+      params.push(limit, offset);
+
+      const result = await pool.query(query, params);
+
+      res.json({
+        products: result.rows,
+        count: result.rows.length,
+      });
+    } catch (error) {
+      console.error('Get products error:', error);
+      res.status(500).json({ error: 'Failed to fetch products' });
     }
-
-    if (valentine === 'true') {
-      query += ` AND p.valentine_special = true`;
-    }
-
-    if (search) {
-      query += ` AND (p.name ILIKE $${paramCount} OR p.description ILIKE $${paramCount})`;
-      params.push(`%${search}%`);
-      paramCount++;
-    }
-
-    query += ` ORDER BY p.created_at DESC LIMIT $${paramCount} OFFSET $${paramCount + 1}`;
-    params.push(limit, offset);
-
-    const result = await pool.query(query, params);
-
-    res.json({
-      products: result.rows,
-      count: result.rows.length
-    });
-  } catch (error) {
-    console.error('Get products error:', error);
-    res.status(500).json({ error: 'Failed to fetch products' });
   }
-});
+);
 
 // Get single product (public)
-router.get('/:id', async (req, res) => {
+router.get('/:id', cacheMiddleware(60), async (req, res) => {
   try {
     const { id } = req.params;
     
-    const result = await pool.query(`
-      SELECT p.*, c.name as category_name, c.slug as category_slug
+    const result = await pool.query(
+      `
+      SELECT
+        p.id,
+        p.name,
+        p.slug,
+        p.description,
+        p.category_id,
+        p.price,
+        p.discount,
+        p.image_url,
+        p.customizable,
+        p.valentine_special,
+        p.stock_quantity,
+        p.is_active,
+        p.created_at,
+        p.updated_at,
+        c.name AS category_name,
+        c.slug AS category_slug
       FROM products p
       LEFT JOIN categories c ON p.category_id = c.id
       WHERE p.id = $1 AND p.is_active = true
-    `, [id]);
+      `,
+      [id]
+    );
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Product not found' });
@@ -146,6 +189,9 @@ router.post('/',
         result.rows[0].name,
         { created: result.rows[0] }
       );
+
+      // Invalidate product list/detail caches
+      invalidateCache((key) => key.startsWith('/api/products'));
 
       res.status(201).json({
         message: 'Product created successfully',
@@ -232,6 +278,9 @@ router.put('/:id',
         id
       ]);
 
+      // Invalidate product caches
+      invalidateCache((key) => key.startsWith('/api/products'));
+
       res.json({
         message: 'Product updated successfully',
         product: result.rows[0]
@@ -285,6 +334,9 @@ router.delete('/:id', authenticate, isAdmin, async (req, res) => {
       }
 
       await pool.query('DELETE FROM products WHERE id = $1', [id]);
+
+      // Invalidate product caches
+      invalidateCache((key) => key.startsWith('/api/products'));
 
       res.json({ 
         message: 'Product deleted successfully',

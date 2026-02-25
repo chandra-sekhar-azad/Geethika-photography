@@ -96,10 +96,6 @@ router.post('/',
       } = req.body;
 
       const orderNumber = generateOrderNumber();
-      console.log('📦 Creating order:', orderNumber);
-      console.log('Customer:', customer_name, customer_email, customer_phone);
-      console.log('Items count:', items.length);
-      console.log('Total:', total);
 
       // Store shipping address as JSON if shipping_info is provided
       const shippingAddressJson = shipping_info ? JSON.stringify(shipping_info) : null;
@@ -116,17 +112,17 @@ router.post('/',
             receipt: orderNumber,
           });
           razorpayOrderId = razorpayOrder.id;
-          console.log('✅ Razorpay order created:', razorpayOrderId);
         } else {
-          console.log('⚠️ Skipping Razorpay order creation (demo keys)');
+          if (process.env.NODE_ENV !== 'production') {
+            console.log('Skipping Razorpay order creation (demo keys)');
+          }
         }
       } catch (razorpayError) {
-        console.error('⚠️ Razorpay order creation failed (continuing anyway):', razorpayError.message);
+        console.error('Razorpay order creation failed (continuing anyway):', razorpayError.message);
         // Continue without Razorpay order ID - order will still be created
       }
 
       // Create order
-      console.log('💾 Inserting order into database...');
       const orderResult = await client.query(`
         INSERT INTO orders (
           order_number, customer_name, customer_email, customer_phone,
@@ -153,19 +149,9 @@ router.post('/',
       ]);
 
       const order = orderResult.rows[0];
-      console.log('✅ Order created with ID:', order.id);
 
       // Create order items
       for (const item of items) {
-        console.log('Inserting order item:', {
-          order_id: order.id,
-          product_id: item.product_id || item.id,
-          name: item.name,
-          image: item.image || item.image_url,
-          quantity: item.quantity,
-          price: item.price || item.finalPrice
-        });
-
         await client.query(`
           INSERT INTO order_items (
             order_id, product_id, product_name, product_image,
@@ -192,7 +178,6 @@ router.post('/',
       }
 
       await client.query('COMMIT');
-      console.log('✅ Order committed successfully!');
 
       res.status(201).json({
         message: 'Order created successfully',
@@ -222,35 +207,59 @@ router.post('/',
 // Get user's orders (authenticated user)
 router.get('/my-orders', authenticate, async (req, res) => {
   try {
-    const { limit = 50, offset = 0 } = req.query;
+    const rawLimit = Number(req.query.limit) || 50;
+    const rawOffset = Number(req.query.offset) || 0;
+    const limit = Math.min(Math.max(rawLimit, 1), 100);
+    const offset = Math.max(rawOffset, 0);
     const userEmail = req.user.email;
 
-    // Only fetch orders with successful payment
-    const ordersResult = await pool.query(`
-      SELECT * FROM orders 
-      WHERE customer_email = $1 
-      AND payment_status = 'paid'
-      ORDER BY created_at DESC 
+    // Avoid N+1: get orders + items in a single query
+    const { rows } = await pool.query(
+      `
+      SELECT
+        o.id,
+        o.order_number,
+        o.customer_name,
+        o.customer_email,
+        o.customer_phone,
+        o.shipping_address,
+        o.subtotal,
+        o.shipping_cost,
+        o.service_charge,
+        o.total,
+        o.payment_method,
+        o.payment_status,
+        o.order_status,
+        o.created_at,
+        COALESCE(
+          json_agg(
+            json_build_object(
+              'id', oi.id,
+              'product_id', oi.product_id,
+              'product_name', oi.product_name,
+              'product_image', oi.product_image,
+              'quantity', oi.quantity,
+              'price', oi.price,
+              'customization', oi.customization
+            )
+            ORDER BY oi.id
+          ) FILTER (WHERE oi.id IS NOT NULL),
+          '[]'
+        ) AS items
+      FROM orders o
+      LEFT JOIN order_items oi ON oi.order_id = o.id
+      WHERE o.customer_email = $1
+        AND o.payment_status = 'paid'
+      GROUP BY o.id
+      ORDER BY o.created_at DESC
       LIMIT $2 OFFSET $3
-    `, [userEmail, limit, offset]);
-
-    // Fetch items for each order
-    const ordersWithItems = await Promise.all(
-      ordersResult.rows.map(async (order) => {
-        const itemsResult = await pool.query(
-          'SELECT * FROM order_items WHERE order_id = $1',
-          [order.id]
-        );
-        return {
-          ...order,
-          items: itemsResult.rows
-        };
-      })
+      `,
+      [userEmail, limit, offset]
     );
 
     res.json({
-      orders: ordersWithItems,
-      count: ordersWithItems.length
+      orders: rows,
+      count: rows.length,
     });
   } catch (error) {
     console.error('Get user orders error:', error);
@@ -261,7 +270,12 @@ router.get('/my-orders', authenticate, async (req, res) => {
 // Get all orders (admin only)
 router.get('/', authenticate, isAdmin, async (req, res) => {
   try {
-    const { status, limit = 50, offset = 0 } = req.query;
+    const rawLimit = Number(req.query.limit) || 50;
+    const rawOffset = Number(req.query.offset) || 0;
+    const limit = Math.min(Math.max(rawLimit, 1), 100);
+    const offset = Math.max(rawOffset, 0);
+
+    const { status } = req.query;
 
     let query = 'SELECT * FROM orders';
     const params = [];
@@ -278,7 +292,7 @@ router.get('/', authenticate, isAdmin, async (req, res) => {
 
     res.json({
       orders: result.rows,
-      count: result.rows.length
+      count: result.rows.length,
     });
   } catch (error) {
     console.error('Get orders error:', error);
@@ -286,27 +300,43 @@ router.get('/', authenticate, isAdmin, async (req, res) => {
   }
 });
 
-// Get single order
+// Get single order with items
 router.get('/:id', authenticate, async (req, res) => {
   try {
     const { id } = req.params;
 
-    const orderResult = await pool.query('SELECT * FROM orders WHERE id = $1', [id]);
+    const { rows } = await pool.query(
+      `
+      SELECT
+        o.*,
+        COALESCE(
+          json_agg(
+            json_build_object(
+              'id', oi.id,
+              'product_id', oi.product_id,
+              'product_name', oi.product_name,
+              'product_image', oi.product_image,
+              'quantity', oi.quantity,
+              'price', oi.price,
+              'customization', oi.customization
+            )
+            ORDER BY oi.id
+          ) FILTER (WHERE oi.id IS NOT NULL),
+          '[]'
+        ) AS items
+      FROM orders o
+      LEFT JOIN order_items oi ON oi.order_id = o.id
+      WHERE o.id = $1
+      GROUP BY o.id
+      `,
+      [id]
+    );
     
-    if (orderResult.rows.length === 0) {
+    if (rows.length === 0) {
       return res.status(404).json({ error: 'Order not found' });
     }
 
-    const itemsResult = await pool.query(
-      'SELECT * FROM order_items WHERE order_id = $1',
-      [id]
-    );
-
-    // Return flat structure with items included
-    res.json({
-      ...orderResult.rows[0],
-      items: itemsResult.rows
-    });
+    res.json(rows[0]);
   } catch (error) {
     console.error('Get order error:', error);
     res.status(500).json({ error: 'Failed to fetch order' });

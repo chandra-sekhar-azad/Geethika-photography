@@ -37,7 +37,10 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Create uploads directory if it doesn't exist
+// Trust proxy (Render / reverse proxies) for correct IPs & HTTPS handling
+app.set('trust proxy', 1);
+
+// Create uploads directory if it doesn't exist (startup-only)
 const uploadsDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
@@ -95,7 +98,7 @@ app.use(compression());
 // Logging middleware
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
-} else {
+} else if (process.env.NODE_ENV === 'production') {
   app.use(morgan('combined'));
 }
 
@@ -156,30 +159,15 @@ app.use(notFound);
 app.use(errorHandler);
 
 // Start server
-app.listen(PORT, () => {
-  console.log(`
-╔═══════════════════════════════════════════════════════╗
-║                                                       ║
-║   🚀 Geethika Digital World API Server               ║
-║                                                       ║
-║   Environment: ${process.env.NODE_ENV || 'development'}                           ║
-║   Port: ${PORT}                                        ║
-║   URL: http://localhost:${PORT}                        ║
-║                                                       ║
-║   📚 API Documentation:                               ║
-║   - Health: http://localhost:${PORT}/health            ║
-║   - Auth: http://localhost:${PORT}/api/auth            ║
-║   - Products: http://localhost:${PORT}/api/products    ║
-║   - Orders: http://localhost:${PORT}/api/orders        ║
-║   - Services: http://localhost:${PORT}/api/services    ║
-║                                                       ║
-╚═══════════════════════════════════════════════════════╝
-  `);
+const server = app.listen(PORT, () => {
+  console.log(
+    `[${new Date().toISOString()}] Geethika API listening on port ${PORT} (${process.env.NODE_ENV || 'development'})`
+  );
 });
 
 // Graceful shutdown
-process.on('SIGTERM', () => {
-  console.log('SIGTERM signal received: closing HTTP server');
+const gracefulShutdown = (signal) => {
+  console.log(`${signal} received: closing HTTP server`);
   server.close(() => {
     console.log('HTTP server closed');
     pool.end(() => {
@@ -187,6 +175,9 @@ process.on('SIGTERM', () => {
       process.exit(0);
     });
   });
-});
+};
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 export default app;

@@ -3,32 +3,38 @@ import pool from '../config/database.js';
 import { authenticate, isAdmin, isSuperAdmin } from '../middleware/auth.js';
 import { upload } from '../middleware/upload.js';
 import { logAdminAction } from '../middleware/auditLog.js';
+import { cacheMiddleware, invalidateCache } from '../middleware/cache.js';
 
 const router = express.Router();
 
 // Get all homepage content (public)
-router.get('/content', async (req, res) => {
+router.get('/content', cacheMiddleware(60), async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT * FROM homepage_content WHERE is_active = true ORDER BY content_type, display_order'
+      `
+      SELECT id, section, content_type, title, description, image_url, link_url, display_order
+      FROM homepage_content
+      WHERE is_active = true
+      ORDER BY content_type, display_order
+      `
     );
 
     // Group by content type
     const grouped = {
-      hero_banner: result.rows.find(c => c.content_type === 'banner'),
-      offers: result.rows.filter(c => c.content_type === 'offer_card'),
-      testimonials: result.rows.filter(c => c.content_type === 'testimonial')
+      hero_banner: result.rows.find((c) => c.content_type === 'banner'),
+      offers: result.rows.filter((c) => c.content_type === 'offer_card'),
+      testimonials: result.rows.filter((c) => c.content_type === 'testimonial'),
     };
 
     res.json({
       success: true,
-      content: grouped
+      content: grouped,
     });
   } catch (error) {
     console.error('Error fetching homepage content:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch homepage content'
+      message: 'Failed to fetch homepage content',
     });
   }
 });
@@ -160,6 +166,8 @@ router.put('/admin/content/:id', authenticate, isAdmin, upload.single('image'), 
       existing.rows[0].section
     );
 
+    invalidateCache((key) => key.includes('/api/homepage/content'));
+
     res.json({
       success: true,
       message: 'Content updated successfully',
@@ -245,6 +253,8 @@ router.delete('/admin/content/:id', authenticate, isAdmin, async (req, res) => {
       id,
       existing.rows[0].section
     );
+
+    invalidateCache((key) => key.includes('/api/homepage/content'));
 
     res.json({
       success: true,
