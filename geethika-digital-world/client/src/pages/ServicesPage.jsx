@@ -60,13 +60,13 @@ const ServicesPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black">
-      <div className="relative bg-black/50 py-8 sm:py-12 md:py-16 border-b border-gray-800">
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--color-bg-light)' }}>
+      <div className="relative py-10 sm:py-14 md:py-18 border-b" style={{ backgroundColor: 'var(--color-bg-hero)', borderColor: 'rgba(168,213,213,0.4)' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-display font-bold text-white mb-2 sm:mb-4 uppercase tracking-wide">
+          <h1 className="font-display font-semibold text-3xl sm:text-4xl md:text-5xl mb-3 tracking-wide" style={{ color: 'var(--color-text-dark)' }}>
             Our Services
           </h1>
-          <p className="text-sm sm:text-base md:text-lg text-gray-400">
+          <p className="font-body text-sm sm:text-base md:text-lg" style={{ color: 'var(--color-text-mid)' }}>
             Professional photography, videography, and decoration services
           </p>
         </div>
@@ -75,33 +75,37 @@ const ServicesPage = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 md:py-12">
         {loading ? (
           <div className="flex justify-center items-center py-12">
-            <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-orange-primary"></div>
+            <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2" style={{ borderColor: 'var(--color-teal-400)' }}></div>
           </div>
         ) : services.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-500 text-base sm:text-lg">No services available at the moment.</p>
+            <p className="font-body text-base sm:text-lg" style={{ color: 'var(--color-text-mid)' }}>No services available at the moment.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {services.map((service) => (
-              <div key={service.id} className="bg-gray-900 rounded-xl shadow-lg overflow-hidden border border-gray-800 hover:border-orange-primary/50 hover:shadow-orange-primary/10 transition-all duration-300 group">
+              <div key={service.id} className="bg-white rounded-xl shadow-sm overflow-hidden border transition-all duration-300 group hover:-translate-y-1"
+                style={{ borderColor: 'rgba(168,213,213,0.35)', boxShadow: '0 2px 12px rgba(26,43,53,0.06)' }}
+                onMouseEnter={e => e.currentTarget.style.boxShadow = '0 16px 40px rgba(61,138,138,0.14)'}
+                onMouseLeave={e => e.currentTarget.style.boxShadow = '0 2px 12px rgba(26,43,53,0.06)'}
+              >
                 {service.image_url && (
-                  <div className="h-48 overflow-hidden">
+                  <div className="h-48 overflow-hidden" style={{ backgroundColor: 'var(--color-teal-50)' }}>
                     <img
                       src={service.image_url}
                       alt={service.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                   </div>
                 )}
 
                 <div className="p-5">
-                  <h2 className="text-xl font-display font-bold text-white mb-2 uppercase tracking-wide group-hover:text-orange-primary transition-colors">{service.name}</h2>
-                  <p className="text-sm text-gray-400 mb-3 line-clamp-3">{service.description}</p>
+                  <h2 className="font-display font-semibold text-xl mb-2 tracking-wide group-hover:opacity-70 transition-opacity" style={{ color: 'var(--color-text-dark)' }}>{service.name}</h2>
+                  <p className="font-body text-sm mb-3 line-clamp-3" style={{ color: 'var(--color-text-mid)' }}>{service.description}</p>
 
                   {service.price_range && (
-                    <div className="mb-3">
-                      <span className="inline-block bg-orange-primary/10 text-orange-primary px-3 py-1 rounded-full font-semibold text-sm border border-orange-primary/20">
+                    <div className="mb-4">
+                      <span className="inline-block px-3 py-1 rounded font-body font-semibold text-sm border" style={{ backgroundColor: 'var(--color-teal-50)', color: 'var(--color-teal-500)', borderColor: 'rgba(91,163,163,0.25)' }}>
                         {service.price_range}
                       </span>
                     </div>
@@ -113,7 +117,10 @@ const ServicesPage = () => {
                       const whatsappUrl = `https://wa.me/919492686421?text=${encodeURIComponent(message)}`;
                       window.open(whatsappUrl, '_blank');
                     }}
-                    className="w-full py-3 px-4 bg-orange-primary text-black font-semibold rounded-lg hover:bg-orange-hover transition-colors flex items-center justify-center gap-2 uppercase tracking-wide text-sm"
+                    className="w-full py-3 px-4 font-body font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 uppercase tracking-widest text-sm text-white"
+                    style={{ backgroundColor: 'var(--color-navy-800)' }}
+                    onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--color-teal-500)'}
+                    onMouseLeave={e => e.currentTarget.style.backgroundColor = 'var(--color-navy-800)'}
                   >
                     <span>Book Now via WhatsApp</span>
                   </button>
@@ -125,21 +132,21 @@ const ServicesPage = () => {
       </div>
 
       {showBookingForm && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-900 rounded-xl sm:rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-700 shadow-2xl">
-            <div className="bg-gray-800 p-4 sm:p-6 md:p-8 border-b border-gray-700">
-              <h2 className="text-xl sm:text-2xl font-display font-bold mb-2 text-white uppercase tracking-wide">
+        <div className="fixed inset-0 bg-navy-900/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl sm:rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border shadow-2xl" style={{ borderColor: 'rgba(168,213,213,0.4)' }}>
+            <div className="p-4 sm:p-6 md:p-8 border-b" style={{ backgroundColor: 'var(--color-bg-hero)', borderColor: 'rgba(168,213,213,0.4)' }}>
+              <h2 className="font-display font-semibold text-xl sm:text-2xl mb-2 tracking-wide" style={{ color: 'var(--color-text-dark)' }}>
                 Book {selectedService?.name}
               </h2>
-              <p className="text-xs sm:text-sm text-orange-primary font-medium">
+              <p className="font-body text-xs sm:text-sm font-medium" style={{ color: 'var(--color-teal-500)' }}>
                 Package: {selectedPackage?.name} - ₹{selectedPackage?.price}
               </p>
             </div>
 
             <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-3 sm:space-y-4">
               <div>
-                <label className="flex items-center text-xs sm:text-sm font-semibold mb-1.5 sm:mb-2 text-gray-300">
-                  <User className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 text-orange-primary" />
+                <label className="flex items-center font-body text-xs sm:text-sm font-semibold mb-1.5 sm:mb-2" style={{ color: 'var(--color-text-mid)' }}>
+                  <User className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" style={{ color: 'var(--color-teal-500)' }} />
                   Full Name *
                 </label>
                 <input
@@ -147,14 +154,15 @@ const ServicesPage = () => {
                   required
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-2 sm:px-4 sm:py-2 text-sm sm:text-base bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-orange-primary focus:border-transparent text-white placeholder-gray-500"
+                  className="w-full px-3 py-2 sm:px-4 sm:py-2 text-sm sm:text-base border rounded-lg focus:outline-none transition-colors"
+                  style={{ backgroundColor: 'white', borderColor: 'rgba(168,213,213,0.5)', color: 'var(--color-text-dark)' }}
                   placeholder="Enter your name"
                 />
               </div>
 
               <div>
-                <label className="flex items-center text-xs sm:text-sm font-semibold mb-1.5 sm:mb-2 text-gray-300">
-                  <Phone className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 text-orange-primary" />
+                <label className="flex items-center font-body text-xs sm:text-sm font-semibold mb-1.5 sm:mb-2" style={{ color: 'var(--color-text-mid)' }}>
+                  <Phone className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" style={{ color: 'var(--color-teal-500)' }} />
                   Phone Number *
                 </label>
                 <input
@@ -162,14 +170,15 @@ const ServicesPage = () => {
                   required
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="w-full px-3 py-2 sm:px-4 sm:py-2 text-sm sm:text-base bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-orange-primary focus:border-transparent text-white placeholder-gray-500"
+                  className="w-full px-3 py-2 sm:px-4 sm:py-2 text-sm sm:text-base border rounded-lg focus:outline-none transition-colors"
+                  style={{ backgroundColor: 'white', borderColor: 'rgba(168,213,213,0.5)', color: 'var(--color-text-dark)' }}
                   placeholder="Enter your phone number"
                 />
               </div>
 
               <div>
-                <label className="flex items-center text-xs sm:text-sm font-semibold mb-1.5 sm:mb-2 text-gray-300">
-                  <Calendar className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 text-orange-primary" />
+                <label className="flex items-center font-body text-xs sm:text-sm font-semibold mb-1.5 sm:mb-2" style={{ color: 'var(--color-text-mid)' }}>
+                  <Calendar className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" style={{ color: 'var(--color-teal-500)' }} />
                   Preferred Date *
                 </label>
                 <input
@@ -177,14 +186,15 @@ const ServicesPage = () => {
                   required
                   value={formData.date}
                   onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                  className="w-full px-3 py-2 sm:px-4 sm:py-2 text-sm sm:text-base bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-orange-primary focus:border-transparent text-white placeholder-gray-500 [color-scheme:dark]"
+                  className="w-full px-3 py-2 sm:px-4 sm:py-2 text-sm sm:text-base border rounded-lg focus:outline-none transition-colors"
+                  style={{ backgroundColor: 'white', borderColor: 'rgba(168,213,213,0.5)', color: 'var(--color-text-dark)' }}
                   min={new Date().toISOString().split('T')[0]}
                 />
               </div>
 
               <div>
-                <label className="flex items-center text-xs sm:text-sm font-semibold mb-1.5 sm:mb-2 text-gray-300">
-                  <MapPin className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 text-orange-primary" />
+                <label className="flex items-center font-body text-xs sm:text-sm font-semibold mb-1.5 sm:mb-2" style={{ color: 'var(--color-text-mid)' }}>
+                  <MapPin className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" style={{ color: 'var(--color-teal-500)' }} />
                   Location *
                 </label>
                 <input
@@ -192,20 +202,22 @@ const ServicesPage = () => {
                   required
                   value={formData.location}
                   onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                  className="w-full px-3 py-2 sm:px-4 sm:py-2 text-sm sm:text-base bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-orange-primary focus:border-transparent text-white placeholder-gray-500"
+                  className="w-full px-3 py-2 sm:px-4 sm:py-2 text-sm sm:text-base border rounded-lg focus:outline-none transition-colors"
+                  style={{ backgroundColor: 'white', borderColor: 'rgba(168,213,213,0.5)', color: 'var(--color-text-dark)' }}
                   placeholder="Enter event location"
                 />
               </div>
 
               <div>
-                <label className="flex items-center text-xs sm:text-sm font-semibold mb-1.5 sm:mb-2 text-gray-300">
-                  <MessageSquare className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 text-orange-primary" />
+                <label className="flex items-center font-body text-xs sm:text-sm font-semibold mb-1.5 sm:mb-2" style={{ color: 'var(--color-text-mid)' }}>
+                  <MessageSquare className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" style={{ color: 'var(--color-teal-500)' }} />
                   Requirements
                 </label>
                 <textarea
                   value={formData.requirements}
                   onChange={(e) => setFormData({ ...formData, requirements: e.target.value })}
-                  className="w-full px-3 py-2 sm:px-4 sm:py-2 text-sm sm:text-base bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-orange-primary focus:border-transparent text-white placeholder-gray-500"
+                  className="w-full px-3 py-2 sm:px-4 sm:py-2 text-sm sm:text-base border rounded-lg focus:outline-none transition-colors"
+                  style={{ backgroundColor: 'white', borderColor: 'rgba(168,213,213,0.5)', color: 'var(--color-text-dark)' }}
                   rows="4"
                   placeholder="Tell us about your requirements..."
                 />
@@ -230,13 +242,19 @@ const ServicesPage = () => {
                 <button
                   type="button"
                   onClick={() => setShowBookingForm(false)}
-                  className="flex-1 px-4 py-2.5 sm:px-6 sm:py-3 border border-gray-600 rounded-lg font-semibold text-gray-300 hover:bg-gray-800 transition-colors text-sm sm:text-base"
+                  className="flex-1 px-4 py-2.5 sm:px-6 sm:py-3 border rounded-lg font-body font-semibold transition-colors text-sm sm:text-base"
+                  style={{ borderColor: 'rgba(168,213,213,0.5)', color: 'var(--color-text-mid)' }}
+                  onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--color-teal-50)'}
+                  onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 bg-orange-primary text-black font-bold text-sm sm:text-base py-2.5 sm:py-3 rounded-lg hover:bg-orange-hover transition-colors uppercase tracking-wide"
+                  className="flex-1 font-body font-bold text-sm sm:text-base py-2.5 sm:py-3 rounded-lg transition-colors uppercase tracking-widest text-white"
+                  style={{ backgroundColor: 'var(--color-navy-800)' }}
+                  onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--color-teal-500)'}
+                  onMouseLeave={e => e.currentTarget.style.backgroundColor = 'var(--color-navy-800)'}
                 >
                   Proceed to Payment
                 </button>

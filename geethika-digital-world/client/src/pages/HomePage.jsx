@@ -6,20 +6,12 @@ import Testimonials from '../components/Testimonials';
 
 const HomePage = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black">
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--color-bg-light)' }}>
       <HeroBanner />
-      <div className="py-6 xs:py-7 sm:py-8 md:py-12 lg:py-16">
-        <SpecialOffers />
-      </div>
-      <div className="py-6 xs:py-7 sm:py-8 md:py-12 lg:py-16">
-        <CategoriesSection />
-      </div>
-      <div className="py-6 xs:py-7 sm:py-8 md:py-12 lg:py-16">
-        <TrendingSection />
-      </div>
-      <div className="py-6 xs:py-7 sm:py-8 md:py-12 lg:py-16">
-        <Testimonials />
-      </div>
+      <SpecialOffers />
+      <CategoriesSection />
+      <TrendingSection />
+      <Testimonials />
     </div>
   );
 };

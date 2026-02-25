@@ -411,8 +411,9 @@ const ProductManagement = () => {
           {filterType === 'trending' && filterCategory === 'all' && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <p className="text-sm text-blue-800">
-                <strong>💡 Tip:</strong> Products marked as "Valentine Special" appear in the "Trending Now" section on the homepage. 
-                Edit the "Valentine Special" checkbox when editing a product to add/remove it from trending.
+                <strong>💡 Tip:</strong> Products marked as "Show in trending" appear in the "Trending Now"
+                section on the homepage. Edit the "Show in trending" checkbox when editing a product to
+                add or remove it from trending.
               </p>
             </div>
           )}
@@ -680,7 +681,7 @@ const ProductManagement = () => {
                         onChange={(e) => setFormData({ ...formData, valentine_special: e.target.checked })}
                         className="mr-2"
                       />
-                      <span className="text-sm text-gray-700">Valentine Special</span>
+                      <span className="text-sm text-gray-700">Show in trending</span>
                     </label>
 
                     <label className="flex items-center">

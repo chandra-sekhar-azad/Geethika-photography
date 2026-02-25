@@ -1,7 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import CategoryCard from './CategoryCard';
-import { Heart } from 'lucide-react';
 
 const CategoriesSection = () => {
   const navigate = useNavigate();
@@ -17,7 +16,6 @@ const CategoriesSection = () => {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/categories`);
       if (response.ok) {
         const data = await response.json();
-        // The API returns { categories: [...] }
         setCategories(data.categories || []);
       }
     } catch (error) {
@@ -31,31 +29,29 @@ const CategoriesSection = () => {
     navigate(`/shop/${categorySlug}`);
   };
 
-  // Get first 6 categories for display
   const displayCategories = categories.slice(0, 6);
 
   return (
-    <section className="py-16 md:py-20 bg-gradient-to-b from-black via-gray-900 to-black relative overflow-hidden">
-      {/* Decorative Background */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-orange-primary/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-orange-primary/10 rounded-full blur-3xl" />
+    <section className="py-10 sm:py-14 md:py-20 relative overflow-hidden" style={{ backgroundColor: 'var(--color-bg-hero)' }}>
+      {/* Subtle orbs */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-0 right-0 w-56 h-56 rounded-full blur-3xl" style={{ backgroundColor: 'rgba(91,163,163,0.12)' }} />
+        <div className="absolute bottom-0 left-0 w-56 h-56 rounded-full blur-3xl" style={{ backgroundColor: 'rgba(61,138,138,0.10)' }} />
       </div>
 
       <div className="container mx-auto px-4 relative z-10">
         {/* Section Title */}
-        <div className="text-center mb-12 animate-slide-up">
-          <div className="inline-flex items-center gap-2 mb-4">
-            <Heart className="w-6 h-6 text-orange-primary fill-orange-primary" />
-            <span className="text-orange-primary font-semibold uppercase tracking-wider text-sm">
-              Discover
-            </span>
-            <Heart className="w-6 h-6 text-orange-primary fill-orange-primary" />
-          </div>
-          <h2 className="section-title text-white">
+        <div className="text-center mb-10 md:mb-14 animate-slide-up">
+          <p className="font-body text-xs uppercase tracking-[0.25em] font-semibold mb-3" style={{ color: 'var(--color-navy-800)' }}>
+            Browse & Discover
+          </p>
+          <h2 className="section-title text-2xl xs:text-3xl sm:text-4xl md:text-5xl">
             Shop by Categories
           </h2>
-          <p className="text-gray-300 text-lg max-w-2xl mx-auto">
+          <div className="mt-4 flex justify-center">
+            <div className="h-0.5 w-14 rounded" style={{ backgroundColor: 'var(--color-teal-400)' }}></div>
+          </div>
+          <p className="font-body mt-5 text-xs xs:text-sm sm:text-base md:text-lg max-w-2xl mx-auto" style={{ color: 'var(--color-text-mid)' }}>
             Find the perfect gift for your loved one from our curated collection
           </p>
         </div>
@@ -63,9 +59,9 @@ const CategoriesSection = () => {
         {/* Categories Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6">
           {loading ? (
-            // Skeleton loading state
             [...Array(6)].map((_, index) => (
-              <div key={index} className="animate-pulse bg-gray-800 rounded-lg h-64"></div>
+              <div key={index} className="animate-pulse rounded-xl h-48"
+                style={{ backgroundColor: 'rgba(168,213,213,0.3)' }}></div>
             ))
           ) : (
             displayCategories.map((category, index) => (
@@ -88,10 +84,10 @@ const CategoriesSection = () => {
         <div className="text-center mt-12">
           <button
             onClick={() => navigate('/shop')}
-            className="btn-romantic inline-flex items-center gap-2"
+            className="btn-primary inline-flex items-center gap-2"
           >
             View All Categories
-            <Heart className="w-5 h-5" />
+            <span>→</span>
           </button>
         </div>
       </div>
