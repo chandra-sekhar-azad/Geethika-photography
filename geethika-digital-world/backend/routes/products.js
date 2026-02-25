@@ -21,7 +21,7 @@ router.get(
       const rawOffset = Number(req.query.offset) || 0;
       const limit = Math.min(Math.max(rawLimit, 1), 100);
       const offset = Math.max(rawOffset, 0);
-      
+
       let query = `
         SELECT
           p.id,
@@ -81,7 +81,7 @@ router.get(
 router.get('/:id', cacheMiddleware(60), async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     const result = await pool.query(
       `
       SELECT
@@ -245,6 +245,42 @@ router.put('/:id',
         imagePublicId = uploadResult.publicId;
       }
 
+      // ── Safely parse customization_options ──────────────────────────
+      // FormData sends everything as strings; JSON.parse(null/undefined/"") throws.
+      let parsedCustomizationOptions = null;
+      if (customization_options !== undefined && customization_options !== null && customization_options !== '') {
+        try {
+          parsedCustomizationOptions = typeof customization_options === 'string'
+            ? JSON.parse(customization_options)
+            : customization_options; // already an object (shouldn't happen via FormData, but be safe)
+        } catch (parseErr) {
+          console.warn('Could not parse customization_options:', customization_options);
+          parsedCustomizationOptions = null;
+        }
+      }
+
+      // ── Coerce FormData string booleans → real booleans ─────────────
+      const toBoolean = (val, fallback) => {
+        if (val === undefined || val === null || val === '') return fallback;
+        if (typeof val === 'boolean') return val;
+        return val === 'true';
+      };
+
+      // ── Coerce numeric strings → numbers (null if missing) ──────────
+      const toNumber = (val) => {
+        if (val === undefined || val === null || val === '') return null;
+        const n = Number(val);
+        return isNaN(n) ? null : n;
+      };
+
+      const coercedCategoryId = toNumber(category_id);
+      const coercedPrice = toNumber(price);
+      const coercedDiscount = toNumber(discount);
+      const coercedStock = toNumber(stock_quantity);
+      const coercedCustomizable = toBoolean(customizable, null);
+      const coercedValentineSpecial = toBoolean(valentine_special, null);
+      const coercedIsActive = toBoolean(is_active, null);
+
       const result = await pool.query(`
         UPDATE products SET
           name = COALESCE($1, name),
@@ -263,18 +299,18 @@ router.put('/:id',
         WHERE id = $13
         RETURNING *
       `, [
-        name,
-        description,
-        category_id,
-        price,
-        discount,
+        name || null,
+        description || null,
+        coercedCategoryId,
+        coercedPrice,
+        coercedDiscount,
         imageUrl,
         imagePublicId,
-        customizable,
-        customization_options ? JSON.parse(customization_options) : null,
-        valentine_special,
-        stock_quantity,
-        is_active,
+        coercedCustomizable,
+        parsedCustomizationOptions,
+        coercedValentineSpecial,
+        coercedStock,
+        coercedIsActive,
         id
       ]);
 
@@ -286,8 +322,9 @@ router.put('/:id',
         product: result.rows[0]
       });
     } catch (error) {
-      console.error('Update product error:', error);
-      res.status(500).json({ error: 'Failed to update product' });
+      console.error('Update product error:', error.message);
+      console.error('Stack:', error.stack);
+      res.status(500).json({ error: 'Failed to update product', details: process.env.NODE_ENV !== 'production' ? error.message : undefined });
     }
   }
 );
@@ -316,14 +353,14 @@ router.delete('/:id', authenticate, isAdmin, async (req, res) => {
         'UPDATE products SET is_active = false WHERE id = $1',
         [id]
       );
-      
-      res.json({ 
+
+      res.json({
         message: 'Product deactivated successfully (cannot delete as it exists in orders)',
         deactivated: true
       });
     } else {
       // Product not in orders, safe to delete
-      
+
       // Try to delete image from Cloudinary (don't fail if it doesn't exist)
       if (product.rows[0].image_public_id) {
         try {
@@ -338,7 +375,7 @@ router.delete('/:id', authenticate, isAdmin, async (req, res) => {
       // Invalidate product caches
       invalidateCache((key) => key.startsWith('/api/products'));
 
-      res.json({ 
+      res.json({
         message: 'Product deleted successfully',
         deleted: true
       });
@@ -347,9 +384,9 @@ router.delete('/:id', authenticate, isAdmin, async (req, res) => {
     console.error('Delete product error:', error);
     console.error('Error details:', error.message);
     console.error('Error stack:', error.stack);
-    res.status(500).json({ 
-      error: 'Failed to delete product', 
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined 
+    res.status(500).json({
+      error: 'Failed to delete product',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });
