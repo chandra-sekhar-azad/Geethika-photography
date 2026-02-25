@@ -6,8 +6,12 @@ const HomePageManagement = () => {
   const [loading, setLoading] = useState(true);
   const [editingItem, setEditingItem] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [creatingType, setCreatingType] = useState(null);
   const [previewImage, setPreviewImage] = useState(null);
   const [formData, setFormData] = useState({
+    section: '',
+    content_type: '',
     title: '',
     description: '',
     link_url: '',
@@ -38,7 +42,10 @@ const HomePageManagement = () => {
 
   const handleEdit = (item) => {
     setEditingItem(item);
+    setIsCreating(false);
     setFormData({
+      section: item.section || '',
+      content_type: item.content_type || '',
       title: item.title || '',
       description: item.description || '',
       link_url: item.link_url || '',
@@ -48,6 +55,23 @@ const HomePageManagement = () => {
     setPreviewImage(item.image_url
       ? (item.image_url.startsWith('http') ? item.image_url : `${import.meta.env.VITE_API_URL}${item.image_url}`)
       : null);
+    setShowModal(true);
+  };
+
+  const handleCreate = (contentType, section) => {
+    setIsCreating(true);
+    setCreatingType(contentType);
+    setEditingItem(null);
+    setFormData({
+      section: section,
+      content_type: contentType,
+      title: '',
+      description: '',
+      link_url: '',
+      display_order: 0,
+      is_active: true
+    });
+    setPreviewImage(null);
     setShowModal(true);
   };
 
@@ -66,6 +90,11 @@ const HomePageManagement = () => {
       const token = localStorage.getItem('token');
       const submitData = new FormData();
 
+      if (isCreating) {
+        submitData.append('section', formData.section);
+        submitData.append('content_type', formData.content_type);
+      }
+
       submitData.append('title', formData.title);
       submitData.append('description', formData.description);
       submitData.append('link_url', formData.link_url);
@@ -76,30 +105,34 @@ const HomePageManagement = () => {
         submitData.append('image', formData.image);
       }
 
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/homepage/admin/content/${editingItem.id}`,
-        {
-          method: 'PUT',
-          headers: {
-            'Authorization': `Bearer ${token}`
-          },
-          body: submitData
-        }
-      );
+      const url = isCreating
+        ? `${import.meta.env.VITE_API_URL}/api/homepage/admin/content`
+        : `${import.meta.env.VITE_API_URL}/api/homepage/admin/content/${editingItem.id}`;
+
+      const method = isCreating ? 'POST' : 'PUT';
+
+      const response = await fetch(url, {
+        method: method,
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: submitData
+      });
 
       const data = await response.json();
 
       if (data.success) {
-        alert('Content updated successfully!');
+        alert(isCreating ? 'Content created successfully!' : 'Content updated successfully!');
         setShowModal(false);
         setEditingItem(null);
+        setIsCreating(false);
         fetchContent();
       } else {
-        alert(data.message || 'Failed to update content');
+        alert(data.message || `Failed to ${isCreating ? 'create' : 'update'} content`);
       }
     } catch (error) {
-      console.error('Error updating content:', error);
-      alert('Failed to update content');
+      console.error(`Error ${isCreating ? 'creating' : 'updating'} content:`, error);
+      alert(`Failed to ${isCreating ? 'create' : 'update'} content`);
     }
   };
 
@@ -124,6 +157,32 @@ const HomePageManagement = () => {
       }
     } catch (error) {
       console.error('Error toggling active status:', error);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/homepage/admin/content/${id}`,
+        {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
+
+      const data = await response.json();
+      if (data.success) {
+        alert('Content deleted successfully!');
+        fetchContent();
+      } else {
+        alert(data.message || 'Failed to delete content');
+      }
+    } catch (error) {
+      console.error('Error deleting content:', error);
+      alert('Failed to delete content');
     }
   };
 
@@ -153,10 +212,19 @@ const HomePageManagement = () => {
 
       {/* Hero Banner Section */}
       <div className="bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-          <Image className="w-5 h-5" />
-          Hero Banner
-        </h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold flex items-center gap-2">
+            <Image className="w-5 h-5" />
+            Hero Banner
+          </h2>
+          <button
+            onClick={() => handleCreate('banner', 'hero')}
+            className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Add Banner
+          </button>
+        </div>
         <div className="space-y-4">
           {groupedContent.banner.map((item) => (
             <ContentCard
@@ -164,6 +232,7 @@ const HomePageManagement = () => {
               item={item}
               onEdit={handleEdit}
               onToggleActive={toggleActive}
+              onDelete={handleDelete}
             />
           ))}
         </div>
@@ -171,10 +240,19 @@ const HomePageManagement = () => {
 
       {/* Special Offers Section */}
       <div className="bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-          <Image className="w-5 h-5" />
-          Special Offers Cards
-        </h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold flex items-center gap-2">
+            <Image className="w-5 h-5" />
+            Special Offers Cards
+          </h2>
+          <button
+            onClick={() => handleCreate('offer_card', 'offers')}
+            className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Add Offer
+          </button>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {groupedContent.offer_card.map((item) => (
             <ContentCard
@@ -182,6 +260,7 @@ const HomePageManagement = () => {
               item={item}
               onEdit={handleEdit}
               onToggleActive={toggleActive}
+              onDelete={handleDelete}
             />
           ))}
         </div>
@@ -189,10 +268,19 @@ const HomePageManagement = () => {
 
       {/* Testimonials Section */}
       <div className="bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-          <Image className="w-5 h-5" />
-          Testimonials
-        </h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold flex items-center gap-2">
+            <Image className="w-5 h-5" />
+            Testimonials
+          </h2>
+          <button
+            onClick={() => handleCreate('testimonial', 'testimonials')}
+            className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Add Testimonial
+          </button>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {groupedContent.testimonial.map((item) => (
             <ContentCard
@@ -200,6 +288,7 @@ const HomePageManagement = () => {
               item={item}
               onEdit={handleEdit}
               onToggleActive={toggleActive}
+              onDelete={handleDelete}
             />
           ))}
         </div>
@@ -211,7 +300,9 @@ const HomePageManagement = () => {
           <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold">Edit Content</h2>
+                <h2 className="text-2xl font-bold">
+                  {isCreating ? 'Add New Content' : 'Edit Content'}
+                </h2>
                 <button
                   onClick={() => setShowModal(false)}
                   className="text-gray-500 hover:text-gray-700"
@@ -341,7 +432,7 @@ const HomePageManagement = () => {
 };
 
 // Content Card Component
-const ContentCard = ({ item, onEdit, onToggleActive }) => {
+const ContentCard = ({ item, onEdit, onToggleActive, onDelete }) => {
   return (
     <div className={`border rounded-lg p-4 ${!item.is_active ? 'opacity-50 bg-gray-50' : 'bg-white'}`}>
       <div className="flex gap-4">
@@ -381,6 +472,17 @@ const ContentCard = ({ item, onEdit, onToggleActive }) => {
             title={item.is_active ? 'Hide' : 'Show'}
           >
             {item.is_active ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
+          </button>
+          <button
+            onClick={() => {
+              if (confirm('Are you sure you want to delete this content?')) {
+                onDelete(item.id);
+              }
+            }}
+            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+            title="Delete"
+          >
+            <Trash2 className="w-5 h-5" />
           </button>
         </div>
       </div>
