@@ -71,7 +71,11 @@ const CategoriesSection = () => {
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
                 <CategoryCard
-                  image={category.image_url ? `${import.meta.env.VITE_API_URL}${category.image_url}` : (category.image || `/images/image.png`)}
+                  image={
+                    category.image_url
+                      ? (category.image_url.startsWith('http') ? category.image_url : `${import.meta.env.VITE_API_URL}${category.image_url}`)
+                      : (category.image || `/images/image.png`)
+                  }
                   title={category.name}
                   onClick={() => handleCategoryClick(category.slug || category.id)}
                 />

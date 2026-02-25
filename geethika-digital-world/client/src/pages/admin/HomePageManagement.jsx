@@ -45,7 +45,9 @@ const HomePageManagement = () => {
       display_order: item.display_order || 0,
       is_active: item.is_active
     });
-    setPreviewImage(item.image_url ? `${import.meta.env.VITE_API_URL}${item.image_url}` : null);
+    setPreviewImage(item.image_url
+      ? (item.image_url.startsWith('http') ? item.image_url : `${import.meta.env.VITE_API_URL}${item.image_url}`)
+      : null);
     setShowModal(true);
   };
 
@@ -59,17 +61,17 @@ const HomePageManagement = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     try {
       const token = localStorage.getItem('token');
       const submitData = new FormData();
-      
+
       submitData.append('title', formData.title);
       submitData.append('description', formData.description);
       submitData.append('link_url', formData.link_url);
       submitData.append('display_order', formData.display_order);
       submitData.append('is_active', formData.is_active);
-      
+
       if (formData.image) {
         submitData.append('image', formData.image);
       }
@@ -86,7 +88,7 @@ const HomePageManagement = () => {
       );
 
       const data = await response.json();
-      
+
       if (data.success) {
         alert('Content updated successfully!');
         setShowModal(false);
@@ -345,7 +347,7 @@ const ContentCard = ({ item, onEdit, onToggleActive }) => {
       <div className="flex gap-4">
         {item.image_url && (
           <img
-            src={`${import.meta.env.VITE_API_URL}${item.image_url}`}
+            src={item.image_url?.startsWith('http') ? item.image_url : `${import.meta.env.VITE_API_URL}${item.image_url}`}
             alt={item.title}
             className="w-24 h-24 object-cover rounded-lg"
           />
@@ -372,11 +374,10 @@ const ContentCard = ({ item, onEdit, onToggleActive }) => {
           </button>
           <button
             onClick={() => onToggleActive(item)}
-            className={`p-2 rounded-lg transition-colors ${
-              item.is_active
+            className={`p-2 rounded-lg transition-colors ${item.is_active
                 ? 'text-green-600 hover:bg-green-50'
                 : 'text-gray-400 hover:bg-gray-100'
-            }`}
+              }`}
             title={item.is_active ? 'Hide' : 'Show'}
           >
             {item.is_active ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}

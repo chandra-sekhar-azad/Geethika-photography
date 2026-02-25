@@ -44,13 +44,13 @@ const GalleryManagement = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     try {
       const data = new FormData();
       data.append('title', formData.title);
       data.append('description', formData.description);
       data.append('category', formData.category);
-      
+
       if (editingImage) {
         await api.put(`/api/gallery/${editingImage.id}`, {
           title: formData.title,
@@ -64,7 +64,7 @@ const GalleryManagement = () => {
           return;
         }
         data.append('image', formData.image);
-        
+
         const response = await fetch(`${import.meta.env.VITE_API_URL}/api/gallery`, {
           method: 'POST',
           headers: {
@@ -72,11 +72,11 @@ const GalleryManagement = () => {
           },
           body: data
         });
-        
+
         if (!response.ok) throw new Error('Upload failed');
         alert('Image uploaded successfully');
       }
-      
+
       setShowModal(false);
       resetForm();
       fetchImages();
@@ -88,7 +88,7 @@ const GalleryManagement = () => {
 
   const handleDelete = async (id) => {
     if (!confirm('Are you sure you want to delete this image?')) return;
-    
+
     try {
       await api.delete(`/api/gallery/${id}`);
       alert('Image deleted successfully');
@@ -107,7 +107,7 @@ const GalleryManagement = () => {
       category: image.category,
       image: null
     });
-    setPreviewUrl(`${import.meta.env.VITE_API_URL}${image.image_url}`);
+    setPreviewUrl(image.image_url?.startsWith('http') ? image.image_url : `${import.meta.env.VITE_API_URL}${image.image_url}`);
     setShowModal(true);
   };
 
@@ -196,7 +196,7 @@ const GalleryManagement = () => {
             <div key={image.id} className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow overflow-hidden">
               <div className="aspect-square relative">
                 <img
-                  src={`${import.meta.env.VITE_API_URL}${image.image_url}`}
+                  src={image.image_url?.startsWith('http') ? image.image_url : `${import.meta.env.VITE_API_URL}${image.image_url}`}
                   alt={image.title}
                   className="w-full h-full object-cover"
                 />
@@ -242,7 +242,7 @@ const GalleryManagement = () => {
                   <X className="w-6 h-6 text-gray-500 hover:text-gray-700" />
                 </button>
               </div>
-              
+
               <form onSubmit={handleSubmit} className="space-y-4">
                 {!editingImage && (
                   <div>
@@ -274,14 +274,14 @@ const GalleryManagement = () => {
                     </div>
                   </div>
                 )}
-                
+
                 {editingImage && previewUrl && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Current Image</label>
                     <img src={previewUrl} alt="Current" className="max-h-64 rounded" />
                   </div>
                 )}
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Title *</label>
                   <input
@@ -292,7 +292,7 @@ const GalleryManagement = () => {
                     required
                   />
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Category *</label>
                   <select
@@ -306,7 +306,7 @@ const GalleryManagement = () => {
                     ))}
                   </select>
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
                   <textarea
@@ -316,7 +316,7 @@ const GalleryManagement = () => {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
                   />
                 </div>
-                
+
                 <div className="flex gap-3 pt-4">
                   <button
                     type="button"

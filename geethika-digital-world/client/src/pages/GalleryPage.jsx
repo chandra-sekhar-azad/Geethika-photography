@@ -126,7 +126,7 @@ const GalleryPage = () => {
               >
                 <div className="overflow-hidden" style={{ backgroundColor: 'var(--color-teal-50)' }}>
                   <img
-                    src={`${import.meta.env.VITE_API_URL}${image.image_url}`}
+                    src={image.image_url?.startsWith('http') ? image.image_url : `${import.meta.env.VITE_API_URL}${image.image_url}`}
                     alt={image.title}
                     className="w-full h-52 sm:h-60 md:h-64 object-cover transition-transform duration-500 group-hover:scale-105"
                   />
@@ -172,7 +172,7 @@ const GalleryPage = () => {
 
           <div className="max-w-5xl w-full" onClick={(e) => e.stopPropagation()}>
             <img
-              src={`${import.meta.env.VITE_API_URL}${selectedImage.image_url}`}
+              src={selectedImage.image_url?.startsWith('http') ? selectedImage.image_url : `${import.meta.env.VITE_API_URL}${selectedImage.image_url}`}
               alt={selectedImage.title}
               className="w-full h-auto max-h-[75vh] object-contain rounded-xl shadow-2xl border"
               style={{ borderColor: 'rgba(168,213,213,0.2)' }}

@@ -40,7 +40,9 @@ const CategoryManagement = () => {
             icon: category.icon || '',
             image: null
         });
-        setPreviewImage(category.image_url ? `${import.meta.env.VITE_API_URL}${category.image_url}` : null);
+        setPreviewImage(category.image_url
+            ? (category.image_url.startsWith('http') ? category.image_url : `${import.meta.env.VITE_API_URL}${category.image_url}`)
+            : null);
         setShowModal(true);
     };
 
@@ -163,7 +165,7 @@ const CategoryManagement = () => {
                         <div className="relative h-48 bg-gray-100">
                             {category.image_url ? (
                                 <img
-                                    src={`${import.meta.env.VITE_API_URL}${category.image_url}`}
+                                    src={category.image_url.startsWith('http') ? category.image_url : `${import.meta.env.VITE_API_URL}${category.image_url}`}
                                     alt={category.name}
                                     className="w-full h-full object-cover"
                                 />
