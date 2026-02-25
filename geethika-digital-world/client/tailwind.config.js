@@ -10,6 +10,32 @@ export default {
         'xs': '475px',
       },
       colors: {
+        // === NEW TEAL PALETTE (from image) ===
+        teal: {
+          50: '#EAF5F5',
+          100: '#C8E8E8',
+          200: '#A8D5D5',  // hero background / light teal
+          300: '#80C0C0',
+          400: '#5BA3A3',  // accent teal
+          500: '#3D8A8A',  // primary teal
+          600: '#2D7070',
+          700: '#1F5555',
+          800: '#133D3D',
+          900: '#0A2828',
+        },
+        navy: {
+          50: '#E8EEF2',
+          100: '#C5D4DD',
+          200: '#9FB8C6',
+          300: '#779BAF',
+          400: '#5A849C',
+          500: '#3D6E89',
+          600: '#2C5470',
+          700: '#1D3D55',
+          800: '#122A3C',  // dark button / footer
+          900: '#0A1A26',  // darkest navy
+        },
+        // Keep orange for any legacy usage
         orange: {
           primary: '#FF6B00',
           hover: '#FF8533',
@@ -17,14 +43,9 @@ export default {
           dark: '#CC5500',
         },
         dark: {
-          bg: '#000000',
-          card: '#121212',
-          border: '#333333',
-        },
-        gray: {
-          light: '#A0A0A0',
-          medium: '#666666',
-          dark: '#333333',
+          bg: '#0A1A26',
+          card: '#122A3C',
+          border: '#1D3D55',
         },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -53,10 +74,11 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['Inter', 'Roboto', 'system-ui', 'sans-serif'],
-        display: ['Oswald', 'sans-serif'],
-        heading: ['Oswald', 'sans-serif'],
-        body: ['Inter', 'Roboto', 'system-ui', 'sans-serif'],
+        // === NEW FONTS (from image: elegant serif heading + clean sans body) ===
+        sans: ['Jost', 'DM Sans', 'system-ui', 'sans-serif'],
+        display: ['Cormorant Garamond', 'Georgia', 'serif'],
+        heading: ['Cormorant Garamond', 'Georgia', 'serif'],
+        body: ['Jost', 'DM Sans', 'system-ui', 'sans-serif'],
       },
       keyframes: {
         fadeIn: {
@@ -76,6 +98,10 @@ export default {
           '0%, 100%': { transform: 'translateY(0) rotate(0deg)', opacity: '0.6' },
           '50%': { transform: 'translateY(-24px) rotate(8deg)', opacity: '0.9' },
         },
+        shimmer: {
+          '0%': { backgroundPosition: '-1000px 0' },
+          '100%': { backgroundPosition: '1000px 0' },
+        },
       },
       animation: {
         'pulse-soft': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
@@ -83,6 +109,7 @@ export default {
         'float': 'float 6s ease-in-out infinite',
         'heartbeat': 'heartbeat 1.2s ease-in-out infinite',
         'float-heart': 'floatHeart 5s ease-in-out infinite',
+        'shimmer': 'shimmer 2s infinite linear',
       },
     },
   },

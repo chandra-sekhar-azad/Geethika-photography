@@ -37,12 +37,12 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-black/95 backdrop-blur-sm shadow-lg sticky top-0 z-50 border-b border-gray-800">
+    <nav className="bg-white shadow-sm sticky top-0 z-50 border-b border-teal-100">
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16 sm:h-18 md:h-20">
           <Link to="/" className="flex items-center space-x-1.5 sm:space-x-2 flex-shrink-0">
-            <h1 className="text-base sm:text-xl md:text-2xl font-display font-bold text-white leading-tight tracking-wider uppercase">
-              Geethika <span className="text-orange-primary">Digital World</span>
+            <h1 className="text-base sm:text-xl md:text-2xl font-display font-semibold text-navy-900 leading-tight tracking-wide">
+              Geethika <span className="text-teal-500">Digital World</span>
             </h1>
           </Link>
 
@@ -51,13 +51,13 @@ const Navbar = () => {
               <Link
                 key={link.path}
                 to={link.path}
-                className={`font-medium transition-all duration-300 relative group uppercase tracking-wider text-sm ${isActive(link.path)
-                    ? 'text-orange-primary'
-                    : 'text-gray-300 hover:text-orange-primary'
+                className={`font-body font-medium transition-all duration-300 relative group tracking-widest text-xs uppercase ${isActive(link.path)
+                    ? 'text-teal-500'
+                    : 'text-navy-700 hover:text-teal-500'
                   }`}
               >
                 {link.label}
-                <span className={`absolute bottom-0 left-0 w-full h-0.5 bg-orange-primary transform origin-left transition-transform duration-300 ${isActive(link.path) ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
+                <span className={`absolute -bottom-1 left-0 w-full h-0.5 bg-teal-400 transform origin-left transition-transform duration-300 ${isActive(link.path) ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
                   }`} />
               </Link>
             ))}
@@ -66,48 +66,48 @@ const Navbar = () => {
               <div className="flex items-center space-x-4">
                 <Link
                   to="/my-orders"
-                  className="font-medium text-gray-300 hover:text-orange-primary transition-colors uppercase tracking-wider text-sm"
+                  className="font-body font-medium text-navy-700 hover:text-teal-500 transition-colors tracking-widest text-xs uppercase"
                 >
                   My Orders
                 </Link>
                 <Link
                   to="/profile"
-                  className="flex items-center space-x-2 text-gray-300 hover:text-orange-primary transition-colors"
+                  className="flex items-center space-x-2 text-navy-700 hover:text-teal-500 transition-colors"
                 >
                   <User className="w-5 h-5" />
-                  <span className="font-medium text-sm">{user?.fullName || user?.name || 'User'}</span>
+                  <span className="font-body font-medium text-xs">{user?.fullName || user?.name || 'User'}</span>
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="flex items-center space-x-1 text-gray-300 hover:text-orange-primary transition-colors"
+                  className="flex items-center space-x-1 text-navy-700 hover:text-teal-500 transition-colors"
                 >
                   <LogOut className="w-5 h-5" />
-                  <span className="font-medium text-sm">Logout</span>
+                  <span className="font-body font-medium text-xs">Logout</span>
                 </button>
               </div>
             ) : (
               <Link
                 to="/login"
-                className="flex items-center space-x-1 text-gray-300 hover:text-orange-primary transition-colors"
+                className="flex items-center space-x-1 text-navy-700 hover:text-teal-500 transition-colors"
               >
                 <User className="w-5 h-5" />
-                <span className="font-medium text-sm uppercase tracking-wider">Login</span>
+                <span className="font-body font-medium text-xs uppercase tracking-widest">Login</span>
               </Link>
             )}
 
             <Link to="/wishlist" className="relative">
-              <Heart className="w-6 h-6 text-gray-300 hover:text-orange-primary transition-colors" />
+              <Heart className="w-6 h-6 text-navy-600 hover:text-teal-500 transition-colors" />
               {getWishlistCount() > 0 && (
-                <span className="absolute -top-2 -right-2 bg-orange-primary text-black text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold shadow-lg shadow-orange-primary/30">
+                <span className="absolute -top-2 -right-2 bg-teal-400 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold">
                   {getWishlistCount()}
                 </span>
               )}
             </Link>
 
             <Link to="/cart" className="relative">
-              <ShoppingCart className="w-6 h-6 text-gray-300 hover:text-orange-primary transition-colors" />
+              <ShoppingCart className="w-6 h-6 text-navy-600 hover:text-teal-500 transition-colors" />
               {getCartCount() > 0 && (
-                <span className="absolute -top-2 -right-2 bg-orange-primary text-black text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold shadow-lg shadow-orange-primary/30">
+                <span className="absolute -top-2 -right-2 bg-teal-400 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold">
                   {getCartCount()}
                 </span>
               )}
@@ -142,16 +142,16 @@ const Navbar = () => {
         </div>
 
         {isOpen && (
-          <div className="md:hidden pb-4 border-t border-gray-800 mt-2">
+          <div className="md:hidden pb-4 border-t border-teal-100 mt-2">
             <div className="py-2 space-y-1">
               {navLinks.map((link) => (
                 <Link
                   key={link.path}
                   to={link.path}
                   onClick={() => setIsOpen(false)}
-                  className={`block py-2.5 px-3 font-medium rounded-lg transition-colors uppercase tracking-wider text-sm ${isActive(link.path)
-                      ? 'text-orange-primary bg-orange-primary/10'
-                      : 'text-gray-300 hover:bg-gray-800'
+                  className={`block py-2.5 px-3 font-body font-medium rounded-lg transition-colors uppercase tracking-widest text-xs ${isActive(link.path)
+                      ? 'text-teal-500 bg-teal-50'
+                      : 'text-navy-700 hover:bg-teal-50'
                     }`}
                 >
                   {link.label}
@@ -162,27 +162,27 @@ const Navbar = () => {
                   <Link
                     to="/wishlist"
                     onClick={() => setIsOpen(false)}
-                    className="block py-2.5 px-3 font-medium text-gray-300 rounded-lg hover:bg-gray-800 uppercase tracking-wider text-sm"
+                    className="block py-2.5 px-3 font-body font-medium text-navy-700 rounded-lg hover:bg-teal-50 uppercase tracking-widest text-xs"
                   >
                     My Wishlist
                   </Link>
                   <Link
                     to="/my-orders"
                     onClick={() => setIsOpen(false)}
-                    className="block py-2.5 px-3 font-medium text-gray-300 rounded-lg hover:bg-gray-800 uppercase tracking-wider text-sm"
+                    className="block py-2.5 px-3 font-body font-medium text-navy-700 rounded-lg hover:bg-teal-50 uppercase tracking-widest text-xs"
                   >
                     My Orders
                   </Link>
                   <Link
                     to="/profile"
                     onClick={() => setIsOpen(false)}
-                    className="block py-2.5 px-3 font-medium text-gray-300 rounded-lg hover:bg-gray-800 text-sm"
+                    className="block py-2.5 px-3 font-body font-medium text-navy-700 rounded-lg hover:bg-teal-50 text-xs"
                   >
                     Profile ({user?.fullName || user?.name || 'User'})
                   </Link>
                   <button
                     onClick={handleLogout}
-                    className="block w-full text-left py-2.5 px-3 font-medium text-gray-300 rounded-lg hover:bg-gray-800 uppercase tracking-wider text-sm"
+                    className="block w-full text-left py-2.5 px-3 font-body font-medium text-navy-700 rounded-lg hover:bg-teal-50 uppercase tracking-widest text-xs"
                   >
                     Logout
                   </button>
@@ -191,7 +191,7 @@ const Navbar = () => {
                 <Link
                   to="/login"
                   onClick={() => setIsOpen(false)}
-                  className="block py-2.5 px-3 font-medium text-gray-300 rounded-lg hover:bg-gray-800 uppercase tracking-wider text-sm"
+                  className="block py-2.5 px-3 font-body font-medium text-navy-700 rounded-lg hover:bg-teal-50 uppercase tracking-widest text-xs"
                 >
                   Login
                 </Link>
