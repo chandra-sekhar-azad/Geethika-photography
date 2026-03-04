@@ -10,6 +10,14 @@ export default {
         'xs': '475px',
       },
       colors: {
+        // === VALENTINE/TEAL PALETTE (mapped for compatibility) ===
+        valentine: {
+          red: '#5BA3A3',        // primary teal (accent)
+          darkRed: '#3D8A8A',    // darker teal
+          rose: '#3D8A8A',       // same as darkRed
+          pink: '#80C0C0',       // light teal
+          lightPink: '#A8D5D5',  // lighter teal
+        },
         // === NEW TEAL PALETTE (from image) ===
         teal: {
           50: '#EAF5F5',
