@@ -20,6 +20,7 @@ const ProductManagement = () => {
     discount: 0,
     stock_quantity: 0,
     valentine_special: false,
+    special_offer: false,
     customizable: false,
     is_active: true,
     customization_options: {
@@ -49,7 +50,13 @@ const ProductManagement = () => {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/products`);
       const data = await response.json();
-      setProducts(data.products || []);
+      // Ensure all products have special_offer field (default to false if missing)
+      const productsWithDefaults = (data.products || []).map(product => ({
+        ...product,
+        special_offer: product.special_offer ?? false,
+        valentine_special: product.valentine_special ?? false
+      }));
+      setProducts(productsWithDefaults);
     } catch (error) {
       console.error('Failed to fetch products:', error);
     } finally {
@@ -263,9 +270,10 @@ const ProductManagement = () => {
       price: product.price,
       discount: product.discount || 0,
       stock_quantity: product.stock_quantity || 0,
-      valentine_special: product.valentine_special || false,
+      valentine_special: product.valentine_special ?? false,
+      special_offer: product.special_offer ?? false,
       customizable: product.customizable || false,
-      is_active: product.is_active,
+      is_active: product.is_active ?? true,
       customization_options: product.customization_options || {
         imageUpload: false,
         textInput: [],
@@ -290,6 +298,7 @@ const ProductManagement = () => {
       discount: 0,
       stock_quantity: 0,
       valentine_special: false,
+      special_offer: false,
       customizable: false,
       is_active: true,
       customization_options: {
@@ -305,7 +314,8 @@ const ProductManagement = () => {
     const matchesFilter = 
       filterType === 'all' ? true :
       filterType === 'trending' ? product.valentine_special === true :
-      filterType === 'regular' ? product.valentine_special !== true : true;
+      filterType === 'special_offers' ? product.special_offer === true :
+      filterType === 'regular' ? !product.valentine_special && !product.special_offer : true;
     
     return matchesSearch && matchesFilter;
   });
@@ -317,11 +327,11 @@ const ProductManagement = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Product Management</h1>
           <button
             onClick={() => setShowModal(true)}
-            className="bg-valentine-red text-white px-6 py-3 rounded-lg flex items-center space-x-2 hover:bg-valentine-darkRed transition-colors"
+            className="bg-valentine-red text-white px-6 py-3 rounded-lg flex items-center space-x-2 hover:bg-valentine-darkRed transition-colors shadow-md hover:shadow-lg whitespace-nowrap"
           >
             <Plus className="w-5 h-5" />
             <span>Add Product</span>
@@ -360,6 +370,19 @@ const ProductManagement = () => {
             </button>
             <button
               onClick={() => {
+                setFilterType('special_offers');
+                setFilterCategory('all');
+              }}
+              className={`px-4 py-2 font-medium transition-colors whitespace-nowrap ${
+                filterType === 'special_offers' && filterCategory === 'all'
+                  ? 'text-valentine-red border-b-2 border-valentine-red'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              🎁 Special Offers ({products.filter(p => p.special_offer).length})
+            </button>
+            <button
+              onClick={() => {
                 setFilterType('regular');
                 setFilterCategory('all');
               }}
@@ -369,7 +392,7 @@ const ProductManagement = () => {
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
-              Regular Products ({products.filter(p => !p.valentine_special).length})
+              Regular Products ({products.filter(p => !p.valentine_special && !p.special_offer).length})
             </button>
             
             {/* Category Tabs */}
@@ -414,6 +437,17 @@ const ProductManagement = () => {
                 <strong>💡 Tip:</strong> Products marked as "Show in trending" appear in the "Trending Now"
                 section on the homepage. Edit the "Show in trending" checkbox when editing a product to
                 add or remove it from trending.
+              </p>
+            </div>
+          )}
+
+          {/* Info Banner for Special Offers */}
+          {filterType === 'special_offers' && filterCategory === 'all' && (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <p className="text-sm text-green-800">
+                <strong>🎁 Tip:</strong> Products marked as "Special Offer" appear in the "Special Offers"
+                section on the homepage. Edit the "Special Offer" checkbox when editing a product to
+                add or remove it from special offers.
               </p>
             </div>
           )}
@@ -681,7 +715,17 @@ const ProductManagement = () => {
                         onChange={(e) => setFormData({ ...formData, valentine_special: e.target.checked })}
                         className="mr-2"
                       />
-                      <span className="text-sm text-gray-700">Show in trending</span>
+                      <span className="text-sm text-gray-700">🔥 Show in trending</span>
+                    </label>
+
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={formData.special_offer}
+                        onChange={(e) => setFormData({ ...formData, special_offer: e.target.checked })}
+                        className="mr-2"
+                      />
+                      <span className="text-sm text-gray-700">🎁 Special Offer</span>
                     </label>
 
                     <label className="flex items-center">
@@ -955,6 +999,15 @@ const ProductManagement = () => {
             </div>
           </div>
         )}
+
+        {/* Floating Add Button for Mobile */}
+        <button
+          onClick={() => setShowModal(true)}
+          className="fixed bottom-6 right-6 sm:hidden bg-valentine-red text-white p-4 rounded-full shadow-lg hover:bg-valentine-darkRed transition-all hover:scale-110 z-50"
+          aria-label="Add Product"
+        >
+          <Plus className="w-6 h-6" />
+        </button>
       </div>
     </div>
   );

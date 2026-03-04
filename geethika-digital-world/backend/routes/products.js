@@ -34,7 +34,9 @@ router.get(
           p.image_url,
           p.customizable,
           p.valentine_special,
+          p.special_offer,
           p.stock_quantity,
+          p.is_active,
           p.created_at,
           c.name AS category_name,
           c.slug AS category_slug
@@ -95,6 +97,7 @@ router.get('/:id', cacheMiddleware(60), async (req, res) => {
         p.image_url,
         p.customizable,
         p.valentine_special,
+        p.special_offer,
         p.stock_quantity,
         p.is_active,
         p.created_at,
@@ -146,6 +149,7 @@ router.post('/',
         customizable = false,
         customization_options,
         valentine_special = false,
+        special_offer = false,
         stock_quantity = 0
       } = req.body;
 
@@ -162,8 +166,8 @@ router.post('/',
         INSERT INTO products (
           name, slug, description, category_id, price, discount,
           image_url, image_public_id, customizable, customization_options,
-          valentine_special, stock_quantity
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+          valentine_special, special_offer, stock_quantity
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
         RETURNING *
       `, [
         name,
@@ -177,6 +181,7 @@ router.post('/',
         customizable,
         customization_options ? JSON.parse(customization_options) : null,
         valentine_special,
+        special_offer,
         stock_quantity
       ]);
 
@@ -221,6 +226,7 @@ router.put('/:id',
         customizable,
         customization_options,
         valentine_special,
+        special_offer,
         stock_quantity,
         is_active
       } = req.body;
@@ -279,6 +285,7 @@ router.put('/:id',
       const coercedStock = toNumber(stock_quantity);
       const coercedCustomizable = toBoolean(customizable, null);
       const coercedValentineSpecial = toBoolean(valentine_special, null);
+      const coercedSpecialOffer = toBoolean(special_offer, null);
       const coercedIsActive = toBoolean(is_active, null);
 
       const result = await pool.query(`
@@ -293,10 +300,11 @@ router.put('/:id',
           customizable = COALESCE($8, customizable),
           customization_options = COALESCE($9, customization_options),
           valentine_special = COALESCE($10, valentine_special),
-          stock_quantity = COALESCE($11, stock_quantity),
-          is_active = COALESCE($12, is_active),
+          special_offer = COALESCE($11, special_offer),
+          stock_quantity = COALESCE($12, stock_quantity),
+          is_active = COALESCE($13, is_active),
           updated_at = CURRENT_TIMESTAMP
-        WHERE id = $13
+        WHERE id = $14
         RETURNING *
       `, [
         name || null,
@@ -309,6 +317,7 @@ router.put('/:id',
         coercedCustomizable,
         parsedCustomizationOptions,
         coercedValentineSpecial,
+        coercedSpecialOffer,
         coercedStock,
         coercedIsActive,
         id
