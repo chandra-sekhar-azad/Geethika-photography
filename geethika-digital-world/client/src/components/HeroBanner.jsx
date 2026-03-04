@@ -1,50 +1,15 @@
-import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const HeroBanner = () => {
   const navigate = useNavigate();
-  const [heroImageUrl, setHeroImageUrl] = useState(null);
-
-  useEffect(() => {
-    const fetchHeroBanner = async () => {
-      try {
-        const apiBase = import.meta.env.VITE_API_URL;
-        const response = await fetch(`${apiBase}/api/homepage/content`);
-        const data = await response.json();
-
-        if (data?.success && data.content?.hero_banner?.image_url) {
-          // Backend returns relative path like /uploads/...
-          setHeroImageUrl(`${apiBase}${data.content.hero_banner.image_url}`);
-        }
-      } catch (err) {
-        // Fail silently and fall back to default image
-        console.error('Failed to load hero banner image:', err);
-      }
-    };
-
-    fetchHeroBanner();
-  }, []);
-
-  const fallbackImage = '/images/bokeh-background.jpg';
-  const backgroundImageSrc = heroImageUrl || fallbackImage;
 
   return (
     <section className="relative w-full overflow-hidden" style={{ backgroundColor: 'var(--color-bg-hero)' }}>
       {/* Hero Content */}
       <div className="relative min-h-[450px] xs:min-h-[500px] sm:min-h-[550px] md:min-h-[600px] lg:min-h-[700px] flex items-center">
-        {/* Background Image (dynamic from admin, with graceful fallback) */}
+        {/* Background Gradient (no image) */}
         <div className="absolute inset-0 z-0">
-          <img
-            src={backgroundImageSrc}
-            alt="Photography studio hero banner"
-            className="w-full h-full object-cover opacity-20"
-            onError={(e) => {
-              if (e.currentTarget.src !== fallbackImage) {
-                e.currentTarget.src = fallbackImage;
-              }
-            }}
-          />
-          {/* Light teal overlay */}
+          {/* Light teal gradient background */}
           <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(178,216,216,0.85) 0%, rgba(168,213,213,0.7) 60%, rgba(128,192,192,0.6) 100%)' }} />
         </div>
 
