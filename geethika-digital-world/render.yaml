@@ -1,15 +1,7 @@
 # Render Blueprint for Geethika Digital World
-# This file can be used to deploy the entire stack on Render
+# MongoDB version - PostgreSQL removed
 
 services:
-  # PostgreSQL Database
-  - type: pserv
-    name: geethika-db
-    plan: free
-    databaseName: geethika_db
-    databaseUser: geethika_user
-    region: singapore
-
   # Backend API
   - type: web
     name: geethika-backend
@@ -18,19 +10,23 @@ services:
     plan: free
     buildCommand: cd backend && npm install
     startCommand: cd backend && npm start
-    healthCheckPath: /
+    healthCheckPath: /health
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 10000
-      - key: DATABASE_URL
-        fromDatabase:
-          name: geethika-db
-          property: connectionString
+      - key: MONGODB_URI
+        sync: false
       - key: JWT_SECRET
         generateValue: true
       - key: FRONTEND_URL
+        sync: false
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
         sync: false
       - key: RAZORPAY_KEY_ID
         sync: false
@@ -40,5 +36,17 @@ services:
         sync: false
       - key: EMAIL_PASSWORD
         sync: false
-      - key: EMAIL_FROM
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: WHATSAPP_NUMBER
+        sync: false
+      - key: WHATSAPP_ACCESS_TOKEN
+        sync: false
+      - key: WHATSAPP_PHONE_NUMBER_ID
+        sync: false
+      - key: WHATSAPP_BUSINESS_ACCOUNT_ID
+        sync: false
+      - key: WHATSAPP_VERIFY_TOKEN
         sync: false
