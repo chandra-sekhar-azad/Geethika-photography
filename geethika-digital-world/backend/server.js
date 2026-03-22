@@ -9,6 +9,12 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
 
+// Load env first
+dotenv.config();
+
+// Import MongoDB connection
+import connectDB from './config/database.js';
+
 // Import routes
 import authRoutes from './routes/auth.js';
 import productRoutes from './routes/products.js';
@@ -26,102 +32,79 @@ import designRoutes from './routes/designs.js';
 // Import middleware
 import { errorHandler, notFound } from './middleware/errorHandler.js';
 
-// Import database
-import pool from './config/database.js';
-
-dotenv.config();
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Trust proxy (Render / reverse proxies) for correct IPs & HTTPS handling
+// Connect to MongoDB
+connectDB();
+
+// Trust proxy (Render / reverse proxies)
 app.set('trust proxy', 1);
 
-// Create uploads directory if it doesn't exist (startup-only)
+// Create uploads directory if it doesn't exist
 const uploadsDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
+const designsDir = path.join(__dirname, 'uploads', 'designs');
+if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+if (!fs.existsSync(designsDir)) fs.mkdirSync(designsDir, { recursive: true });
 
 // Security middleware
-app.use(helmet({
-  crossOriginResourcePolicy: { policy: "cross-origin" }
-}));
+app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 
-// Rate limiting - More permissive for development
+// Rate limiting
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: process.env.NODE_ENV === 'production' ? 100 : 1000, // Higher limit for development
-  message: 'Too many requests from this IP, please try again later.'
+  windowMs: 15 * 60 * 1000,
+  max: process.env.NODE_ENV === 'production' ? 100 : 1000,
+  message: 'Too many requests from this IP, please try again later.',
 });
-
-// Only apply rate limiting in production
 if (process.env.NODE_ENV === 'production') {
   app.use('/api/', limiter);
 }
 
-// CORS configuration - Allow multiple origins for development
+// CORS configuration
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:5174',
   'http://localhost:3000',
-  process.env.FRONTEND_URL
+  process.env.FRONTEND_URL,
 ].filter(Boolean);
 
-const corsOptions = {
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(null, true); // Allow all origins in development
-    }
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+    callback(null, true); // Allow all in development
   },
   credentials: true,
-  optionsSuccessStatus: 200
-};
+  optionsSuccessStatus: 200,
+}));
 
-app.use(cors(corsOptions));
-
-// Body parsing middleware
+// Body parsing
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Compression middleware
+// Compression
 app.use(compression());
 
-// Logging middleware
-if (process.env.NODE_ENV === 'development') {
-  app.use(morgan('dev'));
-} else if (process.env.NODE_ENV === 'production') {
-  app.use(morgan('combined'));
-}
+// Logging
+if (process.env.NODE_ENV === 'development') app.use(morgan('dev'));
+else if (process.env.NODE_ENV === 'production') app.use(morgan('combined'));
 
-// Serve static files
+// Static files
 app.use('/uploads', express.static(uploadsDir));
 
-// Health check endpoint
+// Health check
 app.get('/health', async (req, res) => {
-  try {
-    await pool.query('SELECT 1');
-    res.json({
-      status: 'healthy',
-      timestamp: new Date().toISOString(),
-      database: 'connected'
-    });
-  } catch (error) {
-    res.status(503).json({
-      status: 'unhealthy',
-      timestamp: new Date().toISOString(),
-      database: 'disconnected',
-      error: error.message
-    });
-  }
+  const mongoose = await import('mongoose');
+  const dbState = mongoose.default.connection.readyState;
+  const dbStatus = dbState === 1 ? 'connected' : 'disconnected';
+
+  res.status(dbState === 1 ? 200 : 503).json({
+    status: dbState === 1 ? 'healthy' : 'unhealthy',
+    timestamp: new Date().toISOString(),
+    database: dbStatus,
+  });
 });
 
 // API routes
@@ -142,15 +125,16 @@ app.use('/api/designs', designRoutes);
 app.get('/', (req, res) => {
   res.json({
     message: 'Geethika Digital World API',
-    version: '1.0.0',
+    version: '2.0.0',
+    database: 'MongoDB',
     endpoints: {
       health: '/health',
       auth: '/api/auth',
       products: '/api/products',
       categories: '/api/categories',
       orders: '/api/orders',
-      services: '/api/services'
-    }
+      services: '/api/services',
+    },
   });
 });
 
@@ -166,14 +150,14 @@ const server = app.listen(PORT, () => {
 });
 
 // Graceful shutdown
-const gracefulShutdown = (signal) => {
+const gracefulShutdown = async (signal) => {
   console.log(`${signal} received: closing HTTP server`);
-  server.close(() => {
+  server.close(async () => {
     console.log('HTTP server closed');
-    pool.end(() => {
-      console.log('Database pool closed');
-      process.exit(0);
-    });
+    const mongoose = await import('mongoose');
+    await mongoose.default.connection.close();
+    console.log('MongoDB connection closed');
+    process.exit(0);
   });
 };
 

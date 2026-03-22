@@ -1,7 +1,10 @@
 import express from 'express';
 import { body, validationResult } from 'express-validator';
 import bcrypt from 'bcryptjs';
-import pool from '../config/database.js';
+import User from '../models/User.js';
+import Order from '../models/Order.js';
+import Product from '../models/Product.js';
+import Category from '../models/Category.js';
 import { authenticate, isSuperAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -9,71 +12,41 @@ const router = express.Router();
 // Get all admins (super admin only)
 router.get('/admins', authenticate, isSuperAdmin, async (req, res) => {
   try {
-    const result = await pool.query(`
-      SELECT id, name, email, role, phone, created_at, updated_at
-      FROM users 
-      WHERE role IN ('admin', 'super_admin')
-      ORDER BY 
-        CASE 
-          WHEN role = 'super_admin' THEN 1
-          WHEN role = 'admin' THEN 2
-          ELSE 3
-        END,
-        created_at DESC
-    `);
+    const admins = await User.find({ role: { $in: ['admin', 'super_admin'] } })
+      .select('-password')
+      .sort({ role: 1, createdAt: -1 })
+      .lean();
 
-    res.json({
-      admins: result.rows,
-      count: result.rows.length
-    });
+    res.json({ admins: admins.map(a => ({ ...a, id: a._id })), count: admins.length });
   } catch (error) {
     console.error('Get admins error:', error);
     res.status(500).json({ error: 'Failed to fetch admins' });
   }
 });
 
-// Create new admin (super admin only)
-router.post('/admins',
-  authenticate,
-  isSuperAdmin,
+// Create new admin
+router.post('/admins', authenticate, isSuperAdmin,
   [
-    body('name').trim().notEmpty().withMessage('Name is required'),
-    body('email').isEmail().withMessage('Valid email is required'),
-    body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
-    body('role').isIn(['admin', 'super_admin']).withMessage('Invalid role')
+    body('name').trim().notEmpty(),
+    body('email').isEmail(),
+    body('password').isLength({ min: 6 }),
+    body('role').isIn(['admin', 'super_admin']),
   ],
   async (req, res) => {
     try {
       const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-      }
+      if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
       const { name, email, password, role, phone } = req.body;
+      const existing = await User.findOne({ email });
+      if (existing) return res.status(400).json({ error: 'Email already exists' });
 
-      // Check if email already exists
-      const existing = await pool.query(
-        'SELECT id FROM users WHERE email = $1',
-        [email]
-      );
-
-      if (existing.rows.length > 0) {
-        return res.status(400).json({ error: 'Email already exists' });
-      }
-
-      // Hash password
       const hashedPassword = await bcrypt.hash(password, 10);
-
-      // Create admin
-      const result = await pool.query(`
-        INSERT INTO users (name, email, password, role, phone)
-        VALUES ($1, $2, $3, $4, $5)
-        RETURNING id, name, email, role, phone, created_at
-      `, [name, email, hashedPassword, role, phone || null]);
+      const admin = await User.create({ name, email, password: hashedPassword, role, phone: phone || null });
 
       res.status(201).json({
         message: 'Admin created successfully',
-        admin: result.rows[0]
+        admin: { id: admin._id, name: admin.name, email: admin.email, role: admin.role, phone: admin.phone },
       });
     } catch (error) {
       console.error('Create admin error:', error);
@@ -82,167 +55,105 @@ router.post('/admins',
   }
 );
 
-// Update admin (super admin only)
-router.put('/admins/:id',
-  authenticate,
-  isSuperAdmin,
-  async (req, res) => {
-    try {
-      const { id } = req.params;
-      const { name, email, role, phone, password } = req.body;
+// Update admin
+router.put('/admins/:id', authenticate, isSuperAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, email, role, phone, password } = req.body;
 
-      // Prevent super admin from demoting themselves
-      if (parseInt(id) === req.user.userId && role !== 'super_admin') {
-        return res.status(400).json({ error: 'Cannot change your own role' });
-      }
-
-      // Check if admin exists
-      const existing = await pool.query(
-        'SELECT * FROM users WHERE id = $1 AND role IN ($2, $3)',
-        [id, 'admin', 'super_admin']
-      );
-
-      if (existing.rows.length === 0) {
-        return res.status(404).json({ error: 'Admin not found' });
-      }
-
-      // Build update query
-      let query = 'UPDATE users SET ';
-      const params = [];
-      let paramCount = 1;
-
-      if (name) {
-        query += `name = $${paramCount}, `;
-        params.push(name);
-        paramCount++;
-      }
-
-      if (email) {
-        query += `email = $${paramCount}, `;
-        params.push(email);
-        paramCount++;
-      }
-
-      if (role) {
-        query += `role = $${paramCount}, `;
-        params.push(role);
-        paramCount++;
-      }
-
-      if (phone !== undefined) {
-        query += `phone = $${paramCount}, `;
-        params.push(phone);
-        paramCount++;
-      }
-
-      if (password) {
-        const hashedPassword = await bcrypt.hash(password, 10);
-        query += `password = $${paramCount}, `;
-        params.push(hashedPassword);
-        paramCount++;
-      }
-
-      query += `updated_at = CURRENT_TIMESTAMP WHERE id = $${paramCount} RETURNING id, name, email, role, phone, updated_at`;
-      params.push(id);
-
-      const result = await pool.query(query, params);
-
-      res.json({
-        message: 'Admin updated successfully',
-        admin: result.rows[0]
-      });
-    } catch (error) {
-      console.error('Update admin error:', error);
-      res.status(500).json({ error: 'Failed to update admin' });
+    if (id === req.user.id && role && role !== 'super_admin') {
+      return res.status(400).json({ error: 'Cannot change your own role' });
     }
+
+    const existing = await User.findOne({ _id: id, role: { $in: ['admin', 'super_admin'] } });
+    if (!existing) return res.status(404).json({ error: 'Admin not found' });
+
+    const updates = {};
+    if (name) updates.name = name;
+    if (email) updates.email = email;
+    if (role) updates.role = role;
+    if (phone !== undefined) updates.phone = phone;
+    if (password) updates.password = await bcrypt.hash(password, 10);
+
+    const admin = await User.findByIdAndUpdate(id, updates, { new: true }).select('-password');
+    res.json({ message: 'Admin updated successfully', admin });
+  } catch (error) {
+    console.error('Update admin error:', error);
+    res.status(500).json({ error: 'Failed to update admin' });
   }
-);
+});
 
-// Delete admin (super admin only)
-router.delete('/admins/:id',
-  authenticate,
-  isSuperAdmin,
-  async (req, res) => {
-    try {
-      const { id } = req.params;
+// Delete admin
+router.delete('/admins/:id', authenticate, isSuperAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
 
-      // Prevent super admin from deleting themselves
-      if (parseInt(id) === req.user.userId) {
-        return res.status(400).json({ error: 'Cannot delete your own account' });
-      }
+    if (id === req.user.id) return res.status(400).json({ error: 'Cannot delete your own account' });
 
-      // Check if admin exists
-      const existing = await pool.query(
-        'SELECT * FROM users WHERE id = $1 AND role IN ($2, $3)',
-        [id, 'admin', 'super_admin']
-      );
+    const existing = await User.findOne({ _id: id, role: { $in: ['admin', 'super_admin'] } });
+    if (!existing) return res.status(404).json({ error: 'Admin not found' });
 
-      if (existing.rows.length === 0) {
-        return res.status(404).json({ error: 'Admin not found' });
-      }
-
-      // Delete admin
-      await pool.query('DELETE FROM users WHERE id = $1', [id]);
-
-      res.json({ message: 'Admin deleted successfully' });
-    } catch (error) {
-      console.error('Delete admin error:', error);
-      res.status(500).json({ error: 'Failed to delete admin' });
-    }
+    await User.findByIdAndDelete(id);
+    res.json({ message: 'Admin deleted successfully' });
+  } catch (error) {
+    console.error('Delete admin error:', error);
+    res.status(500).json({ error: 'Failed to delete admin' });
   }
-);
+});
 
-// Get system statistics (super admin only)
+// Get system statistics
 router.get('/stats', authenticate, isSuperAdmin, async (req, res) => {
   try {
-    const stats = await pool.query(`
-      SELECT
-        (SELECT COUNT(*) FROM users WHERE role = 'customer') as total_customers,
-        (SELECT COUNT(*) FROM users WHERE role = 'admin') as total_admins,
-        (SELECT COUNT(*) FROM users WHERE role = 'super_admin') as total_super_admins,
-        (SELECT COUNT(*) FROM products) as total_products,
-        (SELECT COUNT(*) FROM orders) as total_orders,
-        (SELECT COUNT(*) FROM categories) as total_categories,
-        (SELECT COALESCE(SUM(total), 0) FROM orders WHERE payment_status = 'paid') as total_revenue
-    `);
+    const [
+      total_customers, total_admins, total_super_admins,
+      total_products, total_orders, total_categories, revenueAgg
+    ] = await Promise.all([
+      User.countDocuments({ role: 'customer' }),
+      User.countDocuments({ role: 'admin' }),
+      User.countDocuments({ role: 'super_admin' }),
+      Product.countDocuments(),
+      Order.countDocuments(),
+      Category.countDocuments(),
+      Order.aggregate([{ $match: { payment_status: 'paid' } }, { $group: { _id: null, total: { $sum: '$total' } } }]),
+    ]);
 
-    res.json(stats.rows[0]);
+    res.json({
+      total_customers,
+      total_admins,
+      total_super_admins,
+      total_products,
+      total_orders,
+      total_categories,
+      total_revenue: revenueAgg[0]?.total || 0,
+    });
   } catch (error) {
     console.error('Get stats error:', error);
     res.status(500).json({ error: 'Failed to fetch statistics' });
   }
 });
 
-// Get all users (super admin only)
+// Get all users
 router.get('/users', authenticate, isSuperAdmin, async (req, res) => {
   try {
     const { role, search, limit = 50, offset = 0 } = req.query;
 
-    let query = 'SELECT id, name, email, role, phone, created_at FROM users WHERE 1=1';
-    const params = [];
-    let paramCount = 1;
-
-    if (role) {
-      query += ` AND role = $${paramCount}`;
-      params.push(role);
-      paramCount++;
-    }
-
+    const filter = {};
+    if (role) filter.role = role;
     if (search) {
-      query += ` AND (name ILIKE $${paramCount} OR email ILIKE $${paramCount})`;
-      params.push(`%${search}%`);
-      paramCount++;
+      filter.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+      ];
     }
 
-    query += ` ORDER BY created_at DESC LIMIT $${paramCount} OFFSET $${paramCount + 1}`;
-    params.push(limit, offset);
+    const users = await User.find(filter)
+      .select('-password')
+      .sort({ createdAt: -1 })
+      .skip(Number(offset))
+      .limit(Number(limit))
+      .lean();
 
-    const result = await pool.query(query, params);
-
-    res.json({
-      users: result.rows,
-      count: result.rows.length
-    });
+    res.json({ users: users.map(u => ({ ...u, id: u._id })), count: users.length });
   } catch (error) {
     console.error('Get users error:', error);
     res.status(500).json({ error: 'Failed to fetch users' });

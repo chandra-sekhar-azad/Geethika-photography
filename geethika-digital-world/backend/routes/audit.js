@@ -1,5 +1,5 @@
 import express from 'express';
-import pool from '../config/database.js';
+import AuditLog from '../models/AuditLog.js';
 import { authenticate, isSuperAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -7,79 +7,32 @@ const router = express.Router();
 // Get audit logs (Super Admin only)
 router.get('/logs', authenticate, isSuperAdmin, async (req, res) => {
   try {
-    const { 
-      page = 1, 
-      limit = 50, 
-      adminId, 
-      entityType, 
-      action,
-      startDate,
-      endDate 
-    } = req.query;
-
+    const { page = 1, limit = 50, adminId, entityType, action, startDate, endDate } = req.query;
     const offset = (page - 1) * limit;
-    let whereConditions = [];
-    let queryParams = [];
-    let paramCount = 1;
 
-    if (adminId) {
-      whereConditions.push(`admin_id = $${paramCount}`);
-      queryParams.push(adminId);
-      paramCount++;
+    const filter = {};
+    if (adminId) filter.admin_id = adminId;
+    if (entityType) filter.entity_type = entityType;
+    if (action) filter.action = action;
+    if (startDate || endDate) {
+      filter.createdAt = {};
+      if (startDate) filter.createdAt.$gte = new Date(startDate);
+      if (endDate) filter.createdAt.$lte = new Date(endDate);
     }
 
-    if (entityType) {
-      whereConditions.push(`entity_type = $${paramCount}`);
-      queryParams.push(entityType);
-      paramCount++;
-    }
-
-    if (action) {
-      whereConditions.push(`action = $${paramCount}`);
-      queryParams.push(action);
-      paramCount++;
-    }
-
-    if (startDate) {
-      whereConditions.push(`created_at >= $${paramCount}`);
-      queryParams.push(startDate);
-      paramCount++;
-    }
-
-    if (endDate) {
-      whereConditions.push(`created_at <= $${paramCount}`);
-      queryParams.push(endDate);
-      paramCount++;
-    }
-
-    const whereClause = whereConditions.length > 0 
-      ? `WHERE ${whereConditions.join(' AND ')}` 
-      : '';
-
-    // Get total count
-    const countResult = await pool.query(
-      `SELECT COUNT(*) FROM audit_logs ${whereClause}`,
-      queryParams
-    );
-    const totalLogs = parseInt(countResult.rows[0].count);
-
-    // Get logs
-    const logsResult = await pool.query(
-      `SELECT * FROM audit_logs 
-       ${whereClause}
-       ORDER BY created_at DESC 
-       LIMIT $${paramCount} OFFSET $${paramCount + 1}`,
-      [...queryParams, limit, offset]
-    );
+    const [totalLogs, logs] = await Promise.all([
+      AuditLog.countDocuments(filter),
+      AuditLog.find(filter).sort({ createdAt: -1 }).skip(Number(offset)).limit(Number(limit)).lean(),
+    ]);
 
     res.json({
-      logs: logsResult.rows,
+      logs: logs.map(l => ({ ...l, id: l._id })),
       pagination: {
-        currentPage: parseInt(page),
+        currentPage: Number(page),
         totalPages: Math.ceil(totalLogs / limit),
         totalLogs,
-        limit: parseInt(limit)
-      }
+        limit: Number(limit),
+      },
     });
   } catch (error) {
     console.error('Error fetching audit logs:', error);
@@ -91,55 +44,33 @@ router.get('/logs', authenticate, isSuperAdmin, async (req, res) => {
 router.get('/stats', authenticate, isSuperAdmin, async (req, res) => {
   try {
     const { startDate, endDate } = req.query;
-    
-    let dateFilter = '';
-    let queryParams = [];
-    
+    const filter = {};
     if (startDate && endDate) {
-      dateFilter = 'WHERE created_at BETWEEN $1 AND $2';
-      queryParams = [startDate, endDate];
+      filter.createdAt = { $gte: new Date(startDate), $lte: new Date(endDate) };
     }
 
-    // Get action counts
-    const actionStats = await pool.query(
-      `SELECT action, COUNT(*) as count 
-       FROM audit_logs ${dateFilter}
-       GROUP BY action 
-       ORDER BY count DESC`,
-      queryParams
-    );
-
-    // Get entity type counts
-    const entityStats = await pool.query(
-      `SELECT entity_type, COUNT(*) as count 
-       FROM audit_logs ${dateFilter}
-       GROUP BY entity_type 
-       ORDER BY count DESC`,
-      queryParams
-    );
-
-    // Get admin activity
-    const adminStats = await pool.query(
-      `SELECT admin_id, admin_email, admin_name, COUNT(*) as action_count 
-       FROM audit_logs ${dateFilter}
-       GROUP BY admin_id, admin_email, admin_name 
-       ORDER BY action_count DESC 
-       LIMIT 10`,
-      queryParams
-    );
-
-    // Get recent activity count
-    const recentActivity = await pool.query(
-      `SELECT COUNT(*) as count 
-       FROM audit_logs 
-       WHERE created_at >= NOW() - INTERVAL '24 hours'`
-    );
+    const [actionStats, entityStats, adminStats, recentCount] = await Promise.all([
+      AuditLog.aggregate([{ $match: filter }, { $group: { _id: '$action', count: { $sum: 1 } } }, { $sort: { count: -1 } }]),
+      AuditLog.aggregate([{ $match: filter }, { $group: { _id: '$entity_type', count: { $sum: 1 } } }, { $sort: { count: -1 } }]),
+      AuditLog.aggregate([
+        { $match: filter },
+        { $group: { _id: { admin_id: '$admin_id', admin_email: '$admin_email', admin_name: '$admin_name' }, action_count: { $sum: 1 } } },
+        { $sort: { action_count: -1 } },
+        { $limit: 10 },
+      ]),
+      AuditLog.countDocuments({ createdAt: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) } }),
+    ]);
 
     res.json({
-      actionStats: actionStats.rows,
-      entityStats: entityStats.rows,
-      adminStats: adminStats.rows,
-      recentActivity: parseInt(recentActivity.rows[0].count)
+      actionStats: actionStats.map(a => ({ action: a._id, count: a.count })),
+      entityStats: entityStats.map(e => ({ entity_type: e._id, count: e.count })),
+      adminStats: adminStats.map(a => ({
+        admin_id: a._id.admin_id,
+        admin_email: a._id.admin_email,
+        admin_name: a._id.admin_name,
+        action_count: a.action_count,
+      })),
+      recentActivity: recentCount,
     });
   } catch (error) {
     console.error('Error fetching audit stats:', error);
@@ -147,33 +78,25 @@ router.get('/stats', authenticate, isSuperAdmin, async (req, res) => {
   }
 });
 
-// Get specific admin's activity (Super Admin only)
+// Get specific admin's activity
 router.get('/admin/:adminId', authenticate, isSuperAdmin, async (req, res) => {
   try {
     const { adminId } = req.params;
     const { page = 1, limit = 20 } = req.query;
     const offset = (page - 1) * limit;
 
-    const result = await pool.query(
-      `SELECT * FROM audit_logs 
-       WHERE admin_id = $1 
-       ORDER BY created_at DESC 
-       LIMIT $2 OFFSET $3`,
-      [adminId, limit, offset]
-    );
-
-    const countResult = await pool.query(
-      `SELECT COUNT(*) FROM audit_logs WHERE admin_id = $1`,
-      [adminId]
-    );
+    const [totalLogs, logs] = await Promise.all([
+      AuditLog.countDocuments({ admin_id: adminId }),
+      AuditLog.find({ admin_id: adminId }).sort({ createdAt: -1 }).skip(Number(offset)).limit(Number(limit)).lean(),
+    ]);
 
     res.json({
-      logs: result.rows,
+      logs: logs.map(l => ({ ...l, id: l._id })),
       pagination: {
-        currentPage: parseInt(page),
-        totalPages: Math.ceil(countResult.rows[0].count / limit),
-        totalLogs: parseInt(countResult.rows[0].count)
-      }
+        currentPage: Number(page),
+        totalPages: Math.ceil(totalLogs / limit),
+        totalLogs,
+      },
     });
   } catch (error) {
     console.error('Error fetching admin activity:', error);

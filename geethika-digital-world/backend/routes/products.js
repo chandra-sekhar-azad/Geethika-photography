@@ -1,6 +1,6 @@
 import express from 'express';
 import { body, validationResult } from 'express-validator';
-import pool from '../config/database.js';
+import Product from '../models/Product.js';
 import { authenticate, isAdmin } from '../middleware/auth.js';
 import { upload } from '../middleware/upload.js';
 import { uploadToCloudinary, deleteFromCloudinary } from '../config/cloudinary.js';
@@ -10,112 +10,77 @@ import { cacheMiddleware, invalidateCache } from '../middleware/cache.js';
 const router = express.Router();
 
 // Get all products (public)
-router.get(
-  '/',
-  cacheMiddleware(30),
-  async (req, res) => {
-    try {
-      const { category, valentine, search } = req.query;
+router.get('/', cacheMiddleware(30), async (req, res) => {
+  try {
+    const { category, valentine, search } = req.query;
+    const rawLimit = Math.min(Math.max(Number(req.query.limit) || 50, 1), 100);
+    const rawOffset = Math.max(Number(req.query.offset) || 0, 0);
 
-      const rawLimit = Number(req.query.limit) || 50;
-      const rawOffset = Number(req.query.offset) || 0;
-      const limit = Math.min(Math.max(rawLimit, 1), 100);
-      const offset = Math.max(rawOffset, 0);
+    const filter = { is_active: true };
 
-      let query = `
-        SELECT
-          p.id,
-          p.name,
-          p.slug,
-          p.description,
-          p.category_id,
-          p.price,
-          p.discount,
-          p.image_url,
-          p.customizable,
-          p.valentine_special,
-          p.special_offer,
-          p.stock_quantity,
-          p.is_active,
-          p.created_at,
-          c.name AS category_name,
-          c.slug AS category_slug
-        FROM products p
-        LEFT JOIN categories c ON p.category_id = c.id
-        WHERE p.is_active = true
-      `;
-      const params = [];
-      let paramCount = 1;
+    if (valentine === 'true') filter.valentine_special = true;
 
-      if (category) {
-        query += ` AND c.slug = $${paramCount}`;
-        params.push(category);
-        paramCount++;
-      }
-
-      if (valentine === 'true') {
-        query += ` AND p.valentine_special = true`;
-      }
-
-      if (search) {
-        query += ` AND (p.name ILIKE $${paramCount} OR p.description ILIKE $${paramCount})`;
-        params.push(`%${search}%`);
-        paramCount++;
-      }
-
-      query += ` ORDER BY p.created_at DESC LIMIT $${paramCount} OFFSET $${paramCount + 1}`;
-      params.push(limit, offset);
-
-      const result = await pool.query(query, params);
-
-      res.json({
-        products: result.rows,
-        count: result.rows.length,
-      });
-    } catch (error) {
-      console.error('Get products error:', error);
-      res.status(500).json({ error: 'Failed to fetch products' });
+    if (search) {
+      filter.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } },
+      ];
     }
+
+    let query = Product.find(filter)
+      .populate({ path: 'category_id', select: 'name slug' })
+      .sort({ createdAt: -1 })
+      .skip(rawOffset)
+      .limit(rawLimit);
+
+    if (category) {
+      // Need to filter by category slug - use aggregate or lookup
+      const Category = (await import('../models/Category.js')).default;
+      const cat = await Category.findOne({ slug: category });
+      if (cat) {
+        filter.category_id = cat._id;
+      } else {
+        return res.json({ products: [], count: 0 });
+      }
+      query = Product.find(filter)
+        .populate({ path: 'category_id', select: 'name slug' })
+        .sort({ createdAt: -1 })
+        .skip(rawOffset)
+        .limit(rawLimit);
+    }
+
+    const products = await query.lean();
+
+    const formatted = products.map((p) => ({
+      ...p,
+      id: p._id,
+      category_name: p.category_id?.name || null,
+      category_slug: p.category_id?.slug || null,
+    }));
+
+    res.json({ products: formatted, count: formatted.length });
+  } catch (error) {
+    console.error('Get products error:', error);
+    res.status(500).json({ error: 'Failed to fetch products' });
   }
-);
+});
 
 // Get single product (public)
 router.get('/:id', cacheMiddleware(60), async (req, res) => {
   try {
     const { id } = req.params;
+    const product = await Product.findOne({ _id: id, is_active: true })
+      .populate({ path: 'category_id', select: 'name slug' })
+      .lean();
 
-    const result = await pool.query(
-      `
-      SELECT
-        p.id,
-        p.name,
-        p.slug,
-        p.description,
-        p.category_id,
-        p.price,
-        p.discount,
-        p.image_url,
-        p.customizable,
-        p.valentine_special,
-        p.special_offer,
-        p.stock_quantity,
-        p.is_active,
-        p.created_at,
-        p.updated_at,
-        c.name AS category_name,
-        c.slug AS category_slug
-      FROM products p
-      LEFT JOIN categories c ON p.category_id = c.id
-      WHERE p.id = $1 AND p.is_active = true
-      `,
-      [id]
-    );
+    if (!product) return res.status(404).json({ error: 'Product not found' });
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Product not found' });
-    }
-
-    res.json(result.rows[0]);
+    res.json({
+      ...product,
+      id: product._id,
+      category_name: product.category_id?.name || null,
+      category_slug: product.category_id?.slug || null,
+    });
   } catch (error) {
     console.error('Get product error:', error);
     res.status(500).json({ error: 'Failed to fetch product' });
@@ -123,85 +88,55 @@ router.get('/:id', cacheMiddleware(60), async (req, res) => {
 });
 
 // Create product (admin only)
-router.post('/',
-  authenticate,
-  isAdmin,
-  upload.single('image'),
+router.post('/', authenticate, isAdmin, upload.single('image'),
   [
     body('name').trim().notEmpty(),
     body('price').isFloat({ min: 0 }),
-    body('category_id').isInt()
   ],
   async (req, res) => {
     try {
       const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-      }
+      if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
       const {
-        name,
-        slug,
-        description,
-        category_id,
-        price,
-        discount = 0,
-        customizable = false,
-        customization_options,
-        valentine_special = false,
-        special_offer = false,
-        stock_quantity = 0
+        name, slug, description, category_id, price,
+        discount = 0, customizable = false, customization_options,
+        valentine_special = false, special_offer = false, stock_quantity = 0
       } = req.body;
 
-      let imageUrl = null;
-      let imagePublicId = null;
+      let image_url = null;
+      let image_public_id = null;
 
       if (req.file) {
         const uploadResult = await uploadToCloudinary(req.file, 'products');
-        imageUrl = uploadResult.url;
-        imagePublicId = uploadResult.publicId;
+        image_url = uploadResult.url;
+        image_public_id = uploadResult.publicId;
       }
 
-      const result = await pool.query(`
-        INSERT INTO products (
-          name, slug, description, category_id, price, discount,
-          image_url, image_public_id, customizable, customization_options,
-          valentine_special, special_offer, stock_quantity
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
-        RETURNING *
-      `, [
+      const toBoolean = (val) => val === true || val === 'true';
+
+      const product = await Product.create({
         name,
-        slug || name.toLowerCase().replace(/\s+/g, '-'),
+        slug: slug || name.toLowerCase().replace(/\s+/g, '-'),
         description,
-        category_id,
+        category_id: category_id || null,
         price,
         discount,
-        imageUrl,
-        imagePublicId,
-        customizable,
-        customization_options ? JSON.parse(customization_options) : null,
-        valentine_special,
-        special_offer,
-        stock_quantity
-      ]);
+        image_url,
+        image_public_id,
+        customizable: toBoolean(customizable),
+        customization_options: customization_options
+          ? (typeof customization_options === 'string' ? JSON.parse(customization_options) : customization_options)
+          : null,
+        valentine_special: toBoolean(valentine_special),
+        special_offer: toBoolean(special_offer),
+        stock_quantity,
+      });
 
-      // Log the action
-      await logAdminAction(
-        req,
-        'CREATE',
-        'product',
-        result.rows[0].id,
-        result.rows[0].name,
-        { created: result.rows[0] }
-      );
-
-      // Invalidate product list/detail caches
+      await logAdminAction(req, 'CREATE', 'product', product._id, product.name, { created: product });
       invalidateCache((key) => key.startsWith('/api/products'));
 
-      res.status(201).json({
-        message: 'Product created successfully',
-        product: result.rows[0]
-      });
+      res.status(201).json({ message: 'Product created successfully', product });
     } catch (error) {
       console.error('Create product error:', error);
       res.status(500).json({ error: 'Failed to create product' });
@@ -210,193 +145,99 @@ router.post('/',
 );
 
 // Update product (admin only)
-router.put('/:id',
-  authenticate,
-  isAdmin,
-  upload.single('image'),
-  async (req, res) => {
-    try {
-      const { id } = req.params;
-      const {
-        name,
-        description,
-        category_id,
-        price,
-        discount,
-        customizable,
-        customization_options,
-        valentine_special,
-        special_offer,
-        stock_quantity,
-        is_active
-      } = req.body;
+router.put('/:id', authenticate, isAdmin, upload.single('image'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const existing = await Product.findById(id);
+    if (!existing) return res.status(404).json({ error: 'Product not found' });
 
-      // Get existing product
-      const existing = await pool.query('SELECT * FROM products WHERE id = $1', [id]);
-      if (existing.rows.length === 0) {
-        return res.status(404).json({ error: 'Product not found' });
-      }
+    let image_url = existing.image_url;
+    let image_public_id = existing.image_public_id;
 
-      let imageUrl = existing.rows[0].image_url;
-      let imagePublicId = existing.rows[0].image_public_id;
-
-      if (req.file) {
-        // Delete old image
-        if (imagePublicId) {
-          await deleteFromCloudinary(imagePublicId);
-        }
-        // Upload new image
-        const uploadResult = await uploadToCloudinary(req.file, 'products');
-        imageUrl = uploadResult.url;
-        imagePublicId = uploadResult.publicId;
-      }
-
-      // ── Safely parse customization_options ──────────────────────────
-      // FormData sends everything as strings; JSON.parse(null/undefined/"") throws.
-      let parsedCustomizationOptions = null;
-      if (customization_options !== undefined && customization_options !== null && customization_options !== '') {
-        try {
-          parsedCustomizationOptions = typeof customization_options === 'string'
-            ? JSON.parse(customization_options)
-            : customization_options; // already an object (shouldn't happen via FormData, but be safe)
-        } catch (parseErr) {
-          console.warn('Could not parse customization_options:', customization_options);
-          parsedCustomizationOptions = null;
-        }
-      }
-
-      // ── Coerce FormData string booleans → real booleans ─────────────
-      const toBoolean = (val, fallback) => {
-        if (val === undefined || val === null || val === '') return fallback;
-        if (typeof val === 'boolean') return val;
-        return val === 'true';
-      };
-
-      // ── Coerce numeric strings → numbers (null if missing) ──────────
-      const toNumber = (val) => {
-        if (val === undefined || val === null || val === '') return null;
-        const n = Number(val);
-        return isNaN(n) ? null : n;
-      };
-
-      const coercedCategoryId = toNumber(category_id);
-      const coercedPrice = toNumber(price);
-      const coercedDiscount = toNumber(discount);
-      const coercedStock = toNumber(stock_quantity);
-      const coercedCustomizable = toBoolean(customizable, null);
-      const coercedValentineSpecial = toBoolean(valentine_special, null);
-      const coercedSpecialOffer = toBoolean(special_offer, null);
-      const coercedIsActive = toBoolean(is_active, null);
-
-      const result = await pool.query(`
-        UPDATE products SET
-          name = COALESCE($1, name),
-          description = COALESCE($2, description),
-          category_id = COALESCE($3, category_id),
-          price = COALESCE($4, price),
-          discount = COALESCE($5, discount),
-          image_url = $6,
-          image_public_id = $7,
-          customizable = COALESCE($8, customizable),
-          customization_options = COALESCE($9, customization_options),
-          valentine_special = COALESCE($10, valentine_special),
-          special_offer = COALESCE($11, special_offer),
-          stock_quantity = COALESCE($12, stock_quantity),
-          is_active = COALESCE($13, is_active),
-          updated_at = CURRENT_TIMESTAMP
-        WHERE id = $14
-        RETURNING *
-      `, [
-        name || null,
-        description || null,
-        coercedCategoryId,
-        coercedPrice,
-        coercedDiscount,
-        imageUrl,
-        imagePublicId,
-        coercedCustomizable,
-        parsedCustomizationOptions,
-        coercedValentineSpecial,
-        coercedSpecialOffer,
-        coercedStock,
-        coercedIsActive,
-        id
-      ]);
-
-      // Invalidate product caches
-      invalidateCache((key) => key.startsWith('/api/products'));
-
-      res.json({
-        message: 'Product updated successfully',
-        product: result.rows[0]
-      });
-    } catch (error) {
-      console.error('Update product error:', error.message);
-      console.error('Stack:', error.stack);
-      res.status(500).json({ error: 'Failed to update product', details: process.env.NODE_ENV !== 'production' ? error.message : undefined });
+    if (req.file) {
+      if (image_public_id) await deleteFromCloudinary(image_public_id);
+      const uploadResult = await uploadToCloudinary(req.file, 'products');
+      image_url = uploadResult.url;
+      image_public_id = uploadResult.publicId;
     }
-  }
-);
 
-// Delete product (admin only) - Actually deactivates if referenced in orders
+    const toBoolean = (val, fallback) => {
+      if (val === undefined || val === null || val === '') return fallback;
+      if (typeof val === 'boolean') return val;
+      return val === 'true';
+    };
+    const toNumber = (val) => {
+      if (val === undefined || val === null || val === '') return null;
+      const n = Number(val);
+      return isNaN(n) ? null : n;
+    };
+
+    const {
+      name, description, category_id, price, discount,
+      customizable, customization_options, valentine_special,
+      special_offer, stock_quantity, is_active
+    } = req.body;
+
+    let parsedCustomizationOptions = existing.customization_options;
+    if (customization_options !== undefined && customization_options !== null && customization_options !== '') {
+      try {
+        parsedCustomizationOptions = typeof customization_options === 'string'
+          ? JSON.parse(customization_options)
+          : customization_options;
+      } catch { parsedCustomizationOptions = null; }
+    }
+
+    const updates = {
+      ...(name && { name }),
+      ...(description !== undefined && { description }),
+      ...(category_id && { category_id }),
+      ...(toNumber(price) !== null && { price: toNumber(price) }),
+      ...(toNumber(discount) !== null && { discount: toNumber(discount) }),
+      image_url,
+      image_public_id,
+      ...(customizable !== undefined && customizable !== '' && { customizable: toBoolean(customizable, existing.customizable) }),
+      customization_options: parsedCustomizationOptions,
+      ...(valentine_special !== undefined && valentine_special !== '' && { valentine_special: toBoolean(valentine_special, existing.valentine_special) }),
+      ...(special_offer !== undefined && special_offer !== '' && { special_offer: toBoolean(special_offer, existing.special_offer) }),
+      ...(toNumber(stock_quantity) !== null && { stock_quantity: toNumber(stock_quantity) }),
+      ...(is_active !== undefined && is_active !== '' && { is_active: toBoolean(is_active, existing.is_active) }),
+    };
+
+    const product = await Product.findByIdAndUpdate(id, updates, { new: true });
+    invalidateCache((key) => key.startsWith('/api/products'));
+
+    res.json({ message: 'Product updated successfully', product });
+  } catch (error) {
+    console.error('Update product error:', error.message);
+    res.status(500).json({ error: 'Failed to update product', details: process.env.NODE_ENV !== 'production' ? error.message : undefined });
+  }
+});
+
+// Delete product (admin only)
 router.delete('/:id', authenticate, isAdmin, async (req, res) => {
   try {
     const { id } = req.params;
-
-    const product = await pool.query('SELECT * FROM products WHERE id = $1', [id]);
-    if (product.rows.length === 0) {
-      return res.status(404).json({ error: 'Product not found' });
-    }
+    const product = await Product.findById(id);
+    if (!product) return res.status(404).json({ error: 'Product not found' });
 
     // Check if product is referenced in orders
-    const orderItems = await pool.query(
-      'SELECT COUNT(*) FROM order_items WHERE product_id = $1',
-      [id]
-    );
+    const Order = (await import('../models/Order.js')).default;
+    const orderCount = await Order.countDocuments({ 'items.product_id': id });
 
-    const isReferenced = parseInt(orderItems.rows[0].count) > 0;
-
-    if (isReferenced) {
-      // Product is in orders, so deactivate instead of delete
-      await pool.query(
-        'UPDATE products SET is_active = false WHERE id = $1',
-        [id]
-      );
-
-      res.json({
-        message: 'Product deactivated successfully (cannot delete as it exists in orders)',
-        deactivated: true
-      });
+    if (orderCount > 0) {
+      await Product.findByIdAndUpdate(id, { is_active: false });
+      res.json({ message: 'Product deactivated (exists in orders)', deactivated: true });
     } else {
-      // Product not in orders, safe to delete
-
-      // Try to delete image from Cloudinary (don't fail if it doesn't exist)
-      if (product.rows[0].image_public_id) {
-        try {
-          await deleteFromCloudinary(product.rows[0].image_public_id);
-        } catch (cloudinaryError) {
-          console.warn('Failed to delete image from Cloudinary:', cloudinaryError.message);
-        }
+      if (product.image_public_id) {
+        try { await deleteFromCloudinary(product.image_public_id); } catch (e) {}
       }
-
-      await pool.query('DELETE FROM products WHERE id = $1', [id]);
-
-      // Invalidate product caches
+      await Product.findByIdAndDelete(id);
       invalidateCache((key) => key.startsWith('/api/products'));
-
-      res.json({
-        message: 'Product deleted successfully',
-        deleted: true
-      });
+      res.json({ message: 'Product deleted successfully', deleted: true });
     }
   } catch (error) {
     console.error('Delete product error:', error);
-    console.error('Error details:', error.message);
-    console.error('Error stack:', error.stack);
-    res.status(500).json({
-      error: 'Failed to delete product',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+    res.status(500).json({ error: 'Failed to delete product' });
   }
 });
 

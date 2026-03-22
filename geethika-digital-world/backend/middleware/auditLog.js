@@ -1,4 +1,4 @@
-import pool from '../config/database.js';
+import AuditLog from '../models/AuditLog.js';
 
 // Middleware to log admin actions
 const logAdminAction = async (req, action, entityType, entityId, entityName, changes = null) => {
@@ -6,34 +6,38 @@ const logAdminAction = async (req, action, entityType, entityId, entityName, cha
     const adminId = req.user?.id;
     const adminEmail = req.user?.email;
     const adminName = req.user?.name;
-    const ipAddress = req.ip || req.connection.remoteAddress;
+    const ipAddress = req.ip || req.connection?.remoteAddress;
     const userAgent = req.get('user-agent');
 
-    await pool.query(
-      `INSERT INTO audit_logs 
-       (admin_id, admin_email, admin_name, action, entity_type, entity_id, entity_name, changes, ip_address, user_agent)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
-      [adminId, adminEmail, adminName, action, entityType, entityId, entityName, changes ? JSON.stringify(changes) : null, ipAddress, userAgent]
-    );
+    await AuditLog.create({
+      admin_id: adminId || null,
+      admin_email: adminEmail,
+      admin_name: adminName,
+      action,
+      entity_type: entityType,
+      entity_id: entityId ? String(entityId) : null,
+      entity_name: entityName,
+      changes,
+      ip_address: ipAddress,
+      user_agent: userAgent,
+    });
   } catch (error) {
     console.error('Error logging admin action:', error);
-    // Don't throw error to prevent breaking the main operation
+    // Don't throw - don't break the main operation
   }
 };
 
 // Helper function to compare objects and get changes
 const getChanges = (oldData, newData) => {
-  const changes = {
-    before: {},
-    after: {}
-  };
+  const changes = { before: {}, after: {} };
+  const oldObj = oldData?.toObject ? oldData.toObject() : (oldData || {});
+  const newObj = newData?.toObject ? newData.toObject() : (newData || {});
+  const allKeys = new Set([...Object.keys(oldObj), ...Object.keys(newObj)]);
 
-  const allKeys = new Set([...Object.keys(oldData || {}), ...Object.keys(newData || {})]);
-  
-  allKeys.forEach(key => {
-    if (JSON.stringify(oldData?.[key]) !== JSON.stringify(newData?.[key])) {
-      changes.before[key] = oldData?.[key];
-      changes.after[key] = newData?.[key];
+  allKeys.forEach((key) => {
+    if (JSON.stringify(oldObj[key]) !== JSON.stringify(newObj[key])) {
+      changes.before[key] = oldObj[key];
+      changes.after[key] = newObj[key];
     }
   });
 
