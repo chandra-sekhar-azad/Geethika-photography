@@ -15,9 +15,9 @@ const Footer = () => {
           
           {/* Brand */}
           <div className="animate-slide-up">
-            <h2 className="text-2xl font-display font-bold italic text-gray-900 mb-6">
-              Geethika Digital World
-            </h2>
+            <Link to="/">
+              <img src="/logo.png" className="h-12 w-auto mb-6" alt="Geethika Digital World" />
+            </Link>
             <p className="font-body text-gray-400 text-sm leading-relaxed max-w-xs">
               Crafting sentiments into tangible art pieces for those who value the beauty of a moment.
             </p>

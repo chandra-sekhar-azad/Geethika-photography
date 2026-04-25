@@ -63,10 +63,9 @@ const SignUpPage = () => {
         />
         <div className="relative z-10 p-20 flex flex-col justify-between w-full">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center">
-              <Camera className="w-6 h-6 text-white" />
-            </div>
-            <span className="text-xl font-display font-bold text-white tracking-tight">Geethika Digital World</span>
+            <Link to="/" className="w-full">
+              <img src="/logo.png" className="h-12 w-auto invert brightness-0" alt="Logo" />
+            </Link>
           </div>
           
           <div>
@@ -101,6 +100,9 @@ const SignUpPage = () => {
       <div className="flex-1 flex items-center justify-center p-8 md:p-20 bg-gray-50/50 overflow-y-auto">
         <div className="w-full max-w-md space-y-12 py-12">
           <div>
+            <Link to="/">
+              <img src="/logo.png" className="h-16 w-auto mb-8" alt="Geethika Digital World" />
+            </Link>
             <h1 className="text-4xl md:text-5xl font-display font-bold text-gray-900 mb-4">Create Account</h1>
             <p className="text-gray-400 font-body">Join our curated community of sentimental curators.</p>
           </div>
