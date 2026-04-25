@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Heart, ShoppingCart, Menu, X, User, LogOut, Search, Package, ChevronDown, ChevronRight } from 'lucide-react';
+import { Heart, ShoppingCart, Menu, X, User, LogOut, Package, ChevronDown, ChevronRight } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { useAuth } from '../context/AuthContext';
@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext';
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isMobileShopOpen, setIsMobileShopOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
@@ -34,13 +35,19 @@ const Navbar = () => {
     };
   }, [isProfileOpen]);
 
+  // Close mobile menu on route change
+  useEffect(() => {
+    setIsOpen(false);
+    setIsMobileShopOpen(false);
+  }, [location]);
+
   if (location.pathname.startsWith('/admin')) {
     return null;
   }
 
   const navLinks = [
     { path: '/', label: 'Home' },
-    { path: '/shop', label: 'Shop' },
+    { path: '/shop', label: 'Shop', hasDropdown: true },
     { path: '/services', label: 'Services' },
     { path: '/gallery', label: 'Gallery' },
     { path: '/about', label: 'About' },
@@ -59,7 +66,7 @@ const Navbar = () => {
   const profileMenuItems = [
     { label: 'Edit Profile', path: '/profile?tab=profile', icon: User },
     { label: 'My Orders', path: '/profile?tab=orders', icon: Package },
-    { label: 'Selection', path: '/profile?tab=cart', icon: ShoppingCart, count: getCartCount() },
+    { label: 'Selection', path: '/profile?tab=cart', icon: ShoppingBag, count: getCartCount() },
     { label: 'Favorites', path: '/profile?tab=wishlist', icon: Heart, count: getWishlistCount() },
   ];
 
@@ -79,21 +86,26 @@ const Navbar = () => {
   ];
 
   return (
-    <nav className={`sticky top-0 w-full z-50 transition-all duration-300 ${scrolled ? 'bg-white/90 backdrop-blur-md shadow-md py-0' : 'bg-white py-1'}`}>
+    <nav className={`sticky top-0 w-full z-50 transition-all duration-300 ${scrolled ? 'bg-white/95 backdrop-blur-md shadow-lg py-2' : 'bg-white py-4'}`}>
       <div className="container-custom">
-        <div className="flex justify-between items-center h-12 sm:h-14">
+        <div className="flex justify-between items-center h-12">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-4 flex-shrink-0 group">
+          <Link to="/" className="flex items-center gap-3 flex-shrink-0 group">
             <img 
               src="/logo.png" 
-              alt="Logo" 
-              className="h-10 w-auto object-contain transition-transform duration-500 group-hover:scale-110"
+              alt="Geethika Digital World" 
+              width="40"
+              height="40"
+              className="h-10 w-10 object-contain transition-transform duration-500 group-hover:scale-110"
+              onError={(e) => {
+                e.target.src = "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=100&h=100&fit=crop";
+              }}
             />
             <div className="flex flex-col">
-              <span className="text-xl font-display font-bold tracking-tight text-gray-900 leading-none">
+              <span className="text-lg font-display font-bold tracking-tight text-gray-900 leading-none">
                 Geethika
               </span>
-              <span className="text-[10px] font-body font-bold text-[var(--color-primary)] uppercase tracking-[0.3em] leading-none mt-1">
+              <span className="text-[9px] font-body font-bold text-[var(--color-primary)] uppercase tracking-[0.2em] leading-none mt-1">
                 Digital World
               </span>
             </div>
@@ -105,14 +117,14 @@ const Navbar = () => {
               <div key={link.path} className="relative group/nav">
                 <Link
                   to={link.path}
-                  className={`font-body font-medium text-sm transition-all duration-300 relative py-4 flex items-center gap-1 ${isActive(link.path) ? 'text-[var(--color-primary)]' : 'text-gray-600 hover:text-[var(--color-primary)]'}`}
+                  className={`font-body font-semibold text-sm transition-all duration-300 relative py-4 flex items-center gap-1 ${isActive(link.path) ? 'text-[var(--color-primary)]' : 'text-gray-600 hover:text-[var(--color-primary)]'}`}
                 >
                   {link.label}
-                  {link.label === 'Shop' && <ChevronDown className="w-3 h-3 group-hover/nav:rotate-180 transition-transform" />}
+                  {link.hasDropdown && <ChevronDown className="w-3 h-3 group-hover/nav:rotate-180 transition-transform" />}
                   <span className={`absolute bottom-3 left-0 w-full h-0.5 bg-[var(--color-primary)] transform origin-left transition-transform duration-300 ${isActive(link.path) ? 'scale-x-100' : 'scale-x-0 group-hover/nav:scale-x-100'}`} />
                 </Link>
 
-                {link.label === 'Shop' && (
+                {link.hasDropdown && (
                   <div className="absolute top-full left-0 w-64 bg-white/95 backdrop-blur-xl rounded-[30px] shadow-2xl border border-gray-50 p-4 opacity-0 invisible group-hover/nav:opacity-100 group-hover/nav:visible transition-all duration-300 translate-y-2 group-hover/nav:translate-y-0 z-50">
                     <div className="grid grid-cols-1 gap-1">
                       {shopCategories.map((cat) => (
@@ -133,7 +145,27 @@ const Navbar = () => {
           </div>
 
           {/* Icons & Actions */}
-          <div className="flex items-center space-x-5">
+          <div className="flex items-center space-x-4">
+            {/* Cart & Wishlist (Desktop) */}
+            <div className="hidden sm:flex items-center space-x-2">
+              <Link to="/profile?tab=wishlist" className="p-2 text-gray-600 hover:text-[var(--color-primary)] relative">
+                <Heart className="w-5 h-5" />
+                {getWishlistCount() > 0 && (
+                  <span className="absolute top-1 right-1 bg-[var(--color-primary)] text-white text-[8px] font-bold w-4 h-4 rounded-full flex items-center justify-center border-2 border-white">
+                    {getWishlistCount()}
+                  </span>
+                )}
+              </Link>
+              <Link to="/profile?tab=cart" className="p-2 text-gray-600 hover:text-[var(--color-primary)] relative">
+                <ShoppingCart className="w-5 h-5" />
+                {getCartCount() > 0 && (
+                  <span className="absolute top-1 right-1 bg-[var(--color-primary)] text-white text-[8px] font-bold w-4 h-4 rounded-full flex items-center justify-center border-2 border-white">
+                    {getCartCount()}
+                  </span>
+                )}
+              </Link>
+            </div>
+
             {/* Profile Dropdown */}
             <div className="relative profile-dropdown-container">
               <button
@@ -145,7 +177,7 @@ const Navbar = () => {
               </button>
 
               {isProfileOpen && (
-                <div className="absolute right-0 mt-4 w-64 bg-white rounded-3xl shadow-2xl border border-gray-100 p-2 animate-slide-up">
+                <div className="absolute right-0 mt-4 w-64 bg-white rounded-3xl shadow-2xl border border-gray-100 p-2 animate-slide-up z-[60]">
                   {isAuthenticated() ? (
                     <>
                       <div className="px-4 py-3 mb-2 border-b border-gray-50">
@@ -181,8 +213,8 @@ const Navbar = () => {
                       </button>
                     </>
                   ) : (
-                    <div className="p-4">
-                      <p className="text-xs font-body text-gray-400 mb-4 text-center">Sign in to access your curated dashboard.</p>
+                    <div className="p-4 text-center">
+                      <p className="text-xs font-body text-gray-400 mb-4">Sign in to access your curated dashboard.</p>
                       <Link
                         to="/login"
                         onClick={() => setIsProfileOpen(false)}
@@ -191,7 +223,7 @@ const Navbar = () => {
                         <User className="w-4 h-4" />
                         <span>Sign In</span>
                       </Link>
-                      <p className="mt-4 text-center text-[10px] font-body text-gray-400">
+                      <p className="mt-4 text-[10px] font-body text-gray-400">
                         New here? <Link to="/signup" className="text-gray-900 font-bold hover:underline">Join Us</Link>
                       </p>
                     </div>
@@ -210,28 +242,54 @@ const Navbar = () => {
           </div>
         </div>
 
-        {/* Mobile Menu */}
+        {/* Mobile Menu Overlay */}
         {isOpen && (
-          <div className="lg:hidden absolute top-full left-0 w-full bg-white border-b border-gray-100 py-6 px-4 animate-slide-up shadow-xl overflow-y-auto max-h-[80vh]">
-            <div className="flex flex-col space-y-4">
+          <div className="lg:hidden absolute top-full left-0 w-full bg-white border-b border-gray-100 py-6 px-4 animate-slide-up shadow-2xl overflow-y-auto max-h-[85vh] z-50">
+            <div className="flex flex-col space-y-2">
               {navLinks.map((link) => (
-                <Link
-                  key={link.path}
-                  to={link.path}
-                  onClick={() => setIsOpen(false)}
-                  className={`text-lg font-body font-medium ${isActive(link.path) ? 'text-[var(--color-primary)]' : 'text-gray-700'}`}
-                >
-                  {link.label}
-                </Link>
+                <div key={link.path}>
+                  {link.hasDropdown ? (
+                    <div className="flex flex-col">
+                      <button 
+                        onClick={() => setIsMobileShopOpen(!isMobileShopOpen)}
+                        className="flex items-center justify-between py-3 text-lg font-body font-bold text-gray-700"
+                      >
+                        <span>{link.label}</span>
+                        <ChevronDown className={`w-5 h-5 transition-transform ${isMobileShopOpen ? 'rotate-180' : ''}`} />
+                      </button>
+                      {isMobileShopOpen && (
+                        <div className="grid grid-cols-2 gap-2 py-2 mb-4">
+                          {shopCategories.map((cat) => (
+                            <Link
+                              key={cat.id}
+                              to={cat.id === 'all' ? '/shop' : `/shop/${cat.id}`}
+                              className="px-4 py-2 bg-gray-50 rounded-xl text-[10px] font-body font-bold text-gray-500 hover:text-[var(--color-primary)]"
+                            >
+                              {cat.name}
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <Link
+                      to={link.path}
+                      className={`block py-3 text-lg font-body font-bold ${isActive(link.path) ? 'text-[var(--color-primary)]' : 'text-gray-700'}`}
+                    >
+                      {link.label}
+                    </Link>
+                  )}
+                </div>
               ))}
-              <div className="pt-4 border-t border-gray-50 flex flex-col space-y-4">
+              
+              <div className="pt-6 mt-4 border-t border-gray-50 flex flex-col space-y-4">
                 {isAuthenticated() ? (
                   <>
-                    <Link to="/profile?tab=profile" onClick={() => setIsOpen(false)} className="text-lg font-body font-medium text-gray-700">Profile Dashboard</Link>
-                    <button onClick={handleLogout} className="text-lg font-body font-medium text-red-500 text-left">Logout</button>
+                    <Link to="/profile" className="text-lg font-body font-bold text-gray-700">Studio Dashboard</Link>
+                    <button onClick={handleLogout} className="text-lg font-body font-bold text-red-500 text-left">Sign Out</button>
                   </>
                 ) : (
-                  <Link to="/login" onClick={() => setIsOpen(false)} className="text-lg font-body font-medium text-gray-700">Login</Link>
+                  <Link to="/login" className="py-4 bg-gray-900 text-white rounded-2xl font-body font-bold text-sm uppercase tracking-widest text-center">Login to Studio</Link>
                 )}
               </div>
             </div>
