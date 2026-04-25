@@ -60,7 +60,7 @@ const Navbar = () => {
           </Link>
 
           {/* Desktop Nav Links */}
-          <div className="hidden lg:flex items-center space-x-8">
+          <div className="hidden lg:flex items-center space-x-8 ml-auto mr-10">
             {navLinks.map((link) => (
               <Link
                 key={link.path}
@@ -75,9 +75,6 @@ const Navbar = () => {
 
           {/* Icons & Actions */}
           <div className="flex items-center space-x-5">
-            <button className="text-gray-600 hover:text-[var(--color-primary)] transition-colors hidden sm:block">
-              <Search className="w-5 h-5" />
-            </button>
             <Link
               to={isAuthenticated() ? "/profile" : "/login"}
               className="text-gray-600 hover:text-[var(--color-primary)] transition-colors hidden sm:block"
