@@ -318,7 +318,7 @@ const ProfilePage = () => {
                       <p className="text-[10px] font-body font-bold text-gray-400 uppercase tracking-widest mb-1">TOTAL TO PAY</p>
                       <p className="text-4xl font-display font-bold text-[var(--color-primary)]">₹{grandTotal}</p>
                     </div>
-                    <button onClick={() => navigate('/checkout')} className="w-full py-5 bg-[var(--color-primary)] text-white rounded-2xl font-body font-bold text-sm uppercase tracking-widest hover:shadow-xl transition-all">Proceed to Checkout</button>
+                    <button onClick={() => navigate('/payment')} className="w-full py-5 bg-[var(--color-primary)] text-white rounded-2xl font-body font-bold text-sm uppercase tracking-widest hover:shadow-xl transition-all">Proceed to Checkout</button>
                   </div>
                 </>
               )}

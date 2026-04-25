@@ -79,6 +79,21 @@ const ShopPage = () => {
     }
   };
 
+  const SHOP_CATEGORIES = [
+    { id: 'all', name: 'All Gifts' },
+    { id: 'cakes', name: 'Cakes' },
+    { id: 'chocolate-bouquets', name: 'Chocolate Bouquets' },
+    { id: 'couple-gifts', name: 'Couple Gifts' },
+    { id: 'event-needs', name: 'Event Needs' },
+    { id: 'flower-bouquets', name: 'Flower Bouquets' },
+    { id: 'interior-gifts-decor', name: 'Interior Gifts & Decor' },
+    { id: 'personalised-gifts', name: 'Personalised Gifts' },
+    { id: 'photo-frames', name: 'Photo Frames' },
+    { id: 'plants', name: 'Plants' },
+    { id: 'printing-works', name: 'Printing Works' },
+    { id: 't-shirts', name: 'T-Shirts' },
+  ];
+
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
@@ -113,31 +128,21 @@ const ShopPage = () => {
       <div className="sticky top-14 sm:top-16 z-40 bg-white/80 backdrop-blur-md border-b border-gray-100 py-6">
         <div className="container-custom">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-            {/* Category Pills */}
-            <div className="flex flex-wrap items-center gap-3">
-              <button
-                onClick={() => handleCategoryChange('all')}
-                className={`px-6 py-2 rounded-full font-body text-sm font-medium transition-all duration-300 ${
-                  selectedCategory === 'all'
-                    ? 'bg-[var(--color-primary)] text-white shadow-lg shadow-purple-100'
-                    : 'bg-gray-50 text-gray-500 hover:bg-gray-100 border border-transparent'
-                }`}
-              >
-                All Gifts
-              </button>
-              {categories.map((cat) => (
-                <button
-                  key={cat.id}
-                  onClick={() => handleCategoryChange(cat.slug || cat.id)}
-                  className={`px-6 py-2 rounded-full font-body text-sm font-medium transition-all duration-300 ${
-                    selectedCategory === (cat.slug || cat.id)
-                      ? 'bg-[var(--color-primary)] text-white shadow-lg shadow-purple-100'
-                      : 'bg-gray-50 text-gray-500 hover:bg-gray-100 border border-transparent'
-                  }`}
+            {/* Category Dropdown */}
+            <div className="flex items-center gap-4">
+              <span className="text-[10px] font-body font-bold text-gray-400 uppercase tracking-widest hidden sm:inline">Collection:</span>
+              <div className="relative group min-w-[240px]">
+                <select 
+                  value={selectedCategory}
+                  onChange={(e) => handleCategoryChange(e.target.value)}
+                  className="w-full appearance-none bg-white border-2 border-gray-50 rounded-2xl px-6 py-3.5 pr-12 font-body text-sm font-bold text-gray-900 focus:border-[var(--color-primary)] focus:ring-4 focus:ring-purple-50 outline-none transition-all cursor-pointer shadow-sm hover:border-gray-100"
                 >
-                  {cat.name}
-                </button>
-              ))}
+                  {SHOP_CATEGORIES.map(cat => (
+                    <option key={cat.id} value={cat.id}>{cat.name}</option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none group-hover:text-[var(--color-primary)] transition-colors" />
+              </div>
             </div>
 
             {/* Stats and Sort */}

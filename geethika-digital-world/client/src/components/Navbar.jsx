@@ -63,6 +63,21 @@ const Navbar = () => {
     { label: 'Favorites', path: '/profile?tab=wishlist', icon: Heart, count: getWishlistCount() },
   ];
 
+  const shopCategories = [
+    { id: 'all', name: 'All Gifts' },
+    { id: 'cakes', name: 'Cakes' },
+    { id: 'chocolate-bouquets', name: 'Chocolate Bouquets' },
+    { id: 'couple-gifts', name: 'Couple Gifts' },
+    { id: 'event-needs', name: 'Event Needs' },
+    { id: 'flower-bouquets', name: 'Flower Bouquets' },
+    { id: 'interior-gifts-decor', name: 'Interior Gifts & Decor' },
+    { id: 'personalised-gifts', name: 'Personalised Gifts' },
+    { id: 'photo-frames', name: 'Photo Frames' },
+    { id: 'plants', name: 'Plants' },
+    { id: 'printing-works', name: 'Printing Works' },
+    { id: 't-shirts', name: 'T-Shirts' },
+  ];
+
   return (
     <nav className={`sticky top-0 w-full z-50 transition-all duration-300 ${scrolled ? 'bg-white/90 backdrop-blur-md shadow-md py-0' : 'bg-white py-1'}`}>
       <div className="container-custom">
@@ -87,14 +102,33 @@ const Navbar = () => {
           {/* Desktop Nav Links */}
           <div className="hidden lg:flex items-center space-x-8 ml-auto mr-10">
             {navLinks.map((link) => (
-              <Link
-                key={link.path}
-                to={link.path}
-                className={`font-body font-medium text-sm transition-all duration-300 relative group ${isActive(link.path) ? 'text-[var(--color-primary)]' : 'text-gray-600 hover:text-[var(--color-primary)]'}`}
-              >
-                {link.label}
-                <span className={`absolute -bottom-1 left-0 w-full h-0.5 bg-[var(--color-primary)] transform origin-left transition-transform duration-300 ${isActive(link.path) ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`} />
-              </Link>
+              <div key={link.path} className="relative group/nav">
+                <Link
+                  to={link.path}
+                  className={`font-body font-medium text-sm transition-all duration-300 relative py-4 flex items-center gap-1 ${isActive(link.path) ? 'text-[var(--color-primary)]' : 'text-gray-600 hover:text-[var(--color-primary)]'}`}
+                >
+                  {link.label}
+                  {link.label === 'Shop' && <ChevronDown className="w-3 h-3 group-hover/nav:rotate-180 transition-transform" />}
+                  <span className={`absolute bottom-3 left-0 w-full h-0.5 bg-[var(--color-primary)] transform origin-left transition-transform duration-300 ${isActive(link.path) ? 'scale-x-100' : 'scale-x-0 group-hover/nav:scale-x-100'}`} />
+                </Link>
+
+                {link.label === 'Shop' && (
+                  <div className="absolute top-full left-0 w-64 bg-white/95 backdrop-blur-xl rounded-[30px] shadow-2xl border border-gray-50 p-4 opacity-0 invisible group-hover/nav:opacity-100 group-hover/nav:visible transition-all duration-300 translate-y-2 group-hover/nav:translate-y-0 z-50">
+                    <div className="grid grid-cols-1 gap-1">
+                      {shopCategories.map((cat) => (
+                        <Link
+                          key={cat.id}
+                          to={cat.id === 'all' ? '/shop' : `/shop/${cat.id}`}
+                          className="px-4 py-2 rounded-xl text-xs font-body font-bold text-gray-500 hover:bg-gray-50 hover:text-[var(--color-primary)] transition-all flex items-center justify-between group/item"
+                        >
+                          <span>{cat.name}</span>
+                          <ChevronRight className="w-3 h-3 opacity-0 group-hover/item:opacity-100 transition-all translate-x-[-10px] group-hover/item:translate-x-0" />
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             ))}
           </div>
 

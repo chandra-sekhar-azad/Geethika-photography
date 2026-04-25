@@ -16,6 +16,7 @@ import GalleryPage from './pages/GalleryPage';
 import CartPage from './pages/CartPage';
 import WishlistPage from './pages/WishlistPage';
 import CheckoutPage from './pages/CheckoutPage';
+import PaymentPage from './pages/PaymentPage';
 import LoginPage from './pages/LoginPage';
 import SignUpPage from './pages/SignUpPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
@@ -113,7 +114,8 @@ function App() {
                         <Route path="/gallery" element={<GalleryPage />} />
                         <Route path="/cart" element={<Navigate to="/profile?tab=cart" replace />} />
                         <Route path="/wishlist" element={<Navigate to="/profile?tab=wishlist" replace />} />
-                        <Route path="/checkout" element={<CheckoutPage />} />
+                        <Route path="/checkout" element={<PaymentPage />} />
+                        <Route path="/payment" element={<PaymentPage />} />
                         <Route path="/login" element={<LoginPage />} />
                         <Route path="/signup" element={<SignUpPage />} />
                         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
