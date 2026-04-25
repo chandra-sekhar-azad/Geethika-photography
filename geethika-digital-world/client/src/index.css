@@ -162,7 +162,6 @@
     @apply bg-[#F7D060] text-gray-900 px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest inline-block mb-6 shadow-sm;
   }
 }
-}
 
 @layer utilities {
   .text-gradient {

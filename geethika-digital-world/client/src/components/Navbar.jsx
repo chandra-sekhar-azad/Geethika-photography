@@ -66,7 +66,7 @@ const Navbar = () => {
   const profileMenuItems = [
     { label: 'Edit Profile', path: '/profile?tab=profile', icon: User },
     { label: 'My Orders', path: '/profile?tab=orders', icon: Package },
-    { label: 'Selection', path: '/profile?tab=cart', icon: ShoppingBag, count: getCartCount() },
+    { label: 'Selection', path: '/profile?tab=cart', icon: ShoppingCart, count: getCartCount() },
     { label: 'Favorites', path: '/profile?tab=wishlist', icon: Heart, count: getWishlistCount() },
   ];
 
