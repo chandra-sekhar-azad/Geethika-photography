@@ -1,297 +1,183 @@
-import { useNavigate } from 'react-router-dom';
-import { Trash2, Plus, Minus, ShoppingBag, ArrowRight, AlertCircle, Upload } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { Trash2, Plus, Minus, ArrowLeft, MessageCircle, ShieldCheck } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
-import { useState } from 'react';
 
 const CartPage = () => {
   const navigate = useNavigate();
-  const { cart, removeFromCart, updateQuantity, getCartSubtotal, getServiceCharge, getFinalTotal } = useCart();
+  const { cart, removeFromCart, updateQuantity, getCartSubtotal, getFinalTotal } = useCart();
   const { isAuthenticated } = useAuth();
-  const [showCustomizationAlert, setShowCustomizationAlert] = useState(false);
-  const [itemsNeedingCustomization, setItemsNeedingCustomization] = useState([]);
 
-  // Check if any customizable items are missing images
-  const checkCustomizationComplete = () => {
-    const incompleteItems = cart.filter(item => {
-      // Check if item is customizable and doesn't have an uploaded image
-      return item.is_customizable && (!item.customization || !item.customization.image);
-    });
-
-    if (incompleteItems.length > 0) {
-      setItemsNeedingCustomization(incompleteItems);
-      setShowCustomizationAlert(true);
-      return false;
-    }
-    return true;
-  };
-
-  const handleProceedToCheckout = () => {
-    if (!isAuthenticated()) {
-      navigate('/login', { state: { from: { pathname: '/cart' } } });
-      return;
-    }
-
-    // Check if all customizable items have images uploaded
-    if (checkCustomizationComplete()) {
-      navigate('/checkout');
-    }
-  };
-
-  // Show login prompt if not authenticated
-  if (!isAuthenticated()) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto p-8">
-          <ShoppingBag className="w-24 h-24 mx-auto text-gray-700 mb-4" />
-          <h2 className="text-2xl font-bold mb-2 text-white">Login Required</h2>
-          <p className="text-gray-400 mb-6">Please login to view your cart and place orders</p>
-          <button
-            onClick={() => navigate('/login', { state: { from: { pathname: '/cart' } } })}
-            className="px-6 py-3 bg-orange-primary text-black font-bold rounded-lg hover:bg-orange-hover transition-colors uppercase tracking-wide"
-          >
-            Login to Continue
-          </button>
-          <button
-            onClick={() => navigate('/shop')}
-            className="mt-3 px-6 py-3 border border-gray-600 rounded-lg font-semibold text-gray-300 hover:bg-gray-800 transition-colors w-full uppercase tracking-wide"
-          >
-            Continue Shopping
-          </button>
-        </div>
-      </div>
-    );
-  }
+  const subtotal = getCartSubtotal();
+  const shipping = 99; // Sample shipping
+  const tax = Math.round(subtotal * 0.18);
+  const grandTotal = subtotal + shipping + tax;
 
   if (cart.length === 0) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-center">
-          <ShoppingBag className="w-24 h-24 mx-auto text-gray-700 mb-4" />
-          <h2 className="text-2xl font-bold mb-2 text-white">Your cart is empty</h2>
-          <p className="text-gray-400 mb-6">Add some products to get started!</p>
-          <button onClick={() => navigate('/shop')} className="px-6 py-3 bg-orange-primary text-black font-bold rounded-lg hover:bg-orange-hover transition-colors uppercase tracking-wide">
-            Continue Shopping
-          </button>
-        </div>
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-8">
+        <h2 className="text-4xl font-display font-bold text-gray-900 mb-4">Your Selection is Empty</h2>
+        <p className="text-gray-400 font-body mb-8">Begin your curation journey in our studio shop.</p>
+        <button 
+          onClick={() => navigate('/shop')} 
+          className="px-12 py-4 bg-gray-900 text-white font-body font-bold uppercase tracking-widest text-sm rounded-full hover:bg-[var(--color-primary)] transition-all"
+        >
+          Explore Shop
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black">
-      <div className="relative bg-black/50 py-8 sm:py-12 md:py-16 border-b border-gray-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-display font-bold text-white mb-2 sm:mb-4 uppercase tracking-wide">
-            Shopping Cart
-          </h1>
-          <p className="text-sm sm:text-base md:text-lg text-gray-400">
-            {cart.length} {cart.length === 1 ? 'item' : 'items'} in your cart
+    <div className="min-h-screen bg-gray-50/50 pt-12 pb-24">
+      <div className="container-custom">
+        {/* Header */}
+        <div className="mb-16">
+          <h1 className="text-5xl md:text-6xl font-display font-bold text-gray-900 mb-4 tracking-tight">Your Selection</h1>
+          <p className="text-[10px] font-body font-bold text-gray-400 uppercase tracking-[0.3em]">
+            A COLLECTION OF YOUR CURATED SENTIMENTS
           </p>
         </div>
-      </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 md:py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-          <div className="lg:col-span-2 space-y-3 sm:space-y-4">
-            {cart.map((item) => (
-              <div key={item.id} className="bg-gray-900 rounded-lg sm:rounded-xl shadow-lg p-4 sm:p-6 border border-gray-800 hover:border-orange-primary/30 transition-all duration-300">
-                <div className="flex gap-3 sm:gap-4 md:gap-6">
-                  <div className="relative group">
-                    <img
-                      src={item.image}
-                      alt={item.name}
-                      className="w-20 h-20 sm:w-28 sm:h-28 md:w-32 md:h-32 object-cover rounded-lg flex-shrink-0"
-                    />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg" />
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr,400px] gap-12 items-start">
+          {/* Cart Items */}
+          <div className="space-y-6">
+            <div className="bg-white rounded-[40px] shadow-sm border border-gray-100 p-8 md:p-12 space-y-12">
+              {cart.map((item, idx) => (
+                <div key={item.id} className={`flex flex-col md:flex-row gap-8 pb-12 ${idx !== cart.length - 1 ? 'border-b border-gray-50' : ''}`}>
+                  {/* Image */}
+                  <div className="w-full md:w-48 h-48 rounded-[30px] overflow-hidden bg-gray-100 flex-shrink-0">
+                    <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-base sm:text-lg md:text-xl font-bold mb-1 sm:mb-2 line-clamp-2 text-white group-hover:text-orange-primary transition-colors uppercase tracking-wide">{item.name}</h3>
 
-                    {item.customization && (
-                      <div className="text-xs sm:text-sm text-gray-400 mb-2 sm:mb-3 space-y-0.5 sm:space-y-1 bg-black/20 p-2 rounded-lg">
-                        {item.customization.size && (
-                          <p><span className="text-gray-500">Size:</span> <span className="text-gray-300">{item.customization.size}</span></p>
+                  {/* Details */}
+                  <div className="flex-1 flex flex-col justify-between py-2">
+                    <div>
+                      <h3 className="text-2xl font-display font-bold text-gray-900 mb-4">{item.name}</h3>
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        {item.customization?.size && (
+                          <span className="px-3 py-1 bg-pink-50 text-[10px] font-body font-bold text-pink-600 uppercase tracking-widest rounded-full">
+                            SIZE: {item.customization.size}
+                          </span>
                         )}
-                        {Object.entries(item.customization.textInputs || {}).map(([key, value]) => (
-                          <p key={key} className="truncate"><span className="text-gray-500">{key}:</span> <span className="text-gray-300">{value}</span></p>
+                        {item.customization?.image && (
+                          <span className="px-3 py-1 bg-purple-50 text-[10px] font-body font-bold text-purple-600 uppercase tracking-widest rounded-full">
+                            PHOTO: UPLOADED
+                          </span>
+                        )}
+                        {Object.entries(item.customization?.textInputs || {}).map(([key, value]) => (
+                          <span key={key} className="px-3 py-1 bg-gray-100 text-[10px] font-body font-bold text-gray-600 uppercase tracking-widest rounded-full">
+                            {key}: {value}
+                          </span>
                         ))}
-                        {item.customization.image && (
-                          <p className="text-green-500 flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
-                            Custom image uploaded
-                          </p>
-                        )}
                       </div>
-                    )}
+                      <p className="text-sm italic font-serif text-gray-400">Hand-finished with premium oil</p>
+                    </div>
 
-                    {/* Show warning if customizable but no image */}
-                    {item.is_customizable && (!item.customization || !item.customization.image) && (
-                      <div className="bg-yellow-900/20 border border-yellow-700/50 rounded-lg p-2 mb-2 sm:mb-3">
-                        <div className="flex items-start gap-2">
-                          <AlertCircle className="w-4 h-4 text-yellow-500 flex-shrink-0 mt-0.5" />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs sm:text-sm text-yellow-500 font-medium">
-                              Image upload required
-                            </p>
-                            <p className="text-xs text-yellow-400/80 mt-0.5">
-                              This item needs customization. Please upload your image.
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="flex flex-col xs:flex-row xs:items-center xs:justify-between gap-3">
-                      <div className="flex items-center space-x-2 sm:space-x-3 md:space-x-4">
-                        <button
+                    <div className="flex items-center justify-between mt-8 md:mt-0">
+                      <div className="flex items-center bg-gray-100 rounded-full px-4 py-2 gap-6">
+                        <button 
                           onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1))}
-                          className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-gray-600 bg-black hover:border-orange-primary hover:text-orange-primary text-gray-400 transition-colors flex items-center justify-center"
+                          className="text-gray-400 hover:text-gray-900 transition-colors"
                         >
-                          <Minus className="w-3 h-3 sm:w-4 sm:h-4" />
+                          <Minus className="w-4 h-4" />
                         </button>
-                        <span className="text-base sm:text-lg font-semibold w-6 sm:w-8 text-center text-white">
-                          {item.quantity}
-                        </span>
-                        <button
+                        <span className="font-body font-bold text-gray-900">{item.quantity}</span>
+                        <button 
                           onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                          className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-gray-600 bg-black hover:border-orange-primary hover:text-orange-primary text-gray-400 transition-colors flex items-center justify-center"
+                          className="text-gray-400 hover:text-gray-900 transition-colors"
                         >
-                          <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
+                          <Plus className="w-4 h-4" />
                         </button>
                       </div>
 
-                      <div className="text-left xs:text-right">
-                        <p className="text-lg sm:text-xl md:text-2xl font-bold text-orange-primary">
-                          ₹{item.finalPrice * item.quantity}
-                        </p>
-                        {item.basePrice !== item.finalPrice && (
-                          <p className="text-xs sm:text-sm text-gray-600 line-through">
-                            ₹{item.basePrice * item.quantity}
-                          </p>
-                        )}
+                      <div className="flex items-center gap-8">
+                        <span className="text-2xl font-display font-bold text-gray-900">₹{(item.finalPrice * item.quantity).toLocaleString()}</span>
+                        <button 
+                          onClick={() => removeFromCart(item.id)}
+                          className="text-gray-300 hover:text-red-500 transition-colors"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
                       </div>
                     </div>
                   </div>
-
-                  <button
-                    onClick={() => removeFromCart(item.id)}
-                    className="text-gray-500 hover:text-red-500 transition-colors self-start p-2 hover:bg-red-500/10 rounded-full"
-                  >
-                    <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="lg:col-span-1">
-            <div className="bg-gray-900 rounded-lg sm:rounded-xl shadow-lg p-4 sm:p-6 lg:sticky lg:top-24 border border-gray-800">
-              <h2 className="text-xl sm:text-2xl font-display font-bold mb-4 sm:mb-6 text-white uppercase tracking-wide">
-                Order Summary
-              </h2>
-
-              <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
-                <div className="flex justify-between text-sm sm:text-base">
-                  <span className="text-gray-400">Subtotal</span>
-                  <span className="font-semibold text-white">₹{getCartSubtotal()}</span>
-                </div>
-                <div className="flex justify-between text-sm sm:text-base">
-                  <span className="text-gray-400">Service Charge</span>
-                  <span className="font-semibold text-white">₹{getServiceCharge()}</span>
-                </div>
-                <div className="flex justify-between text-sm sm:text-base">
-                  <span className="text-gray-400">Shipping</span>
-                  <span className="font-semibold text-green-500">FREE</span>
-                </div>
-                <div className="border-t border-gray-800 pt-2 sm:pt-3 flex justify-between">
-                  <span className="text-base sm:text-lg font-bold text-white">Total</span>
-                  <span className="text-xl sm:text-2xl font-bold text-orange-primary">
-                    ₹{getFinalTotal()}
-                  </span>
-                </div>
-              </div>
-
-              <button
-                onClick={handleProceedToCheckout}
-                className="w-full bg-orange-primary text-black font-bold uppercase tracking-wide flex items-center justify-center space-x-2 text-sm sm:text-base py-3 rounded-lg hover:bg-orange-hover transition-colors shadow-lg shadow-orange-primary/20"
-              >
-                <span>Proceed to Checkout</span>
-                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
-              </button>
-
-              <button
-                onClick={() => navigate('/shop')}
-                className="w-full mt-3 px-4 sm:px-6 py-2.5 sm:py-3 border border-gray-600 rounded-lg font-semibold text-gray-300 hover:bg-gray-800 transition-colors text-sm sm:text-base uppercase tracking-wide"
-              >
-                Continue Shopping
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Customization Alert Modal */}
-      {showCustomizationAlert && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-900 rounded-2xl shadow-2xl max-w-md w-full p-6 sm:p-8 animate-fade-in border border-gray-800">
-            <div className="flex items-center justify-center w-16 h-16 bg-yellow-900/30 rounded-full mx-auto mb-4 border border-yellow-700/30">
-              <Upload className="w-8 h-8 text-yellow-500" />
-            </div>
-
-            <h2 className="text-2xl font-bold text-center mb-3 text-white">
-              Customization Required
-            </h2>
-
-            <p className="text-gray-400 text-center mb-6">
-              The following items need custom images uploaded before checkout:
-            </p>
-
-            <div className="space-y-3 mb-6 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
-              {itemsNeedingCustomization.map((item) => (
-                <div key={item.id} className="flex items-center gap-3 p-3 bg-yellow-900/20 border border-yellow-700/30 rounded-lg">
-                  <img
-                    src={item.image}
-                    alt={item.name}
-                    className="w-12 h-12 object-cover rounded bg-gray-800"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-sm line-clamp-2 text-white">{item.name}</p>
-                    <p className="text-xs text-yellow-500">Upload required</p>
-                  </div>
-                  <AlertCircle className="w-5 h-5 text-yellow-500 flex-shrink-0" />
                 </div>
               ))}
             </div>
 
-            <div className="space-y-3">
-              <button
-                onClick={() => {
-                  setShowCustomizationAlert(false);
-                  // Navigate to shop to customize items
-                  navigate('/shop');
-                }}
-                className="w-full bg-orange-primary text-black font-semibold py-3 rounded-lg hover:bg-orange-hover transition-colors uppercase tracking-wide"
-              >
-                Go to Shop & Customize
-              </button>
+            {/* Actions */}
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+              <Link to="/shop" className="flex items-center gap-3 text-sm font-body font-bold text-[var(--color-primary)] uppercase tracking-widest group">
+                <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-2" />
+                <span>Continue Shopping</span>
+              </Link>
 
-              <button
-                onClick={() => setShowCustomizationAlert(false)}
-                className="w-full px-6 py-3 border border-gray-600 rounded-lg font-semibold text-gray-300 hover:bg-gray-800 transition-colors uppercase tracking-wide"
+              <div className="w-full md:w-auto bg-[#FFF9E5] border border-[#F7D060] rounded-2xl px-6 py-4 flex items-center gap-4">
+                <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-[#B18C2D]">
+                  <MessageCircle className="w-5 h-5" />
+                </div>
+                <p className="text-xs font-body font-bold text-[#866D23]">
+                  Need help with customization? <a href="https://wa.me/yournumber" className="underline decoration-2 underline-offset-4">Order via WhatsApp</a>
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Sidebar */}
+          <div className="sticky top-32 space-y-6">
+            <div className="bg-white rounded-[40px] shadow-sm border border-gray-100 p-10">
+              <h2 className="text-3xl font-display font-bold text-gray-900 mb-10">Order Summary</h2>
+              
+              <div className="space-y-6 mb-10 pb-10 border-b border-gray-50">
+                <div className="flex justify-between font-body text-gray-500">
+                  <span>Subtotal</span>
+                  <span className="text-gray-900 font-bold">₹{subtotal.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between font-body text-gray-500">
+                  <span>Shipping</span>
+                  <span className="text-gray-900 font-bold">₹{shipping}</span>
+                </div>
+                <div className="flex justify-between font-body text-gray-500">
+                  <span>Tax (GST 18%)</span>
+                  <span className="text-gray-900 font-bold">₹{tax.toLocaleString()}</span>
+                </div>
+              </div>
+
+              <div className="mb-10">
+                <p className="text-[10px] font-body font-bold text-gray-400 uppercase tracking-[0.3em] mb-2">GRAND TOTAL</p>
+                <p className="text-6xl font-display font-bold text-[var(--color-primary)]">₹{grandTotal.toLocaleString()}</p>
+              </div>
+
+              <button 
+                onClick={() => navigate(isAuthenticated() ? '/checkout' : '/login')}
+                className="w-full py-6 bg-[var(--color-primary)] text-white rounded-3xl font-body font-bold text-lg hover:shadow-2xl hover:shadow-purple-200 transition-all active:scale-95"
               >
-                Continue Shopping
+                Proceed to Checkout
               </button>
+              <p className="text-center text-[10px] font-body font-bold text-gray-300 uppercase tracking-widest mt-4">
+                SECURE ENCRYPTED TRANSACTIONS ONLY
+              </p>
             </div>
 
-            <p className="text-xs text-gray-500 text-center mt-4">
-              💡 Tip: Remove these items from cart or upload custom images to proceed
-            </p>
+            {/* Satisfaction Card */}
+            <div className="bg-white rounded-[30px] border border-gray-100 p-8 flex gap-6">
+              <div className="flex-shrink-0 w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center text-gray-900">
+                <ShieldCheck className="w-6 h-6" />
+              </div>
+              <div>
+                <h4 className="text-[10px] font-body font-bold text-gray-900 uppercase tracking-widest mb-2">SATISFACTION GUARANTEED</h4>
+                <p className="text-[10px] font-body leading-relaxed text-gray-400 uppercase tracking-wider">
+                  Each item is individually crafted by our boutique studio artists. We ensure every detail matches your memory.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };
 
 export default CartPage;
+
