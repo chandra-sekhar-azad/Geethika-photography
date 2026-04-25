@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { ShoppingCart, Upload, Zap } from 'lucide-react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { ShoppingCart, Upload, Star, ChevronRight, Minus, Plus, MessageSquare, Truck, ShieldCheck, ArrowRight, Edit3 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import ProductCard from '../components/ProductCard';
 
 const ProductDetailPage = () => {
   const { id } = useParams();
@@ -13,24 +14,26 @@ const ProductDetailPage = () => {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
+  const [activeTab, setActiveTab] = useState('description');
+  const [selectedImage, setSelectedImage] = useState(0);
+  const [relatedProducts, setRelatedProducts] = useState([]);
   const [customization, setCustomization] = useState({
     image: null,
     imagePreview: null,
-    textInputs: {},
-    selectedSize: null,
+    message: '',
   });
 
   useEffect(() => {
     fetchProduct();
+    fetchRelatedProducts();
+    window.scrollTo(0, 0);
   }, [id]);
 
   const fetchProduct = async () => {
     try {
       setLoading(true);
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/products/${id}`);
-      if (!response.ok) {
-        throw new Error('Product not found');
-      }
+      if (!response.ok) throw new Error('Product not found');
       const data = await response.json();
       setProduct(data);
     } catch (error) {
@@ -41,44 +44,16 @@ const ProductDetailPage = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-black">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-primary"></div>
-      </div>
-    );
-  }
-
-  if (!product) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-black">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold mb-4 text-white">Product not found</h2>
-          <button onClick={() => navigate('/shop')} className="px-6 py-3 bg-orange-primary text-black font-bold rounded-lg uppercase tracking-wide">
-            Back to Shop
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  const finalPrice = product.discount
-    ? product.price - (product.price * product.discount / 100)
-    : product.price;
-
-  const calculatePrice = () => {
-    let price = finalPrice;
-    if (customization.selectedSize && product.customization_options?.sizes) {
-      const sizeOption = product.customization_options.sizes.find(
-        s => s.name === customization.selectedSize
-      );
-      if (sizeOption) {
-        price = product.discount
-          ? sizeOption.price - (sizeOption.price * product.discount / 100)
-          : sizeOption.price;
+  const fetchRelatedProducts = async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/products?limit=4`);
+      if (response.ok) {
+        const data = await response.json();
+        setRelatedProducts(data.products.filter(p => p.id !== id));
       }
+    } catch (error) {
+      console.error('Failed to fetch related products:', error);
     }
-    return price;
   };
 
   const handleImageUpload = (e) => {
@@ -92,288 +67,332 @@ const ProductDetailPage = () => {
     }
   };
 
-  const handleTextInput = (label, value) => {
-    setCustomization({
-      ...customization,
-      textInputs: {
-        ...customization.textInputs,
-        [label]: value,
-      },
-    });
-  };
-
-  const validateCustomization = () => {
-    // Check if user is logged in
+  const handleAddToCart = () => {
     if (!isAuthenticated()) {
-      // Redirect to login with return path
       navigate('/login', { state: { from: { pathname: `/product/${product.id}` } } });
-      return false;
+      return;
     }
 
-    // Validate customization if product is customizable
-    if (product.customizable && product.customization_options) {
-      // Check if image upload is required
-      if (product.customization_options.imageUpload && !customization.image) {
-        alert('Please upload an image for customization');
-        return false;
-      }
-
-      // Check if text inputs are filled (if any)
-      if (product.customization_options.textInput) {
-        const missingInputs = product.customization_options.textInput.filter(
-          label => !customization.textInputs[label] || customization.textInputs[label].trim() === ''
-        );
-        if (missingInputs.length > 0) {
-          alert(`Please fill in: ${missingInputs.join(', ')}`);
-          return false;
-        }
-      }
-
-      // Check if size is selected (if sizes are available)
-      if (product.customization_options.sizes && !customization.selectedSize) {
-        alert('Please select a size');
-        return false;
-      }
-    }
-
-    return true;
-  };
-
-  const createCartItem = () => {
-    return {
+    const cartItem = {
       id: product.id,
       name: product.name,
-      image: product.image || product.image_url,
-      image_url: product.image || product.image_url,
-      basePrice: product.price,
-      finalPrice: calculatePrice(),
+      image: product.image_url || product.image,
+      price: product.price,
       quantity,
       customization: product.customizable ? {
         image: customization.imagePreview,
-        imageFile: customization.image,
-        textInputs: customization.textInputs,
-        size: customization.selectedSize,
+        message: customization.message,
       } : null,
     };
+
+    addToCart(cartItem);
+    navigate('/cart');
   };
 
-  const handleAddToCart = () => {
-    if (!validateCustomization()) return;
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className="w-12 h-12 border-4 border-gray-100 border-t-[var(--color-primary)] rounded-full animate-spin"></div>
+    </div>
+  );
 
-    const cartItem = createCartItem();
-    const success = addToCart(cartItem);
-    if (success) {
-      // Show success message or navigate to cart
-      navigate('/cart');
-    }
-  };
+  if (!product) return (
+    <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className="text-center">
+        <h2 className="text-2xl font-display font-bold mb-4">Product not found</h2>
+        <button onClick={() => navigate('/shop')} className="btn-primary">Back to Shop</button>
+      </div>
+    </div>
+  );
 
-  const handleBuyNow = () => {
-    if (!validateCustomization()) return;
-
-    const cartItem = createCartItem();
-    const success = addToCart(cartItem);
-    if (success) {
-      // Directly navigate to checkout page
-      navigate('/checkout');
-    }
-  };
+  const images = [
+    product.image_url || product.image,
+    'https://images.unsplash.com/photo-1514228742587-6b1558fbed50?w=600&h=600&fit=crop',
+    'https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=600&h=600&fit=crop',
+  ].filter(Boolean);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black py-6 sm:py-8 md:py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-gray-900 rounded-xl sm:rounded-2xl shadow-lg overflow-hidden border border-gray-800">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
-            {/* Product Image */}
-            <div className="relative bg-gray-800">
-              <img
-                src={product.image_url || product.image}
-                alt={product.name}
-                className="w-full h-64 sm:h-80 md:h-96 lg:h-full object-cover"
-              />
-              {product.valentine_special && (
-                <div className="absolute top-3 sm:top-4 left-3 sm:left-4 bg-orange-primary text-black px-3 py-1.5 sm:px-4 sm:py-2 rounded-full font-semibold text-xs sm:text-sm shadow-lg pointer-events-none uppercase tracking-wider">
-                  ✨ Special Item
-                </div>
-              )}
-              {product.discount && (
-                <div className="absolute top-3 sm:top-4 right-3 sm:right-4 bg-red-600 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-full font-semibold text-xs sm:text-sm shadow-lg pointer-events-none">
-                  {product.discount}% OFF
-                </div>
-              )}
+    <div className="min-h-screen bg-white">
+      {/* Breadcrumbs */}
+      <div className="bg-white py-4">
+        <div className="container-custom">
+          <nav className="flex items-center gap-2 text-xs font-body font-bold tracking-widest text-gray-400 uppercase">
+            <Link to="/shop" className="hover:text-[var(--color-primary)] transition-colors">Shop</Link>
+            <ChevronRight className="w-3 h-3" />
+            <Link to={`/shop/${product.category_slug || 'all'}`} className="hover:text-[var(--color-primary)] transition-colors">
+              {product.category_name || 'Custom Gifts'}
+            </Link>
+            <ChevronRight className="w-3 h-3" />
+            <span className="text-gray-900">{product.name}</span>
+          </nav>
+        </div>
+      </div>
+
+      <div className="container-custom py-10">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 mb-24">
+          {/* Product Media */}
+          <div className="flex gap-6">
+            {/* Thumbnails */}
+            <div className="hidden md:flex flex-col gap-4">
+              {images.map((img, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setSelectedImage(idx)}
+                  className={`w-20 h-20 rounded-xl overflow-hidden border-2 transition-all ${selectedImage === idx ? 'border-[var(--color-primary)]' : 'border-gray-100'}`}
+                >
+                  <img src={img} className="w-full h-full object-cover" alt="Product thumbnail" />
+                </button>
+              ))}
             </div>
 
-            {/* Product Details */}
-            <div className="p-4 sm:p-6 md:p-8">
-              <h1 className="text-2xl sm:text-3xl font-display font-bold mb-3 sm:mb-4 text-white uppercase tracking-wide">{product.name}</h1>
-              <p className="text-sm sm:text-base text-gray-400 mb-4 sm:mb-6 leading-relaxed">{product.description}</p>
-
-              {/* Price */}
-              <div className="mb-4 sm:mb-6">
-                {product.discount ? (
-                  <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                    <span className="text-2xl sm:text-3xl font-bold text-orange-primary">
-                      ₹{calculatePrice()}
-                    </span>
-                    <span className="text-lg sm:text-xl text-gray-500 line-through">
-                      ₹{product.price}
-                    </span>
-                    <span className="bg-green-600/20 text-green-500 px-2 py-1 sm:px-3 sm:py-1 rounded-full text-xs sm:text-sm font-semibold border border-green-600/30">
-                      Save {product.discount}%
-                    </span>
-                  </div>
-                ) : (
-                  <span className="text-2xl sm:text-3xl font-bold text-orange-primary">
-                    ₹{calculatePrice()}
-                  </span>
-                )}
+            {/* Main Image */}
+            <div className="relative flex-1 aspect-[4/5] rounded-2xl overflow-hidden bg-gray-50 shadow-2xl shadow-gray-200">
+              <img src={images[selectedImage]} className="w-full h-full object-cover" alt={product.name} />
+              <div className="absolute top-6 left-6">
+                <span className="bg-gray-900 text-white text-[10px] font-bold px-4 py-2 rounded-full uppercase tracking-widest">
+                  Best Seller
+                </span>
               </div>
+            </div>
+          </div>
 
-              {/* Customization Options */}
-              {product.customizable && product.customization_options && (
-                <div className="mb-4 sm:mb-6 space-y-3 sm:space-y-4 bg-black/20 p-4 rounded-xl border border-gray-800">
-                  <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-white uppercase tracking-wide">Customize Your Product</h3>
+          {/* Product Info */}
+          <div className="animate-slide-up">
+            <h1 className="text-5xl md:text-6xl font-display font-bold text-gray-900 mb-4 leading-tight">
+              {product.name}
+            </h1>
+            <div className="flex items-center gap-4 mb-8">
+              <span className="text-3xl font-display font-bold text-[var(--color-primary)]">₹{product.price}</span>
+              <div className="flex items-center gap-1">
+                <div className="flex">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className={`w-3 h-3 ${i < 4 ? 'fill-[#F7D060] text-[#F7D060]' : 'text-gray-200'}`} />
+                  ))}
+                </div>
+                <span className="text-xs text-gray-400 font-body font-bold">(124 Reviews)</span>
+              </div>
+            </div>
 
-                  {/* Image Upload */}
-                  {product.customization_options.imageUpload && (
-                    <div>
-                      <label className="block text-xs sm:text-sm font-semibold mb-2 text-gray-300">
-                        Upload Your Image <span className="text-red-500">*</span>
-                      </label>
-                      <div className="border-2 border-dashed border-gray-700 rounded-lg p-3 sm:p-4 text-center hover:border-orange-primary transition-colors bg-gray-800">
-                        {customization.imagePreview ? (
-                          <div className="relative">
-                            <img
-                              src={customization.imagePreview}
-                              alt="Preview"
-                              className="max-h-32 sm:max-h-40 mx-auto rounded"
-                            />
-                            <button
-                              onClick={() => setCustomization({ ...customization, image: null, imagePreview: null })}
-                              className="mt-2 text-xs sm:text-sm text-red-500 hover:text-red-400 hover:underline"
-                            >
-                              Remove Image
-                            </button>
-                          </div>
-                        ) : (
-                          <label className="cursor-pointer">
-                            <Upload className="w-10 h-10 sm:w-12 sm:h-12 mx-auto text-gray-500 mb-2" />
-                            <p className="text-xs sm:text-sm text-gray-400 mb-1">Click to upload your image</p>
-                            <p className="text-[10px] sm:text-xs text-gray-500">Required for customization</p>
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={handleImageUpload}
-                              className="hidden"
-                              required
-                            />
-                          </label>
-                        )}
+            <p className="text-gray-500 font-body text-lg leading-relaxed mb-12">
+              {product.description || "A high-quality personalized item crafted just for you. The perfect way to preserve your favorite memories and share them with the world."}
+            </p>
+
+            {/* Customization */}
+            {product.customizable && (
+              <div className="space-y-10 mb-12">
+                {/* 1. Image Upload */}
+                <div>
+                  <h4 className="text-xs font-body font-bold tracking-[0.2em] text-gray-400 uppercase mb-4">1. Personalize with image</h4>
+                  <div className="border-2 border-dashed border-gray-100 rounded-2xl p-8 bg-gray-50/50 hover:bg-gray-50 hover:border-purple-200 transition-all text-center">
+                    {customization.imagePreview ? (
+                      <div className="relative group inline-block">
+                        <img src={customization.imagePreview} className="max-h-40 rounded-xl shadow-lg" alt="Upload preview" />
+                        <button 
+                          onClick={() => setCustomization({...customization, image: null, imagePreview: null})}
+                          className="absolute -top-2 -right-2 bg-red-500 text-white p-1 rounded-full shadow-md"
+                        >
+                          <Plus className="w-4 h-4 rotate-45" />
+                        </button>
                       </div>
-                      <p className="text-[10px] sm:text-xs text-gray-500 mt-2">
-                        💡 Upload the image you want printed/customized on this product
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Text Inputs */}
-                  {product.customization_options.textInput && (
-                    <div className="space-y-2 sm:space-y-3">
-                      {product.customization_options.textInput.map((label) => (
-                        <div key={label}>
-                          <label className="block text-xs sm:text-sm font-semibold mb-1 text-gray-300">
-                            {label} <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            value={customization.textInputs[label] || ''}
-                            onChange={(e) => handleTextInput(label, e.target.value)}
-                            className="w-full px-3 py-2 sm:px-4 sm:py-2 text-sm sm:text-base bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-orange-primary focus:border-transparent text-white placeholder-gray-500"
-                            placeholder={`Enter ${label.toLowerCase()}`}
-                            required
-                          />
+                    ) : (
+                      <label className="cursor-pointer block group">
+                        <div className="w-14 h-14 bg-white rounded-full shadow-sm flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                          <Upload className="w-6 h-6 text-[var(--color-primary)]" />
                         </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Size Selection */}
-                  {product.customization_options.sizes && (
-                    <div>
-                      <label className="block text-xs sm:text-sm font-semibold mb-2 text-gray-300">
-                        Select Size <span className="text-red-500">*</span>
+                        <p className="text-sm font-body font-bold text-gray-700 mb-1">Upload Photo</p>
+                        <p className="text-[10px] text-gray-400 font-body">High resolution JPG or PNG recommended</p>
+                        <input type="file" className="hidden" onChange={handleImageUpload} accept="image/*" />
                       </label>
-                      <div className="grid grid-cols-3 gap-2">
-                        {product.customization_options.sizes.map((size) => (
-                          <button
-                            key={size.name}
-                            onClick={() => setCustomization({ ...customization, selectedSize: size.name })}
-                            className={`px-2 py-2 sm:px-4 sm:py-2 rounded-lg border transition-colors ${customization.selectedSize === size.name
-                                ? 'border-orange-primary bg-orange-primary text-black'
-                                : 'border-gray-700 bg-gray-800 text-gray-300 hover:border-orange-primary'
-                              }`}
-                          >
-                            <div className="text-xs sm:text-sm font-semibold uppercase">{size.name}</div>
-                            <div className="text-[10px] sm:text-xs font-mono">₹{size.price}</div>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
-              )}
 
-              {/* Quantity */}
-              <div className="mb-4 sm:mb-6">
-                <label className="block text-xs sm:text-sm font-semibold mb-2 text-gray-300">Quantity</label>
-                <div className="flex items-center space-x-3 sm:space-x-4">
-                  <button
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border border-gray-600 bg-black hover:border-orange-primary hover:text-orange-primary text-gray-300 transition-colors text-lg sm:text-xl flex items-center justify-center"
-                  >
-                    -
-                  </button>
-                  <span className="text-lg sm:text-xl font-semibold w-10 sm:w-12 text-center text-white">{quantity}</span>
-                  <button
-                    onClick={() => setQuantity(quantity + 1)}
-                    className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border border-gray-600 bg-black hover:border-orange-primary hover:text-orange-primary text-gray-300 transition-colors text-lg sm:text-xl flex items-center justify-center"
-                  >
-                    +
-                  </button>
+                {/* 2. Custom Message */}
+                <div>
+                  <h4 className="text-xs font-body font-bold tracking-[0.2em] text-gray-400 uppercase mb-4">2. Add a custom message</h4>
+                  <textarea
+                    placeholder="Write your heartfelt note here..."
+                    value={customization.message}
+                    onChange={(e) => setCustomization({...customization, message: e.target.value})}
+                    className="w-full bg-gray-50 border-none rounded-2xl p-6 font-body text-sm text-gray-700 focus:ring-2 focus:ring-purple-100 h-32 resize-none transition-all"
+                  />
                 </div>
               </div>
+            )}
 
-              {/* Total Price */}
-              <div className="mb-4 sm:mb-6 bg-black/40 border border-gray-800 p-3 sm:p-4 rounded-lg">
-                <div className="flex justify-between items-center">
-                  <span className="text-base sm:text-lg font-semibold text-gray-300">Total Price:</span>
-                  <span className="text-xl sm:text-2xl font-bold text-orange-primary">
-                    ₹{calculatePrice() * quantity}
-                  </span>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                {/* Add to Cart Button */}
-                <button
-                  onClick={handleAddToCart}
-                  className="w-full py-3 sm:py-4 bg-gray-800 border border-gray-700 text-white rounded-lg font-bold hover:bg-gray-700 hover:border-gray-600 transition-colors flex items-center justify-center gap-2 uppercase tracking-wide"
+            {/* Quantity */}
+            <div className="mb-10">
+              <h4 className="text-xs font-body font-bold tracking-[0.2em] text-gray-400 uppercase mb-4">Quantity</h4>
+              <div className="inline-flex items-center bg-gray-50 rounded-full px-2 py-1">
+                <button 
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  className="w-10 h-10 flex items-center justify-center text-gray-500 hover:text-gray-900"
                 >
-                  <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
-                  <span>Add to Cart</span>
+                  <Minus className="w-4 h-4" />
                 </button>
-
-                {/* Buy Now Button */}
-                <button
-                  onClick={handleBuyNow}
-                  className="w-full py-3 sm:py-4 bg-orange-primary text-black rounded-lg font-bold hover:bg-orange-hover transition-colors flex items-center justify-center gap-2 uppercase tracking-wide shadow-lg shadow-orange-primary/20"
+                <span className="w-10 text-center font-body font-bold text-gray-900">{quantity}</span>
+                <button 
+                  onClick={() => setQuantity(quantity + 1)}
+                  className="w-10 h-10 flex items-center justify-center text-gray-500 hover:text-gray-900"
                 >
-                  <Zap className="w-4 h-4 sm:w-5 sm:h-5" />
-                  <span>Buy Now</span>
+                  <Plus className="w-4 h-4" />
                 </button>
               </div>
             </div>
+
+            {/* Buttons */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+              <button 
+                onClick={handleAddToCart}
+                className="py-4 bg-[#8E447E] text-white rounded-xl font-body font-bold text-sm flex items-center justify-center gap-2 hover:bg-[#7A3B6D] transition-all shadow-lg active:scale-95"
+              >
+                <ShoppingCart className="w-4 h-4" />
+                <span>Add to Cart</span>
+              </button>
+              <button 
+                onClick={handleAddToCart}
+                className="py-4 bg-[#F7D060] text-gray-900 rounded-xl font-body font-bold text-sm flex items-center justify-center hover:bg-[#EAB308] transition-all shadow-lg active:scale-95"
+              >
+                <span>Customize & Order</span>
+              </button>
+            </div>
+
+            {/* Trust Badges */}
+            <div className="flex items-center gap-8 text-[10px] font-body font-bold text-gray-400 uppercase tracking-widest">
+              <div className="flex items-center gap-2">
+                <Truck className="w-4 h-4 text-[#10B981]" />
+                <span>Ships in 2-3 days</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-[var(--color-primary)]" />
+                <span>Quality Guarantee</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div className="mb-24">
+          <div className="flex gap-12 border-b border-gray-100 mb-12">
+            {[
+              { id: 'description', label: 'Product Description' },
+              { id: 'reviews', label: 'Customer Reviews (124)' },
+              { id: 'shipping', label: 'Shipping & Returns' },
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`pb-4 text-[10px] font-body font-bold tracking-widest uppercase transition-all relative ${activeTab === tab.id ? 'text-[var(--color-primary)]' : 'text-gray-400 hover:text-gray-600'}`}
+              >
+                {tab.label}
+                {activeTab === tab.id && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-[var(--color-primary)]" />}
+              </button>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-20">
+            <div className="lg:col-span-2">
+              {activeTab === 'description' && (
+                <div className="animate-fade-in">
+                  <h3 className="text-3xl font-display font-bold text-gray-900 mb-6 italic">Unveil the Magic of Memories</h3>
+                  <p className="text-gray-500 font-body leading-relaxed mb-10">
+                    Our {product.name} is crafted from premium grade materials with a specialized finish. When at room temperature, the item appears as a sleek, matte vessel—perfectly inconspicuous. As you interact with it, the coating becomes transparent, revealing a vibrant, high-definition photo of your choice.
+                  </p>
+                  <div className="grid grid-cols-2 gap-y-10">
+                    <div>
+                      <h5 className="text-[10px] font-body font-bold tracking-widest text-gray-400 uppercase mb-2">Material</h5>
+                      <p className="text-sm font-body text-gray-700">High-Quality Ceramic, BPA Free</p>
+                    </div>
+                    <div>
+                      <h5 className="text-[10px] font-body font-bold tracking-widest text-gray-400 uppercase mb-2">Capacity</h5>
+                      <p className="text-sm font-body text-gray-700">11oz (325ml)</p>
+                    </div>
+                    <div>
+                      <h5 className="text-[10px] font-body font-bold tracking-widest text-gray-400 uppercase mb-2">Care</h5>
+                      <p className="text-sm font-body text-gray-700">Handwash recommended to preserve coating</p>
+                    </div>
+                    <div>
+                      <h5 className="text-[10px] font-body font-bold tracking-widest text-gray-400 uppercase mb-2">Print Tech</h5>
+                      <p className="text-sm font-body text-gray-700">Thermodynamic Sublimation</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {activeTab === 'reviews' && (
+                <div className="animate-fade-in text-center py-20 bg-gray-50 rounded-2xl">
+                  <MessageSquare className="w-12 h-12 text-gray-200 mx-auto mb-4" />
+                  <p className="text-gray-400 font-body">Detailed reviews coming soon...</p>
+                </div>
+              )}
+              {activeTab === 'shipping' && (
+                <div className="animate-fade-in text-gray-500 font-body leading-relaxed">
+                  <h3 className="text-2xl font-display font-bold text-gray-900 mb-4">Fast & Secure Shipping</h3>
+                  <p className="mb-4">We ship worldwide from our Eluru studio. Orders are typically processed within 24-48 hours.</p>
+                  <ul className="list-disc pl-5 space-y-2">
+                    <li>Domestic (India): 3-5 business days</li>
+                    <li>International: 7-14 business days</li>
+                  </ul>
+                </div>
+              )}
+            </div>
+
+            {/* Sidebar / What Curators Say */}
+            <div className="bg-[#F9FAFB] rounded-2xl p-10">
+              <h4 className="text-xl font-display font-bold text-gray-900 mb-8">What Curators Say</h4>
+              <div className="space-y-8 mb-10">
+                <div className="border-b border-gray-100 pb-8">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="font-body font-bold text-sm text-gray-900">Elena R.</span>
+                    <div className="flex">
+                      {[...Array(5)].map((_, i) => <Star key={i} className="w-3 h-3 fill-[#F7D060] text-[#F7D060]" />)}
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500 italic font-body leading-relaxed">
+                    "Bought this for my mother's birthday with a photo of the grandkids. She cried when she saw it! The quality is amazing."
+                  </p>
+                </div>
+                <div className="pb-8">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="font-body font-bold text-sm text-gray-900">Mark T.</span>
+                    <div className="flex">
+                      {[...Array(5)].map((_, i) => <Star key={i} className="w-3 h-3 fill-[#F7D060] text-[#F7D060]" />)}
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500 italic font-body leading-relaxed">
+                    "The photo reveal is so smooth. A great conversation piece for my home office."
+                  </p>
+                </div>
+              </div>
+              <button className="text-[10px] font-body font-bold tracking-widest text-[var(--color-primary)] uppercase hover:underline">
+                Read All 124 Reviews
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* You May Also Love */}
+        <div>
+          <div className="flex items-center justify-between mb-12">
+            <div>
+              <h2 className="text-4xl font-display font-bold text-gray-900 mb-2">You May Also Love</h2>
+              <p className="text-gray-400 font-body text-sm">Curated sentimental gifts to complete your collection.</p>
+            </div>
+            <Link to="/shop" className="group flex items-center gap-2 text-xs font-body font-bold tracking-widest text-[var(--color-primary)] uppercase">
+              <span>View Entire Shop</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
+            {relatedProducts.length > 0 ? (
+              relatedProducts.map(p => (
+                <ProductCard key={p.id} product={p} />
+              ))
+            ) : (
+              // Fallback cards if no related products
+              [1, 2, 3, 4].map(i => (
+                <div key={i} className="bg-gray-50 aspect-square rounded-2xl animate-pulse" />
+              ))
+            )}
           </div>
         </div>
       </div>
@@ -382,3 +401,4 @@ const ProductDetailPage = () => {
 };
 
 export default ProductDetailPage;
+

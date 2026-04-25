@@ -1,11 +1,11 @@
 import { Link } from 'react-router-dom';
-import { Heart, ShoppingCart, Trash2 } from 'lucide-react';
+import { Heart, ShoppingCart, Trash2, ArrowRight, Share2 } from 'lucide-react';
 import { useWishlist } from '../context/WishlistContext';
 import { useCart } from '../context/CartContext';
 import { useState } from 'react';
 
 const WishlistPage = () => {
-  const { wishlist, removeFromWishlist } = useWishlist();
+  const { wishlist, removeFromWishlist, clearWishlist } = useWishlist();
   const { addToCart } = useCart();
   const [addedToCart, setAddedToCart] = useState({});
 
@@ -14,162 +14,152 @@ const WishlistPage = () => {
       id: product.id,
       name: product.name,
       price: product.price,
-      finalPrice: product.discount
-        ? product.price - (product.price * product.discount / 100)
-        : product.price,
       image: product.image_url || product.image,
       quantity: 1,
-      customization: null
     };
 
-    const success = addToCart(cartItem);
-    if (success) {
-      setAddedToCart(prev => ({ ...prev, [product.id]: true }));
-      setTimeout(() => {
-        setAddedToCart(prev => ({ ...prev, [product.id]: false }));
-      }, 2000);
-    }
-  };
-
-  const handleRemove = (productId) => {
-    removeFromWishlist(productId);
+    addToCart(cartItem);
+    setAddedToCart(prev => ({ ...prev, [product.id]: true }));
+    setTimeout(() => {
+      setAddedToCart(prev => ({ ...prev, [product.id]: false }));
+    }, 2000);
   };
 
   if (wishlist.length === 0) {
     return (
-      <div className="min-h-screen bg-black">
-        <div className="relative bg-black/50 py-8 sm:py-12 md:py-16 border-b border-gray-800">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-display font-bold text-white mb-2 sm:mb-4 uppercase tracking-wide">
-              My Wishlist
-            </h1>
-            <p className="text-sm sm:text-base md:text-lg text-gray-400">
-              Save your favorite items for later
-            </p>
+      <div className="min-h-screen bg-white py-24">
+        <div className="container-custom text-center">
+          <div className="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-8">
+            <Heart className="w-10 h-10 text-gray-200" />
           </div>
-        </div>
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="text-center">
-            <Heart className="w-16 h-16 sm:w-20 sm:h-20 text-gray-700 mx-auto mb-4" />
-            <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">Your wishlist is empty</h2>
-            <p className="text-gray-400 mb-6">Start adding products you love!</p>
-            <Link
-              to="/shop"
-              className="inline-block bg-orange-primary text-black px-6 py-3 rounded-full font-bold hover:shadow-lg hover:bg-orange-hover transition-all uppercase tracking-wide"
-            >
-              Browse Products
-            </Link>
-          </div>
+          <h1 className="text-4xl font-display font-bold text-gray-900 mb-4">Your collection is waiting.</h1>
+          <p className="text-gray-400 font-body mb-10 max-w-md mx-auto">
+            You haven't saved any treasures yet. Explore our shop to find items that speak to you.
+          </p>
+          <Link to="/shop" className="btn-primary">
+            Explore Shop
+          </Link>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black">
-      <div className="relative bg-black/50 py-8 sm:py-12 md:py-16 border-b border-gray-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-display font-bold text-white mb-2 sm:mb-4 uppercase tracking-wide">
-            My Wishlist
-          </h1>
-          <p className="text-sm sm:text-base md:text-lg text-gray-400">
-            {wishlist.length} {wishlist.length === 1 ? 'item' : 'items'} saved
-          </p>
+    <div className="min-h-screen bg-white">
+      {/* Header */}
+      <div className="py-20 border-b border-gray-50">
+        <div className="container-custom">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
+            <div className="max-w-2xl">
+              <span className="bg-[#FCE4EC] text-[#9D4E8D] text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest mb-4 inline-block">
+                Your Selection
+              </span>
+              <h1 className="text-6xl font-display font-bold text-gray-900 mb-6">Saved Treasures</h1>
+              <p className="text-gray-400 font-body text-lg leading-relaxed">
+                A curated collection of your most cherished digital finds and physical dreams, waiting for their moment.
+              </p>
+            </div>
+            <div className="flex items-center gap-6 text-[10px] font-body font-bold text-gray-400 uppercase tracking-widest">
+              <span>{wishlist.length} Items Saved</span>
+              <span className="w-1 h-1 bg-gray-200 rounded-full" />
+              <button onClick={clearWishlist} className="hover:text-red-500 transition-colors">Clear All</button>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
-          {wishlist.map((product) => {
-            const finalPrice = product.discount
-              ? product.price - (product.price * product.discount / 100)
-              : product.price;
-
-            return (
-              <div key={product.id} className="group relative bg-gray-900 rounded-xl overflow-hidden border border-gray-800 hover:border-orange-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-orange-primary/10">
-                <Link to={`/product/${product.id}`}>
-                  <div className="relative overflow-hidden bg-gray-800">
-                    <img
-                      src={
-                        (product.image_url || product.image)?.startsWith('http')
-                          ? (product.image_url || product.image)
-                          : `${import.meta.env.VITE_API_URL}${product.image_url || product.image}`
-                      }
-                      alt={product.name}
-                      className="w-full aspect-[4/3] object-cover group-hover:scale-110 transition-transform duration-300"
-                      onError={(e) => {
-                        e.target.src = 'https://images.unsplash.com/photo-1513885535751-8b9238bd345a?w=400&h=400&fit=crop';
-                      }}
-                    />
-
-                    {/* Remove from wishlist button */}
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        handleRemove(product.id);
-                      }}
-                      className="absolute top-2 right-2 p-2 rounded-full bg-black/50 text-white hover:bg-red-600 transition-all duration-300 hover:scale-110 z-10 backdrop-blur-sm"
-                      aria-label="Remove from wishlist"
-                    >
-                      <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
-                    </button>
-
-                    {product.valentine_special && (
-                      <div className="absolute top-2 left-2 bg-orange-primary text-black px-2 py-1 sm:px-3 sm:py-1 rounded-full text-[10px] sm:text-xs font-semibold pointer-events-none">
-                        ✨ Special Item
-                      </div>
-                    )}
-                    {product.discount && (
-                      <div className="absolute top-12 left-2 bg-red-600 text-white px-2 py-1 sm:px-3 sm:py-1 rounded-full text-[10px] sm:text-xs font-semibold shadow-lg pointer-events-none">
-                        {product.discount}% OFF
-                      </div>
-                    )}
-                  </div>
-                </Link>
-
-                <div className="p-2 sm:p-4">
-                  <Link to={`/product/${product.id}`}>
-                    <h3 className="font-bold text-xs sm:text-base md:text-lg mb-1.5 sm:mb-2 text-white hover:text-orange-primary transition-colors line-clamp-2 uppercase tracking-wide">
-                      {product.name}
-                    </h3>
-                  </Link>
-                  <p className="text-gray-400 text-[10px] sm:text-sm mb-2 sm:mb-3 line-clamp-2">{product.description}</p>
-
-                  <div className="flex items-center justify-between mb-2 sm:mb-3">
-                    <div>
-                      {product.discount ? (
-                        <div className="flex items-center space-x-1 sm:space-x-2">
-                          <span className="text-sm sm:text-lg md:text-xl font-bold text-orange-primary">₹{finalPrice}</span>
-                          <span className="text-[10px] sm:text-sm text-gray-500 line-through">₹{product.price}</span>
-                        </div>
-                      ) : (
-                        <span className="text-sm sm:text-lg md:text-xl font-bold text-orange-primary">₹{product.price}</span>
-                      )}
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() => handleAddToCart(product)}
-                    className={`w-full py-2.5 rounded-lg font-bold transition-all duration-300 flex items-center justify-center gap-2 uppercase tracking-wide text-sm ${addedToCart[product.id]
-                      ? 'bg-green-600 text-white'
-                      : 'bg-orange-primary text-black hover:bg-orange-hover hover:shadow-lg'
-                      }`}
-                  >
-                    <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
-                    {addedToCart[product.id] ? 'Added to Cart!' : 'Add to Cart'}
-                  </button>
-
-                  {product.customizable && (
-                    <div className="mt-2 sm:mt-3 text-[10px] sm:text-xs text-orange-400 font-semibold uppercase tracking-wider">
-                      ✨ Customizable
+      {/* Grid */}
+      <div className="py-20">
+        <div className="container-custom">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
+            {wishlist.map((product) => (
+              <div key={product.id} className="group">
+                <div className="relative aspect-square rounded-2xl overflow-hidden mb-6 bg-gray-50">
+                  <img
+                    src={product.image_url || product.image}
+                    alt={product.name}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                  />
+                  {product.is_bestseller && (
+                    <div className="absolute bottom-4 left-4">
+                      <span className="bg-[#F7D060] text-gray-900 text-[8px] font-bold px-2 py-1 rounded-full uppercase tracking-widest">
+                        Bestseller
+                      </span>
                     </div>
                   )}
                 </div>
+                <div className="flex justify-between items-start mb-6">
+                  <div>
+                    <h3 className="text-xl font-display font-bold text-gray-900 mb-1">{product.name}</h3>
+                    <p className="text-xs text-gray-400 font-body">
+                      {product.description || "Premium quality custom item."}
+                    </p>
+                  </div>
+                  <span className="text-lg font-display font-bold text-gray-900">₹{product.price}</span>
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => handleAddToCart(product)}
+                    className="flex-1 py-3 bg-[#8E447E] text-white rounded-xl font-body font-bold text-xs hover:bg-[#7A3B6D] transition-all shadow-md active:scale-95"
+                  >
+                    {addedToCart[product.id] ? 'Added!' : 'Move to Cart'}
+                  </button>
+                  <button 
+                    onClick={() => removeFromWishlist(product.id)}
+                    className="w-12 h-12 flex items-center justify-center rounded-xl border border-gray-100 text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
-            );
-          })}
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Inspirational Section */}
+      <div className="py-32 bg-white">
+        <div className="container-custom">
+          <div className="relative rounded-[40px] overflow-hidden bg-gray-900 p-12 md:p-24 flex flex-col md:flex-row items-center gap-16">
+            {/* Pink border effect */}
+            <div className="absolute inset-4 border-2 border-pink-500/10 rounded-[32px] pointer-events-none" />
+            
+            <div className="relative z-10 flex-1 text-center md:text-left">
+              <span className="text-[10px] font-body font-bold text-pink-400 uppercase tracking-widest mb-6 block">Curated Pick</span>
+              <h2 className="text-5xl md:text-6xl font-display font-bold text-white mb-8 leading-tight">
+                Designed to inspire your daily ritual.
+              </h2>
+              <p className="text-gray-400 font-body text-lg leading-relaxed mb-10 max-w-lg">
+                Our newest collection of digital textures and tangible goods are crafted to blend seamlessly into your curated lifestyle.
+              </p>
+              <Link to="/shop" className="inline-flex items-center gap-2 text-pink-400 text-sm font-body font-bold hover:gap-4 transition-all">
+                <span>Explore the Collection</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+
+            <div className="relative flex-1 w-full max-w-xl aspect-video md:aspect-[4/3] rounded-2xl overflow-hidden group">
+              <img 
+                src="https://images.unsplash.com/photo-1493121590231-20e4fbc07b27?w=1000&h=800&fit=crop" 
+                className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" 
+                alt="Inspirational" 
+              />
+              {/* Quote overlay */}
+              <div className="absolute bottom-6 -right-6 md:-right-12 bg-white p-8 md:p-10 rounded-2xl shadow-2xl max-w-xs md:max-w-sm">
+                <div className="w-8 h-8 bg-pink-50 rounded-lg flex items-center justify-center mb-6">
+                  <div className="grid grid-cols-2 gap-1">
+                    <div className="w-1.5 h-1.5 bg-pink-400 rounded-full animate-pulse" />
+                    <div className="w-1.5 h-1.5 bg-pink-200 rounded-full" />
+                    <div className="w-1.5 h-1.5 bg-pink-200 rounded-full" />
+                    <div className="w-1.5 h-1.5 bg-pink-400 rounded-full animate-pulse" />
+                  </div>
+                </div>
+                <p className="text-gray-800 font-serif italic text-lg leading-relaxed">
+                  "The most beautiful thing we can experience is the mysterious. It is the source of all true art and all science."
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -177,3 +167,4 @@ const WishlistPage = () => {
 };
 
 export default WishlistPage;
+

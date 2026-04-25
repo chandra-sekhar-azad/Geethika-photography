@@ -1,341 +1,174 @@
-import { Heart, Camera, Gift, Users, Award, Target, Sparkles, MapPin, Phone, Mail, Clock, MessageCircle } from 'lucide-react';
+import { ArrowRight, Camera, Scissors, BookOpen, Heart } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const AboutPage = () => {
-  const handleWhatsApp = () => {
-    const message = 'Hi! I would like to know more about your services.';
-    const whatsappUrl = `https://wa.me/919492686421?text=${encodeURIComponent(message)}`;
-    window.open(whatsappUrl, '_blank');
-  };
-
-  const handleCall = () => {
-    window.location.href = 'tel:+919492686421';
-  };
-
   return (
-    <div className="min-h-screen" style={{ backgroundColor: 'var(--color-bg-light)' }}>
-
-      {/* Page Header */}
-      <div className="relative py-10 sm:py-14 md:py-18 border-b" style={{ backgroundColor: 'var(--color-bg-hero)', borderColor: 'rgba(168,213,213,0.4)' }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-3 mb-2">
-            <Heart className="w-7 h-7 sm:w-9 sm:h-9" style={{ color: 'var(--color-teal-500)', fill: 'var(--color-teal-500)' }} />
-            <h1 className="font-display font-semibold text-3xl sm:text-4xl md:text-5xl tracking-wide" style={{ color: 'var(--color-text-dark)' }}>
-              About Us
-            </h1>
-          </div>
-          <p className="font-body text-sm sm:text-base md:text-lg ml-10 sm:ml-12" style={{ color: 'var(--color-text-mid)' }}>
-            Capturing Moments, Creating Memories
+    <div className="min-h-screen bg-white">
+      {/* Hero Section */}
+      <div className="relative h-[80vh] min-h-[600px] bg-gray-50 overflow-hidden">
+        <div className="absolute inset-0">
+          <img 
+            src="https://images.unsplash.com/photo-1542038784456-1ea8e935640e?w=1920&h=1080&fit=crop" 
+            className="w-full h-full object-cover opacity-80" 
+            alt="Studio Background" 
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-white via-white/40 to-transparent" />
+        </div>
+        
+        <div className="container-custom relative h-full flex flex-col justify-center">
+          <span className="bg-[#FCE4EC] text-[#9D4E8D] text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest mb-6 inline-block w-fit">
+            Our Legacy
+          </span>
+          <h1 className="text-7xl md:text-8xl font-display font-bold text-gray-900 mb-8 leading-[1.1]">
+            The Story<br />
+            Behind Your<br />
+            <span className="italic font-serif font-medium text-[var(--color-primary)]">Smiles</span>
+          </h1>
+          <p className="text-gray-600 font-body text-xl leading-relaxed max-w-xl mb-12">
+            At Geethika Digital World, we don't just capture moments; we curate memories that breathe life into your personal history through the lens of craftsmanship.
           </p>
+          <div className="flex gap-4">
+            <Link to="/contact" className="btn-primary px-10 py-4">Book a Shoot</Link>
+            <button className="text-sm font-body font-bold text-gray-900 flex items-center gap-2 px-8 hover:gap-4 transition-all group">
+              <span>Our Process</span>
+              <ArrowRight className="w-4 h-4 text-[var(--color-primary)]" />
+            </button>
+          </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 md:py-14 space-y-8">
-
-        {/* Our Story */}
-        <section className="bg-white rounded-xl border p-6 sm:p-8 shadow-sm" style={{ borderColor: 'rgba(168,213,213,0.35)', boxShadow: '0 2px 16px rgba(26,43,53,0.06)' }}>
-          <div className="flex items-center gap-2 mb-5">
-            <div className="h-0.5 w-8 rounded" style={{ backgroundColor: 'var(--color-teal-400)' }}></div>
-            <h2 className="font-display font-semibold text-2xl sm:text-3xl tracking-wide" style={{ color: 'var(--color-text-dark)' }}>Our Story</h2>
-          </div>
-          <div className="space-y-4 font-body text-sm sm:text-base leading-relaxed" style={{ color: 'var(--color-text-mid)' }}>
-            <p>
-              Welcome to <strong style={{ color: 'var(--color-text-dark)' }}>Geethika Digital World</strong> – your one-stop destination for personalized gifts, professional photography, videography, and stunning event decorations. Founded with a passion for celebrating life's special moments, we have been serving our customers with dedication and creativity.
-            </p>
-            <p>
-              What started as a small venture to help people express their love through customized gifts has grown into a comprehensive service provider for all your celebration needs. From intimate gatherings to grand celebrations, we bring your vision to life with our expertise and attention to detail.
-            </p>
-            <p>
-              At Geethika Digital World, we believe that every moment is precious and deserves to be celebrated in a unique way. Whether it's a personalized photo frame, a custom-designed t-shirt, or a beautifully decorated event space, we pour our heart into every project.
-            </p>
-          </div>
-        </section>
-
-        {/* What We Do */}
-        <section>
-          <div className="flex items-center gap-2 mb-6 justify-center">
-            <div className="h-0.5 w-8 rounded" style={{ backgroundColor: 'var(--color-teal-400)' }}></div>
-            <h2 className="font-display font-semibold text-2xl sm:text-3xl tracking-wide" style={{ color: 'var(--color-text-dark)' }}>What We Do</h2>
-            <div className="h-0.5 w-8 rounded" style={{ backgroundColor: 'var(--color-teal-400)' }}></div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6">
-            {[
-              { icon: Gift, title: 'Personalized Gifts', desc: 'Custom photo frames, mugs, t-shirts, cushions, keychains, and more. Make every gift special with personalization.' },
-              { icon: Camera, title: 'Photography & Videography', desc: 'Professional photography and videography services for weddings, events, birthdays, and special occasions.' },
-              { icon: Sparkles, title: 'Event Decoration', desc: 'Beautiful event decorations, home redecor, shop redecor, and themed setups to make your celebrations memorable.' },
-            ].map(({ icon: Icon, title, desc }) => (
-              <div key={title}
-                className="bg-white border rounded-xl p-6 text-center transition-all duration-300 hover:-translate-y-1 group"
-                style={{ borderColor: 'rgba(168,213,213,0.35)', boxShadow: '0 2px 10px rgba(26,43,53,0.05)' }}
-                onMouseEnter={e => e.currentTarget.style.boxShadow = '0 14px 36px rgba(61,138,138,0.13)'}
-                onMouseLeave={e => e.currentTarget.style.boxShadow = '0 2px 10px rgba(26,43,53,0.05)'}
-              >
-                <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 transition-all duration-300 group-hover:scale-110"
-                  style={{ backgroundColor: 'var(--color-teal-50)', border: '1px solid rgba(91,163,163,0.2)' }}>
-                  <Icon className="w-8 h-8" style={{ color: 'var(--color-teal-500)' }} />
-                </div>
-                <h3 className="font-display font-semibold text-lg sm:text-xl mb-3 transition-colors"
-                  style={{ color: 'var(--color-text-dark)' }}>
-                  {title}
-                </h3>
-                <p className="font-body text-sm leading-relaxed" style={{ color: 'var(--color-text-mid)' }}>{desc}</p>
+      {/* Narrative Section */}
+      <div className="py-32">
+        <div className="container-custom">
+          <div className="flex flex-col lg:flex-row items-center gap-20">
+            <div className="relative flex-1">
+              <div className="relative rounded-[40px] overflow-hidden aspect-[4/5] shadow-2xl">
+                <img 
+                  src="https://images.unsplash.com/photo-1556157382-97dee2dcb96a?w=800&h=1000&fit=crop" 
+                  className="w-full h-full object-cover" 
+                  alt="Artisan at work" 
+                />
               </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Our Values */}
-        <section className="bg-white rounded-xl border p-6 sm:p-8 shadow-sm" style={{ borderColor: 'rgba(168,213,213,0.35)', boxShadow: '0 2px 16px rgba(26,43,53,0.06)' }}>
-          <div className="flex items-center gap-2 mb-6 justify-center">
-            <div className="h-0.5 w-8 rounded" style={{ backgroundColor: 'var(--color-teal-400)' }}></div>
-            <h2 className="font-display font-semibold text-2xl sm:text-3xl tracking-wide" style={{ color: 'var(--color-text-dark)' }}>Our Values</h2>
-            <div className="h-0.5 w-8 rounded" style={{ backgroundColor: 'var(--color-teal-400)' }}></div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {[
-              { icon: Heart, title: 'Customer First', desc: 'Your satisfaction is our priority. We go the extra mile to ensure every customer has a delightful experience.' },
-              { icon: Award, title: 'Quality Excellence', desc: 'We use premium materials and maintain high standards in all our products and services.' },
-              { icon: Sparkles, title: 'Creativity & Innovation', desc: 'We constantly innovate and bring fresh ideas to make your celebrations unique and memorable.' },
-              { icon: Target, title: 'Timely Delivery', desc: 'We understand the importance of time and ensure prompt delivery of all orders and services.' },
-            ].map(({ icon: Icon, title, desc }) => (
-              <div key={title} className="flex gap-4 group p-3 rounded-xl transition-all" style={{ backgroundColor: 'transparent' }}
-                onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--color-teal-50)'}
-                onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
-              >
-                <div className="flex-shrink-0">
-                  <div className="w-11 h-11 rounded-lg flex items-center justify-center transition-transform group-hover:scale-110"
-                    style={{ backgroundColor: 'var(--color-navy-800)' }}>
-                    <Icon className="w-5 h-5 text-white" />
-                  </div>
-                </div>
-                <div>
-                  <h3 className="font-display font-semibold text-lg mb-1" style={{ color: 'var(--color-text-dark)' }}>{title}</h3>
-                  <p className="font-body text-sm leading-relaxed" style={{ color: 'var(--color-text-mid)' }}>{desc}</p>
-                </div>
+              {/* Floating Quote */}
+              <div className="absolute -bottom-10 -right-10 bg-white p-10 rounded-2xl shadow-2xl max-w-xs border border-purple-50">
+                <h4 className="text-3xl font-display font-bold text-[#9D4E8D] mb-2 italic">"Art is feeling."</h4>
+                <p className="text-[10px] text-gray-400 font-body font-bold tracking-widest uppercase">— Geethika Studio</p>
               </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Why Choose Us */}
-        <section className="bg-white rounded-xl border p-6 sm:p-8 shadow-sm" style={{ borderColor: 'rgba(168,213,213,0.35)', boxShadow: '0 2px 16px rgba(26,43,53,0.06)' }}>
-          <div className="flex items-center gap-2 mb-6 justify-center">
-            <div className="h-0.5 w-8 rounded" style={{ backgroundColor: 'var(--color-teal-400)' }}></div>
-            <h2 className="font-display font-semibold text-2xl sm:text-3xl tracking-wide" style={{ color: 'var(--color-text-dark)' }}>Why Choose Us?</h2>
-            <div className="h-0.5 w-8 rounded" style={{ backgroundColor: 'var(--color-teal-400)' }}></div>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[
-              { label: '✓ Wide Product Range', desc: 'Hundreds of customizable products to choose from' },
-              { label: '✓ Professional Team', desc: 'Experienced photographers, designers, and decorators' },
-              { label: '✓ Affordable Pricing', desc: 'Competitive prices without compromising quality' },
-              { label: '✓ Quick Turnaround', desc: 'Fast processing and delivery of orders' },
-              { label: '✓ Secure Payments', desc: 'Safe and encrypted payment processing' },
-              { label: '✓ Customer Support', desc: 'Dedicated support team to assist you' },
-            ].map(({ label, desc }) => (
-              <div key={label}
-                className="p-4 rounded-xl border transition-all duration-200 hover:-translate-y-0.5"
-                style={{ backgroundColor: 'var(--color-teal-50)', borderColor: 'rgba(91,163,163,0.2)' }}
-                onMouseEnter={e => e.currentTarget.style.boxShadow = '0 6px 18px rgba(61,138,138,0.12)'}
-                onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}
-              >
-                <p className="font-body font-semibold text-sm mb-1" style={{ color: 'var(--color-teal-500)' }}>{label}</p>
-                <p className="font-body text-sm" style={{ color: 'var(--color-text-mid)' }}>{desc}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Mission & Team row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <section className="bg-white rounded-xl border p-6 sm:p-8 shadow-sm" style={{ borderColor: 'rgba(168,213,213,0.35)', boxShadow: '0 2px 16px rgba(26,43,53,0.06)' }}>
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'var(--color-teal-50)' }}>
-                <Target className="w-5 h-5" style={{ color: 'var(--color-teal-500)' }} />
-              </div>
-              <h2 className="font-display font-semibold text-xl sm:text-2xl tracking-wide" style={{ color: 'var(--color-text-dark)' }}>Our Mission</h2>
             </div>
-            <p className="font-body text-sm sm:text-base leading-relaxed" style={{ color: 'var(--color-text-mid)' }}>
-              Our mission is to help people celebrate life's precious moments by providing high-quality personalized products and professional services. We aim to be the most trusted and preferred choice for gifts, photography, and event decoration services, making every celebration special and memorable.
-            </p>
-          </section>
 
-          <section className="bg-white rounded-xl border p-6 sm:p-8 shadow-sm" style={{ borderColor: 'rgba(168,213,213,0.35)', boxShadow: '0 2px 16px rgba(26,43,53,0.06)' }}>
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'var(--color-teal-50)' }}>
-                <Users className="w-5 h-5" style={{ color: 'var(--color-teal-500)' }} />
+            <div className="flex-1 space-y-10">
+              <div>
+                <h2 className="text-5xl font-display font-bold text-gray-900 mb-8 leading-tight">
+                  Elevating Every<br />Detail with<br />
+                  <span className="italic font-serif font-medium text-[var(--color-primary)]">Sentiment</span>
+                </h2>
+                <p className="text-gray-500 font-body text-lg leading-relaxed mb-8">
+                  Founded on the belief that every person has a masterpiece hidden in their everyday life, Geethika Digital World emerged as a sanctuary for visual storytelling. We reject the clinical approach of mass-market studios.
+                </p>
+                <p className="text-gray-500 font-body text-lg leading-relaxed mb-8">
+                  Our philosophy is rooted in **The Sentimental Curator**—an approach where we act as both artist and archivist. We blend modern high-end editorial techniques with the timeless warmth of personal connection.
+                </p>
+                <p className="text-gray-500 font-body text-lg leading-relaxed">
+                  Whether it's the subtle glimmer in an eye during a portrait or the tactile texture of a custom-designed album, we ensure that the craftsmanship behind the lens matches the emotional depth of the subject.
+                </p>
               </div>
-              <h2 className="font-display font-semibold text-xl sm:text-2xl tracking-wide" style={{ color: 'var(--color-text-dark)' }}>Our Team</h2>
             </div>
-            <p className="font-body text-sm sm:text-base leading-relaxed mb-3" style={{ color: 'var(--color-text-mid)' }}>
-              Behind Geethika Digital World is a passionate team of designers, photographers, videographers, and customer service professionals who work together to bring your ideas to life.
-            </p>
-            <p className="font-body text-sm sm:text-base leading-relaxed" style={{ color: 'var(--color-text-mid)' }}>
-              We continuously train and upgrade our skills to stay ahead of trends and provide you with the best possible service. Your happiness is our success.
-            </p>
-          </section>
+          </div>
         </div>
+      </div>
 
-        {/* CTA Banner */}
-        <section className="rounded-xl p-8 sm:p-10 text-center text-white" style={{ background: 'linear-gradient(135deg, var(--color-navy-800) 0%, var(--color-teal-500) 100%)' }}>
-          <h2 className="font-display font-semibold text-2xl sm:text-3xl mb-3 tracking-wide">Let's Create Something Special Together</h2>
-          <p className="font-body text-sm sm:text-base mb-7 opacity-85 max-w-xl mx-auto">
-            Have a question or want to discuss your requirements? We'd love to hear from you!
-          </p>
-          <div className="flex flex-wrap gap-4 justify-center">
-            <button
-              onClick={handleWhatsApp}
-              className="font-body font-semibold px-7 py-3 rounded-lg uppercase tracking-widest transition-all text-sm hover:-translate-y-0.5"
-              style={{ backgroundColor: 'rgba(255,255,255,0.15)', color: 'white', border: '1.5px solid rgba(255,255,255,0.4)' }}
-              onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.25)'}
-              onMouseLeave={e => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.15)'}
-            >
-              Contact Us
-            </button>
-            <a
-              href="/shop"
-              className="font-body font-semibold px-7 py-3 rounded-lg uppercase tracking-widest transition-all text-sm hover:-translate-y-0.5"
-              style={{ backgroundColor: 'white', color: 'var(--color-navy-800)' }}
-              onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'var(--color-teal-50)'; }}
-              onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'white'; }}
-            >
-              Shop Now
-            </a>
+      {/* Offerings Section */}
+      <div className="py-32 bg-gray-50/50">
+        <div className="container-custom">
+          <div className="text-center mb-20">
+            <h2 className="text-5xl font-display font-bold text-gray-900 mb-6">Studio Offerings</h2>
+            <p className="text-gray-400 font-body text-lg">Crafted experiences for your most precious milestones.</p>
           </div>
-        </section>
 
-        {/* Get In Touch */}
-        <section>
-          <div className="flex items-center gap-2 mb-6 justify-center">
-            <div className="h-0.5 w-8 rounded" style={{ backgroundColor: 'var(--color-teal-400)' }}></div>
-            <h2 className="font-display font-semibold text-2xl sm:text-3xl tracking-wide" style={{ color: 'var(--color-text-dark)' }}>Get In Touch</h2>
-            <div className="h-0.5 w-8 rounded" style={{ backgroundColor: 'var(--color-teal-400)' }}></div>
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-            {/* Contact Details Column */}
-            <div className="space-y-5">
-              {/* Contact Info Card */}
-              <div className="bg-white rounded-xl border p-6 sm:p-8 shadow-sm" style={{ borderColor: 'rgba(168,213,213,0.35)', boxShadow: '0 2px 16px rgba(26,43,53,0.06)' }}>
-                <h3 className="font-display font-semibold text-xl sm:text-2xl mb-5" style={{ color: 'var(--color-text-dark)' }}>Contact Information</h3>
-                <div className="space-y-4">
-                  {[
-                    {
-                      icon: MapPin,
-                      title: 'Address',
-                      content: (
-                        <>
-                          <p className="font-body text-sm" style={{ color: 'var(--color-text-mid)' }}>Geethika Digital World<br />Hyderabad, Telangana<br />India</p>
-                          <a href="https://maps.app.goo.gl/xWe5mszQAzkjj3iQA" target="_blank" rel="noopener noreferrer"
-                            className="font-body text-sm font-medium transition-colors mt-1 inline-block" style={{ color: 'var(--color-teal-500)' }}
-                            onMouseEnter={e => e.currentTarget.style.color = 'var(--color-teal-600)'}
-                            onMouseLeave={e => e.currentTarget.style.color = 'var(--color-teal-500)'}
-                          >View on Google Maps →</a>
-                        </>
-                      )
-                    },
-                    {
-                      icon: Phone,
-                      title: 'Phone',
-                      content: (
-                        <>
-                          <p className="font-body text-sm" style={{ color: 'var(--color-text-mid)' }}>+91 94926 86421</p>
-                          <button onClick={handleCall}
-                            className="font-body text-sm font-medium mt-1 transition-colors" style={{ color: 'var(--color-teal-500)' }}
-                            onMouseEnter={e => e.currentTarget.style.color = 'var(--color-teal-600)'}
-                            onMouseLeave={e => e.currentTarget.style.color = 'var(--color-teal-500)'}
-                          >Call Now</button>
-                        </>
-                      )
-                    },
-                    {
-                      icon: Mail,
-                      title: 'Email',
-                      content: <p className="font-body text-sm" style={{ color: 'var(--color-text-mid)' }}>geethikaphotoplanet9@gmail.com</p>
-                    },
-                    {
-                      icon: Clock,
-                      title: 'Business Hours',
-                      content: (
-                        <p className="font-body text-sm" style={{ color: 'var(--color-text-mid)' }}>
-                          Monday – Saturday: 10:00 AM – 8:00 PM<br />Sunday: 11:00 AM – 6:00 PM
-                        </p>
-                      )
-                    },
-                  ].map(({ icon: Icon, title, content }) => (
-                    <div key={title} className="flex items-start space-x-4">
-                      <div className="p-2.5 rounded-lg flex-shrink-0" style={{ backgroundColor: 'var(--color-teal-50)' }}>
-                        <Icon className="w-5 h-5" style={{ color: 'var(--color-teal-500)' }} />
-                      </div>
-                      <div>
-                        <h4 className="font-body font-semibold text-sm mb-0.5" style={{ color: 'var(--color-text-dark)' }}>{title}</h4>
-                        {content}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <button
-                  onClick={handleWhatsApp}
-                  className="w-full mt-6 bg-green-600 hover:bg-green-700 text-white px-6 py-3.5 rounded-xl font-body font-semibold flex items-center justify-center space-x-2 transition-all shadow-md hover:shadow-lg uppercase tracking-widest text-sm"
-                >
-                  <MessageCircle className="w-5 h-5" />
-                  <span>Chat on WhatsApp</span>
-                </button>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+            {/* Offering 1 */}
+            <div className="bg-white rounded-[40px] p-10 shadow-xl shadow-purple-100/20 group hover:-translate-y-2 transition-all duration-500 border border-transparent hover:border-purple-100">
+              <div className="w-20 h-20 bg-gray-900 rounded-[30px] flex items-center justify-center mb-10 group-hover:bg-[#8E447E] transition-colors overflow-hidden relative">
+                <img src="https://images.unsplash.com/photo-1542038784456-1ea8e935640e?w=200&h=200&fit=crop" className="w-full h-full object-cover opacity-50 absolute" />
+                <Camera className="w-8 h-8 text-white relative z-10" />
               </div>
-
-              {/* Special Offers Card */}
-              <div className="bg-white rounded-xl border p-6 sm:p-8 shadow-sm" style={{ borderColor: 'rgba(168,213,213,0.35)', boxShadow: '0 2px 16px rgba(26,43,53,0.06)' }}>
-                <h3 className="font-display font-semibold text-xl mb-4" style={{ color: 'var(--color-text-dark)' }}>Special Offers</h3>
-                <div className="space-y-3">
-                  {[
-                    { emoji: '✨', title: 'Flat 20% OFF on all products', sub: 'Valid for limited time' },
-                    { emoji: '📸', title: 'Free couple photoshoot with event booking', sub: 'Limited slots available' },
-                  ].map(({ emoji, title, sub }) => (
-                    <div key={title} className="p-4 rounded-xl border" style={{ backgroundColor: 'var(--color-teal-50)', borderColor: 'rgba(91,163,163,0.2)' }}>
-                      <p className="font-body font-semibold text-sm mb-1" style={{ color: 'var(--color-teal-500)' }}>{emoji} {title}</p>
-                      <p className="font-body text-xs" style={{ color: 'var(--color-text-mid)' }}>{sub}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <span className="text-[10px] font-body font-bold text-[#8E447E] uppercase tracking-widest mb-4 block">Capture</span>
+              <h3 className="text-2xl font-display font-bold text-gray-900 mb-6">Professional Photoshoots</h3>
+              <p className="text-gray-400 font-body text-sm leading-relaxed mb-10">
+                From intimate family portraits to editorial fashion sessions, we provide a comfortable, high-end environment designed to let your personality shine.
+              </p>
+              <Link to="/contact" className="inline-flex items-center gap-2 text-[10px] font-body font-bold text-gray-900 uppercase tracking-widest hover:gap-4 transition-all">
+                <span>Learn More</span>
+                <ArrowRight className="w-3 h-3 text-[var(--color-primary)]" />
+              </Link>
             </div>
 
-            {/* Map */}
-            <div className="bg-white rounded-xl border overflow-hidden shadow-sm" style={{ borderColor: 'rgba(168,213,213,0.35)', boxShadow: '0 2px 16px rgba(26,43,53,0.06)' }}>
-              <div className="h-full min-h-[420px] sm:min-h-[500px] relative flex flex-col">
-                <div className="flex-1">
-                  <iframe
-                    src="https://www.google.com/maps?q=17.4167,78.4833&hl=en&z=14&output=embed"
-                    width="100%"
-                    height="100%"
-                    style={{ border: 0, minHeight: '360px' }}
-                    allowFullScreen=""
-                    loading="lazy"
-                    referrerPolicy="no-referrer-when-downgrade"
-                    title="Geethika Digital World Location - Hyderabad"
-                  />
-                </div>
-                <div className="p-4 border-t" style={{ borderColor: 'rgba(168,213,213,0.3)' }}>
-                  <a
-                    href="https://maps.app.goo.gl/xWe5mszQAzkjj3iQA"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center space-x-2 font-body font-semibold transition-colors text-sm"
-                    style={{ color: 'var(--color-teal-500)' }}
-                    onMouseEnter={e => e.currentTarget.style.color = 'var(--color-teal-600)'}
-                    onMouseLeave={e => e.currentTarget.style.color = 'var(--color-teal-500)'}
-                  >
-                    <MapPin className="w-4 h-4" />
-                    <span>Open in Google Maps</span>
-                  </a>
-                </div>
+            {/* Offering 2 */}
+            <div className="bg-white rounded-[40px] p-10 shadow-xl shadow-purple-100/20 group hover:-translate-y-2 transition-all duration-500 border border-transparent hover:border-purple-100">
+              <div className="w-20 h-20 bg-gray-900 rounded-[30px] flex items-center justify-center mb-10 group-hover:bg-[#8E447E] transition-colors overflow-hidden relative">
+                <img src="https://images.unsplash.com/photo-1493121590231-20e4fbc07b27?w=200&h=200&fit=crop" className="w-full h-full object-cover opacity-50 absolute" />
+                <Scissors className="w-8 h-8 text-white relative z-10" />
               </div>
+              <span className="text-[10px] font-body font-bold text-[#8E447E] uppercase tracking-widest mb-4 block">Perfect</span>
+              <h3 className="text-2xl font-display font-bold text-gray-900 mb-6">Expert Photo Editing</h3>
+              <p className="text-gray-400 font-body text-sm leading-relaxed mb-10">
+                Our post-production suite focuses on natural enhancement. We meticulously refine colors and textures to create a signature timeless look.
+              </p>
+              <Link to="/contact" className="inline-flex items-center gap-2 text-[10px] font-body font-bold text-gray-900 uppercase tracking-widest hover:gap-4 transition-all">
+                <span>Learn More</span>
+                <ArrowRight className="w-3 h-3 text-[var(--color-primary)]" />
+              </Link>
+            </div>
+
+            {/* Offering 3 */}
+            <div className="bg-white rounded-[40px] p-10 shadow-xl shadow-purple-100/20 group hover:-translate-y-2 transition-all duration-500 border border-transparent hover:border-purple-100">
+              <div className="w-20 h-20 bg-gray-900 rounded-[30px] flex items-center justify-center mb-10 group-hover:bg-[#8E447E] transition-colors overflow-hidden relative">
+                <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&h=200&fit=crop" className="w-full h-full object-cover opacity-50 absolute" />
+                <BookOpen className="w-8 h-8 text-white relative z-10" />
+              </div>
+              <span className="text-[10px] font-body font-bold text-[#8E447E] uppercase tracking-widest mb-4 block">Cherish</span>
+              <h3 className="text-2xl font-display font-bold text-gray-900 mb-6">Premium Album Design</h3>
+              <p className="text-gray-400 font-body text-sm leading-relaxed mb-10">
+                Heirloom-quality albums crafted with fine linens and Italian papers. Every layout is uniquely designed to tell your specific story.
+              </p>
+              <Link to="/contact" className="inline-flex items-center gap-2 text-[10px] font-body font-bold text-gray-900 uppercase tracking-widest hover:gap-4 transition-all">
+                <span>Learn More</span>
+                <ArrowRight className="w-3 h-3 text-[var(--color-primary)]" />
+              </Link>
             </div>
           </div>
-        </section>
+        </div>
+      </div>
 
+      {/* CTA Section */}
+      <div className="py-32">
+        <div className="container-custom">
+          <div className="bg-[#A15891] rounded-[50px] p-16 md:p-24 flex flex-col md:flex-row items-center gap-20 overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-1/2 h-full opacity-10 bg-white rotate-12 translate-x-20" />
+            <div className="relative z-10 flex-1">
+              <h2 className="text-5xl md:text-7xl font-display font-bold text-white mb-8 leading-tight">
+                Ready to<br />Capture Your<br />Next Chapter?
+              </h2>
+              <p className="text-white/80 font-body text-lg mb-12 max-w-md">
+                Let's create something extraordinary together. Our booking sessions fill up fast—reserve your date with us today.
+              </p>
+              <Link to="/contact" className="bg-[#F7D060] text-gray-900 px-12 py-5 rounded-2xl font-body font-bold text-sm uppercase tracking-widest hover:bg-[#EAB308] transition-all shadow-2xl active:scale-95 inline-block">
+                Book a Shoot
+              </Link>
+            </div>
+            <div className="relative flex-1 w-full max-w-md aspect-square rounded-[40px] overflow-hidden shadow-2xl rotate-3 group">
+              <img 
+                src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=800&h=800&fit=crop" 
+                className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" 
+                alt="Camera gear" 
+              />
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
 };
 
 export default AboutPage;
+
