@@ -43,7 +43,7 @@ const HeroBanner = () => {
             </button>
             <button 
               onClick={() => navigate('/shop')}
-              className="px-8 py-3 rounded-md font-medium uppercase tracking-wider text-sm border border-gray-400 text-gray-700 hover:bg-gray-50 transition-all shadow-sm"
+              className="px-8 py-3 rounded-md font-medium text-sm border border-gray-400 text-gray-700 hover:bg-gray-50 transition-all shadow-sm"
             >
               Explore Gifts
             </button>

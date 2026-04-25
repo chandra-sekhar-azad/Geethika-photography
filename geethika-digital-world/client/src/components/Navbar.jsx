@@ -28,9 +28,10 @@ const Navbar = () => {
 
   const navLinks = [
     { path: '/', label: 'Home' },
-    { path: '/shop', label: 'Gifts' },
+    { path: '/shop', label: 'Shop' },
     { path: '/gallery', label: 'Gallery' },
     { path: '/services', label: 'Services' },
+    { path: '/about', label: 'About' },
   ];
 
   const isActive = (path) => location.pathname === path;
@@ -58,12 +59,12 @@ const Navbar = () => {
           </Link>
 
           {/* Desktop Nav Links */}
-          <div className="hidden lg:flex items-center space-x-10">
+          <div className="hidden lg:flex items-center space-x-8">
             {navLinks.map((link) => (
               <Link
                 key={link.path}
                 to={link.path}
-                className={`font-body font-medium text-sm transition-all duration-300 relative group uppercase tracking-widest ${isActive(link.path) ? 'text-[var(--color-primary)]' : 'text-gray-600 hover:text-[var(--color-primary)]'}`}
+                className={`font-body font-medium text-sm transition-all duration-300 relative group ${isActive(link.path) ? 'text-[var(--color-primary)]' : 'text-gray-600 hover:text-[var(--color-primary)]'}`}
               >
                 {link.label}
                 <span className={`absolute -bottom-1 left-0 w-full h-0.5 bg-[var(--color-primary)] transform origin-left transition-transform duration-300 ${isActive(link.path) ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`} />
@@ -76,14 +77,14 @@ const Navbar = () => {
             <button className="text-gray-600 hover:text-[var(--color-primary)] transition-colors hidden sm:block">
               <Search className="w-5 h-5" />
             </button>
-            <Link 
-              to={isAuthenticated() ? "/profile" : "/login"} 
+            <Link
+              to={isAuthenticated() ? "/profile" : "/login"}
               className="text-gray-600 hover:text-[var(--color-primary)] transition-colors hidden sm:block"
               title={isAuthenticated() ? "Profile" : "Login"}
             >
               <User className="w-5 h-5" />
             </Link>
-            
+
             <Link to="/wishlist" className="relative text-gray-600 hover:text-[var(--color-primary)] transition-colors">
               <Heart className="w-5 h-5" />
               {getWishlistCount() > 0 && (
@@ -131,7 +132,7 @@ const Navbar = () => {
                   key={link.path}
                   to={link.path}
                   onClick={() => setIsOpen(false)}
-                  className={`text-lg font-body font-medium uppercase tracking-widest ${isActive(link.path) ? 'text-[var(--color-primary)]' : 'text-gray-700'}`}
+                  className={`text-lg font-body font-medium ${isActive(link.path) ? 'text-[var(--color-primary)]' : 'text-gray-700'}`}
                 >
                   {link.label}
                 </Link>
@@ -139,7 +140,7 @@ const Navbar = () => {
               {isAuthenticated() ? (
                 <button
                   onClick={handleLogout}
-                  className="text-lg font-body font-medium text-red-500 text-left uppercase tracking-widest"
+                  className="text-lg font-body font-medium text-red-500 text-left"
                 >
                   Logout
                 </button>
@@ -147,7 +148,7 @@ const Navbar = () => {
                 <Link
                   to="/login"
                   onClick={() => setIsOpen(false)}
-                  className="text-lg font-body font-medium text-gray-700 uppercase tracking-widest"
+                  className="text-lg font-body font-medium text-gray-700"
                 >
                   Login
                 </Link>

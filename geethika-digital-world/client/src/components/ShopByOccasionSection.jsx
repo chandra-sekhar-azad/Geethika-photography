@@ -57,7 +57,7 @@ const ShopByOccasionSection = () => {
       <div className="container-custom">
         {/* Section Title */}
         <div className="text-center mb-16">
-          <p className="text-xs uppercase tracking-[0.3em] text-gray-400 font-bold mb-4">FIND THE PERFECT GIFT</p>
+          <p className="text-xs tracking-[0.3em] text-gray-400 font-bold mb-4">Find the perfect gift</p>
           <h2 className="section-title">Shop by Occasion</h2>
         </div>
 

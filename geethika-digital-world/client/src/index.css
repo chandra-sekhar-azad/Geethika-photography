@@ -114,8 +114,7 @@
     font-family: var(--font-body);
     font-weight: 500;
     font-size: 0.875rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    letter-spacing: 0.02em;
     transition: all 0.3s ease;
     border: none;
     cursor: pointer;
@@ -139,8 +138,7 @@
     font-family: var(--font-body);
     font-weight: 500;
     font-size: 1rem;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
+    letter-spacing: 0.02em;
     transition: all 0.3s ease;
     box-shadow: 0 4px 15px rgba(61, 138, 138, 0.3);
     position: relative;
@@ -178,8 +176,7 @@
     font-family: var(--font-body);
     font-weight: 500;
     font-size: 0.875rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    letter-spacing: 0.02em;
     transition: all 0.3s ease;
     cursor: pointer;
   }
@@ -193,21 +190,21 @@
 
   /* ── Buttons ── */
   .btn-primary {
-    @apply bg-[var(--color-primary)] text-white px-8 py-3 rounded-md font-medium uppercase tracking-wider text-sm transition-all duration-300;
+    @apply bg-[var(--color-primary)] text-white px-8 py-3 rounded-md font-medium text-sm transition-all duration-300;
   }
   .btn-primary:hover {
     @apply bg-[var(--color-primary-dark)] -translate-y-0.5 shadow-lg shadow-purple-200;
   }
 
   .btn-accent {
-    @apply bg-[var(--color-accent)] text-gray-900 px-8 py-3 rounded-md font-medium uppercase tracking-wider text-sm transition-all duration-300;
+    @apply bg-[var(--color-accent)] text-gray-900 px-8 py-3 rounded-md font-medium text-sm transition-all duration-300;
   }
   .btn-accent:hover {
     @apply bg-[var(--color-accent-hover)] -translate-y-0.5 shadow-lg shadow-yellow-200;
   }
 
   .btn-outline {
-    @apply border border-gray-300 text-gray-700 px-8 py-3 rounded-md font-medium uppercase tracking-wider text-sm transition-all duration-300;
+    @apply border border-gray-300 text-gray-700 px-8 py-3 rounded-md font-medium text-sm transition-all duration-300;
   }
   .btn-outline:hover {
     @apply border-[var(--color-primary)] text-[var(--color-primary)] -translate-y-0.5;
@@ -236,7 +233,7 @@
   }
 
   .badge-yellow {
-    @apply bg-[var(--color-accent)] text-[var(--color-primary-dark)] px-3 py-1 rounded-sm text-xs font-bold uppercase tracking-widest inline-block mb-4;
+    @apply bg-[var(--color-accent)] text-[var(--color-primary-dark)] px-3 py-1 rounded-sm text-xs font-bold inline-block mb-4;
   }
 }
 

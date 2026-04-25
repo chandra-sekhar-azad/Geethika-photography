@@ -43,7 +43,7 @@ const GalleryHomeSection = () => {
         {/* Section Header */}
         <div className="text-center mb-16">
           <h2 className="section-title">Gallery of Smiles</h2>
-          <p className="section-subtitle">VISUAL TALES OF THE RICH MOMENTS WE'VE SHARED WITH OUR CLIENTS.</p>
+          <p className="section-subtitle">Visual tales of the rich moments we've shared with our clients.</p>
         </div>
 
         {/* Gallery Grid */}

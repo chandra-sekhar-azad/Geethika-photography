@@ -33,7 +33,7 @@ const Footer = () => {
               <div className="w-8 h-8 rounded-full bg-[var(--color-primary)] flex items-center justify-center">
                 <span className="text-white font-display font-bold text-xs">GW</span>
               </div>
-              <h1 className="text-xl font-display font-semibold tracking-tight text-gray-900 uppercase">
+              <h1 className="text-xl font-display font-semibold tracking-tight text-gray-900">
                 Geethika <span className="text-[var(--color-primary)]">Digital World</span>
               </h1>
             </div>
@@ -58,7 +58,7 @@ const Footer = () => {
 
           {/* Quick Links */}
           <div>
-            <h4 className="font-display font-bold text-lg text-gray-900 mb-8 uppercase tracking-widest">Quick Links</h4>
+            <h4 className="font-display font-bold text-lg text-gray-900 mb-8">Quick Links</h4>
             <ul className="space-y-4">
               {quickLinks.map(link => (
                 <li key={link.to}>
@@ -72,7 +72,7 @@ const Footer = () => {
 
           {/* Contact Info */}
           <div>
-            <h4 className="font-display font-bold text-lg text-gray-900 mb-8 uppercase tracking-widest">Connect Us</h4>
+            <h4 className="font-display font-bold text-lg text-gray-900 mb-8">Connect Us</h4>
             <ul className="space-y-4">
               <li className="flex items-start">
                 <MapPin className="w-5 h-5 mr-3 text-[var(--color-primary)] shrink-0" />
@@ -91,7 +91,7 @@ const Footer = () => {
 
           {/* Map */}
           <div>
-            <h4 className="font-display font-bold text-lg text-gray-900 mb-8 uppercase tracking-widest">Our Location</h4>
+            <h4 className="font-display font-bold text-lg text-gray-900 mb-8">Our Location</h4>
             <div className="rounded-xl overflow-hidden shadow-md h-40 group">
               <img src="/assets/map.png" alt="Map Location" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-125" />
             </div>
