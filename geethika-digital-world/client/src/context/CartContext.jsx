@@ -93,11 +93,11 @@ export const CartProvider = ({ children }) => {
   };
 
   const getCartTotal = () => {
-    return cart.reduce((total, item) => total + (item.finalPrice * item.quantity), 0);
+    return cart.reduce((total, item) => total + ((item.finalPrice || item.price || 0) * item.quantity), 0);
   };
 
   const getCartSubtotal = () => {
-    return cart.reduce((total, item) => total + (item.finalPrice * item.quantity), 0);
+    return cart.reduce((total, item) => total + ((item.finalPrice || item.price || 0) * item.quantity), 0);
   };
 
   const getServiceCharge = () => {

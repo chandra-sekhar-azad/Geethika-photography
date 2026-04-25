@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Heart, ShoppingCart, Menu, X, User, LogOut, Search, Package } from 'lucide-react';
+import { Heart, ShoppingCart, Menu, X, User, LogOut, Search, Package, ChevronDown, ChevronRight } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { useAuth } from '../context/AuthContext';
@@ -64,7 +64,7 @@ const Navbar = () => {
   ];
 
   const shopCategories = [
-    { id: 'all', name: 'All Gifts' },
+    { id: 'all', name: 'All Products' },
     { id: 'cakes', name: 'Cakes' },
     { id: 'chocolate-bouquets', name: 'Chocolate Bouquets' },
     { id: 'couple-gifts', name: 'Couple Gifts' },

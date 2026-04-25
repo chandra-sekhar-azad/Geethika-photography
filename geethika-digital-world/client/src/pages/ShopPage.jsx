@@ -54,7 +54,7 @@ const ShopPage = () => {
       if (selectedCategory !== 'all') {
         url += `category=${selectedCategory}&`;
       }
-      
+
       const response = await fetch(url);
       const data = await response.json();
       let fetchedProducts = data.products || [];
@@ -62,7 +62,7 @@ const ShopPage = () => {
       // Manual sorting if needed (usually handled by backend, but for completeness)
       if (sortBy === 'price_asc') fetchedProducts.sort((a, b) => a.price - b.price);
       if (sortBy === 'price_desc') fetchedProducts.sort((a, b) => b.price - a.price);
-      
+
       setProducts(fetchedProducts);
     } catch (error) {
       console.error('Failed to fetch products:', error);
@@ -80,7 +80,7 @@ const ShopPage = () => {
   };
 
   const SHOP_CATEGORIES = [
-    { id: 'all', name: 'All Gifts' },
+    { id: 'all', name: 'All Products' },
     { id: 'cakes', name: 'Cakes' },
     { id: 'chocolate-bouquets', name: 'Chocolate Bouquets' },
     { id: 'couple-gifts', name: 'Couple Gifts' },
@@ -100,9 +100,9 @@ const ShopPage = () => {
       <div className="relative h-[450px] flex items-center overflow-hidden">
         {/* Background Image/Pattern */}
         <div className="absolute inset-0 z-0">
-          <img 
-            src="/shop_hero_bg_1777097262067.png" 
-            alt="Shop Header Background" 
+          <img
+            src="/shop_hero_bg_1777097262067.png"
+            alt="Shop Header Background"
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-white/10 backdrop-blur-[1px]" />
@@ -132,7 +132,7 @@ const ShopPage = () => {
             <div className="flex items-center gap-4">
               <span className="text-[10px] font-body font-bold text-gray-400 uppercase tracking-widest hidden sm:inline">Collection:</span>
               <div className="relative group min-w-[240px]">
-                <select 
+                <select
                   value={selectedCategory}
                   onChange={(e) => handleCategoryChange(e.target.value)}
                   className="w-full appearance-none bg-white border-2 border-gray-50 rounded-2xl px-6 py-3.5 pr-12 font-body text-sm font-bold text-gray-900 focus:border-[var(--color-primary)] focus:ring-4 focus:ring-purple-50 outline-none transition-all cursor-pointer shadow-sm hover:border-gray-100"
@@ -150,10 +150,10 @@ const ShopPage = () => {
               <p className="text-gray-400 font-body text-sm italic">
                 Showing {products.length} treasures
               </p>
-              
+
               <div className="flex items-center gap-3">
                 <div className="relative group">
-                  <select 
+                  <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
                     className="appearance-none bg-gray-50 border-none rounded-lg px-6 py-2.5 pr-10 font-body text-sm font-semibold text-gray-700 focus:ring-2 focus:ring-[var(--color-primary-light)] cursor-pointer"
@@ -186,8 +186,8 @@ const ShopPage = () => {
           ) : products.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-10">
               {products.map((product, index) => (
-                <div 
-                  key={product.id} 
+                <div
+                  key={product.id}
                   className="animate-slide-up"
                   style={{ animationDelay: `${index * 0.05}s` }}
                 >
@@ -200,7 +200,7 @@ const ShopPage = () => {
               <Search className="w-16 h-16 text-gray-200 mx-auto mb-6" />
               <h3 className="text-2xl font-display font-bold text-gray-900 mb-2">No Gifts Found</h3>
               <p className="text-gray-500 font-body mb-8">We couldn't find any treasures matching your selection.</p>
-              <button 
+              <button
                 onClick={() => handleCategoryChange('all')}
                 className="btn-primary"
               >

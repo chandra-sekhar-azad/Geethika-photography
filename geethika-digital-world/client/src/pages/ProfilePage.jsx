@@ -293,13 +293,13 @@ const ProfilePage = () => {
                                 <h4 className="text-xl font-display font-bold text-gray-900 mb-2">{item.name}</h4>
                                 <p className="text-xs text-gray-400 font-body">Custom Handmade Gift</p>
                               </div>
-                              <span className="text-xl font-display font-bold text-gray-900">₹{item.price * item.quantity}</span>
+                              <span className="text-xl font-display font-bold text-gray-900">₹{(item.price || 0) * (item.quantity || 1)}</span>
                             </div>
                             <div className="flex items-center justify-between">
                               <div className="flex items-center bg-gray-50 rounded-full px-4 py-1.5 gap-4">
-                                <button onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1))}><Minus className="w-3 h-3 text-gray-400" /></button>
-                                <span className="font-body font-bold text-sm text-gray-900">{item.quantity}</span>
-                                <button onClick={() => updateQuantity(item.id, item.quantity + 1)}><Plus className="w-3 h-3 text-gray-400" /></button>
+                                <button onClick={() => updateQuantity(item.id, Math.max(1, (item.quantity || 1) - 1))}><Minus className="w-3 h-3 text-gray-400" /></button>
+                                <span className="font-body font-bold text-sm text-gray-900">{item.quantity || 1}</span>
+                                <button onClick={() => updateQuantity(item.id, (item.quantity || 1) + 1)}><Plus className="w-3 h-3 text-gray-400" /></button>
                               </div>
                               <button onClick={() => removeFromCart(item.id)} className="text-gray-300 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
                             </div>
