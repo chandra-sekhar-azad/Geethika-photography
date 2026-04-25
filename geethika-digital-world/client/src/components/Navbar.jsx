@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Heart, ShoppingCart, Menu, X, User, LogOut, Search, Globe } from 'lucide-react';
+import { Heart, ShoppingCart, Menu, X, User, LogOut, Search } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { useAuth } from '../context/AuthContext';
@@ -31,7 +31,6 @@ const Navbar = () => {
     { path: '/shop', label: 'Gifts' },
     { path: '/gallery', label: 'Gallery' },
     { path: '/services', label: 'Services' },
-    { path: isAuthenticated() ? '/profile' : '/login', label: 'Account' },
   ];
 
   const isActive = (path) => location.pathname === path;
@@ -77,10 +76,13 @@ const Navbar = () => {
             <button className="text-gray-600 hover:text-[var(--color-primary)] transition-colors hidden sm:block">
               <Search className="w-5 h-5" />
             </button>
-            <div className="flex items-center space-x-1 text-gray-600 hover:text-[var(--color-primary)] cursor-pointer hidden sm:flex">
-              <Globe className="w-4 h-4" />
-              <span className="text-xs font-medium uppercase">EN</span>
-            </div>
+            <Link 
+              to={isAuthenticated() ? "/profile" : "/login"} 
+              className="text-gray-600 hover:text-[var(--color-primary)] transition-colors hidden sm:block"
+              title={isAuthenticated() ? "Profile" : "Login"}
+            >
+              <User className="w-5 h-5" />
+            </Link>
             
             <Link to="/wishlist" className="relative text-gray-600 hover:text-[var(--color-primary)] transition-colors">
               <Heart className="w-5 h-5" />
