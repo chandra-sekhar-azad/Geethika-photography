@@ -54,13 +54,13 @@ const ServicesPage = () => {
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <div className="py-24 bg-gray-50 border-b border-gray-100">
+      <div className="pt-20 pb-10 bg-white">
         <div className="container-custom">
           <div className="max-w-3xl">
-            <span className="bg-[#FCE4EC] text-[#9D4E8D] text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest mb-6 inline-block">
+            <span className="bg-[#FCE4EC] text-[#9D4E8D] text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest mb-4 inline-block">
               Experiences
             </span>
-            <h1 className="text-6xl font-display font-bold text-gray-900 mb-8 leading-tight">
+            <h1 className="text-6xl font-display font-bold text-gray-900 mb-6 leading-tight">
               Studio <span className="italic font-serif font-medium text-[var(--color-primary)]">Offerings</span>
             </h1>
             <p className="text-gray-500 font-body text-lg leading-relaxed">
@@ -71,7 +71,7 @@ const ServicesPage = () => {
       </div>
 
       {/* Services Grid */}
-      <div className="py-32">
+      <div className="pt-4 pb-32">
         <div className="container-custom">
           {loading ? (
             <div className="flex justify-center py-20">
@@ -125,8 +125,8 @@ const ServicesPage = () => {
       {showBookingForm && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-xl" onClick={() => setShowBookingForm(false)} />
-          <div className="relative w-full max-w-2xl bg-white rounded-[40px] overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-300">
-            <div className="p-12 md:p-16">
+          <div className="relative w-full max-w-2xl bg-white rounded-[40px] overflow-y-auto max-h-[90vh] shadow-2xl animate-in fade-in zoom-in duration-300">
+            <div className="p-8 md:p-12">
               <div className="flex justify-between items-start mb-12">
                 <div>
                   <span className="text-[10px] font-body font-bold text-[#8E447E] uppercase tracking-widest mb-2 block">Service Inquiry</span>

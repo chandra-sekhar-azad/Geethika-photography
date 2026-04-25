@@ -4,6 +4,8 @@ import AuditLog from '../models/AuditLog.js';
 import { authenticate, isAdmin } from '../middleware/auth.js';
 import { upload } from '../middleware/upload.js';
 
+import { uploadToCloudinary, deleteFromCloudinary } from '../config/cloudinary.js';
+
 const router = express.Router();
 
 // Get all gallery images (public)
@@ -31,12 +33,14 @@ router.post('/', authenticate, isAdmin, upload.single('image'), async (req, res)
     const { title, description, category = 'general' } = req.body;
     if (!req.file) return res.status(400).json({ error: 'Image file is required' });
 
-    const imageUrl = `/uploads/${req.file.filename}`;
+    // Upload to Cloudinary
+    const uploadResult = await uploadToCloudinary(req.file, 'gallery');
 
     const image = await Gallery.create({
       title,
       description,
-      image_url: imageUrl,
+      image_url: uploadResult.url,
+      image_public_id: uploadResult.publicId,
       category,
       uploaded_by: req.user?.id,
     });
@@ -61,15 +65,36 @@ router.post('/', authenticate, isAdmin, upload.single('image'), async (req, res)
 });
 
 // Update gallery image (admin only)
-router.put('/:id', authenticate, isAdmin, async (req, res) => {
+router.put('/:id', authenticate, isAdmin, upload.single('image'), async (req, res) => {
   try {
     const { title, description, category } = req.body;
+    const existing = await Gallery.findById(req.params.id);
+    if (!existing) return res.status(404).json({ error: 'Image not found' });
+
+    let imageUrl = existing.image_url;
+    let imagePublicId = existing.image_public_id;
+
+    if (req.file) {
+      // Delete old image if it exists
+      if (imagePublicId) await deleteFromCloudinary(imagePublicId);
+      // Upload new image
+      const uploadResult = await uploadToCloudinary(req.file, 'gallery');
+      imageUrl = uploadResult.url;
+      imagePublicId = uploadResult.publicId;
+    }
+
     const image = await Gallery.findByIdAndUpdate(
       req.params.id,
-      { ...(title && { title }), ...(description !== undefined && { description }), ...(category && { category }) },
+      { 
+        ...(title && { title }), 
+        ...(description !== undefined && { description }), 
+        ...(category && { category }),
+        image_url: imageUrl,
+        image_public_id: imagePublicId
+      },
       { new: true }
     );
-    if (!image) return res.status(404).json({ error: 'Image not found' });
+
     res.json({ message: 'Image updated successfully', image });
   } catch (error) {
     console.error('Update gallery image error:', error);
@@ -80,8 +105,15 @@ router.put('/:id', authenticate, isAdmin, async (req, res) => {
 // Delete gallery image (admin only)
 router.delete('/:id', authenticate, isAdmin, async (req, res) => {
   try {
-    const image = await Gallery.findByIdAndDelete(req.params.id);
+    const image = await Gallery.findById(req.params.id);
     if (!image) return res.status(404).json({ error: 'Image not found' });
+
+    // Delete from Cloudinary if publicId exists
+    if (image.image_public_id) {
+      await deleteFromCloudinary(image.image_public_id);
+    }
+
+    await Gallery.findByIdAndDelete(req.params.id);
     res.json({ message: 'Image deleted successfully' });
   } catch (error) {
     console.error('Delete gallery image error:', error);
