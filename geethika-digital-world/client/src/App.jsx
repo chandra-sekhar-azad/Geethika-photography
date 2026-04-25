@@ -111,14 +111,14 @@ function App() {
                         <Route path="/product/:id" element={<ProductDetailPage />} />
                         <Route path="/services" element={<ServicesPage />} />
                         <Route path="/gallery" element={<GalleryPage />} />
-                        <Route path="/cart" element={<CartPage />} />
-                        <Route path="/wishlist" element={<ProtectedRoute><WishlistPage /></ProtectedRoute>} />
+                        <Route path="/cart" element={<Navigate to="/profile?tab=cart" replace />} />
+                        <Route path="/wishlist" element={<Navigate to="/profile?tab=wishlist" replace />} />
                         <Route path="/checkout" element={<CheckoutPage />} />
                         <Route path="/login" element={<LoginPage />} />
                         <Route path="/signup" element={<SignUpPage />} />
                         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                         <Route path="/reset-password" element={<ResetPasswordPage />} />
-                        <Route path="/my-orders" element={<ProtectedRoute><MyOrdersPage /></ProtectedRoute>} />
+                        <Route path="/my-orders" element={<Navigate to="/profile?tab=orders" replace />} />
                         <Route path="/order/:id" element={<ProtectedRoute><OrderDetailPage /></ProtectedRoute>} />
                         <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
                         <Route path="/about" element={<AboutPage />} />

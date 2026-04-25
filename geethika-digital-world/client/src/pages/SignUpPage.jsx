@@ -15,7 +15,7 @@ const SignUpPage = () => {
   const validateForm = () => {
     const newErrors = {};
     if (!formData.fullName.trim()) newErrors.fullName = 'Full name is required';
-    if (!formData.email) newErrors.email = 'Email is required';
+    if (!formData.phone) newErrors.phone = 'Phone number is required';
     if (!formData.password) newErrors.password = 'Password is required';
     if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = 'Passwords do not match';
     if (!formData.acceptTerms) newErrors.acceptTerms = 'Please accept the terms';
@@ -37,7 +37,7 @@ const SignUpPage = () => {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: formData.email, password: formData.password, name: formData.fullName, phone: formData.phone || null })
+        body: JSON.stringify({ email: formData.email, password: formData.password, name: formData.fullName, phone: formData.phone })
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Registration failed');
@@ -132,32 +132,35 @@ const SignUpPage = () => {
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-body font-bold text-gray-400 uppercase tracking-widest ml-4">Email Address</label>
+                <label className="text-[10px] font-body font-bold text-gray-400 uppercase tracking-widest ml-4">Email Address (Optional)</label>
                 <div className="relative group">
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 group-focus-within:text-[var(--color-primary)] transition-colors" />
                   <input
                     name="email"
                     type="email"
-                    required
                     value={formData.email}
                     onChange={handleChange}
                     className="w-full bg-white border border-gray-100 rounded-2xl p-4 pl-12 font-body text-sm text-gray-700 focus:ring-4 focus:ring-purple-100 focus:border-[var(--color-primary)] transition-all outline-none"
-                    placeholder="your@email.com"
+                    placeholder="your@email.com (Optional)"
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-body font-bold text-gray-400 uppercase tracking-widest ml-4">Phone Number</label>
+                <label className="text-[10px] font-body font-bold text-gray-900 uppercase tracking-widest ml-4 flex items-center gap-2">
+                  Phone Number
+                  <span className="text-[var(--color-primary)]">*</span>
+                </label>
                 <div className="relative group">
                   <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 group-focus-within:text-[var(--color-primary)] transition-colors" />
                   <input
                     name="phone"
                     type="tel"
+                    required
                     value={formData.phone}
                     onChange={handleChange}
-                    className="w-full bg-white border border-gray-100 rounded-2xl p-4 pl-12 font-body text-sm text-gray-700 focus:ring-4 focus:ring-purple-100 focus:border-[var(--color-primary)] transition-all outline-none"
-                    placeholder="+91 (Optional)"
+                    className="w-full bg-white border border-gray-900/10 rounded-2xl p-4 pl-12 font-body text-sm text-gray-700 focus:ring-4 focus:ring-purple-100 focus:border-[var(--color-primary)] transition-all outline-none"
+                    placeholder="e.g. +91 94926 86421"
                   />
                 </div>
               </div>

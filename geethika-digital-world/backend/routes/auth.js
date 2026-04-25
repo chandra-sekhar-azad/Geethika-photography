@@ -37,10 +37,10 @@ const verifyOTP = async (email, otp, purpose) => {
 // Register
 router.post('/register',
   [
-    body('email').isEmail().normalizeEmail(),
+    body('email').optional({ checkFalsy: true }).isEmail().normalizeEmail(),
     body('password').isLength({ min: 6 }),
     body('name').trim().notEmpty(),
-    body('phone').optional().isMobilePhone()
+    body('phone').notEmpty().withMessage('Phone number is required').isMobilePhone()
   ],
   async (req, res) => {
     try {
@@ -55,7 +55,9 @@ router.post('/register',
       const hashedPassword = await bcrypt.hash(password, 10);
       const user = await User.create({ email, password: hashedPassword, name, phone: phone || null });
 
-      sendWelcomeEmail(email, name).catch((err) => console.error('Failed to send welcome email:', err));
+      if (email) {
+        sendWelcomeEmail(email, name).catch((err) => console.error('Failed to send welcome email:', err));
+      }
 
       const token = jwt.sign(
         { id: user._id, email: user.email, role: user.role, name: user.name },
@@ -78,32 +80,38 @@ router.post('/register',
 // Login
 router.post('/login',
   [
-    body('email').isEmail().normalizeEmail(),
+    body('identifier').notEmpty().withMessage('Email or Phone is required'),
     body('password').notEmpty()
   ],
   async (req, res) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+ 
+      const { identifier, password } = req.body;
+ 
+      const user = await User.findOne({
+        $or: [
+          { email: identifier.toLowerCase() },
+          { phone: identifier }
+        ]
+      });
 
-      const { email, password } = req.body;
-
-      const user = await User.findOne({ email });
       if (!user) return res.status(401).json({ error: 'Invalid credentials' });
-
+ 
       const isValidPassword = await bcrypt.compare(password, user.password);
       if (!isValidPassword) return res.status(401).json({ error: 'Invalid credentials' });
-
+ 
       const token = jwt.sign(
         { id: user._id, email: user.email, role: user.role, name: user.name },
         process.env.JWT_SECRET,
         { expiresIn: '7d' }
       );
-
+ 
       res.json({
         message: 'Login successful',
         token,
-        user: { id: user._id, email: user.email, name: user.name, role: user.role },
+        user: { id: user._id, email: user.email, name: user.name, role: user.role, phone: user.phone },
       });
     } catch (error) {
       console.error('Login error:', error);

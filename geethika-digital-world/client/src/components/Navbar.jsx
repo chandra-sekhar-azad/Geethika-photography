@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Heart, ShoppingCart, Menu, X, User, LogOut, Search } from 'lucide-react';
+import { Heart, ShoppingCart, Menu, X, User, LogOut, Search, Package } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { useAuth } from '../context/AuthContext';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
@@ -19,8 +20,19 @@ const Navbar = () => {
       setScrolled(window.scrollY > 20);
     };
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+    
+    const handleClickOutside = (e) => {
+      if (isProfileOpen && !e.target.closest('.profile-dropdown-container')) {
+        setIsProfileOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isProfileOpen]);
 
   if (location.pathname.startsWith('/admin')) {
     return null;
@@ -39,9 +51,17 @@ const Navbar = () => {
 
   const handleLogout = () => {
     logout();
+    setIsProfileOpen(false);
     navigate('/', { replace: true });
     setIsOpen(false);
   };
+
+  const profileMenuItems = [
+    { label: 'Edit Profile', path: '/profile?tab=profile', icon: User },
+    { label: 'My Orders', path: '/profile?tab=orders', icon: Package },
+    { label: 'Selection', path: '/profile?tab=cart', icon: ShoppingCart, count: getCartCount() },
+    { label: 'Favorites', path: '/profile?tab=wishlist', icon: Heart, count: getWishlistCount() },
+  ];
 
   return (
     <nav className={`sticky top-0 w-full z-50 transition-all duration-300 ${scrolled ? 'bg-white/90 backdrop-blur-md shadow-md py-0' : 'bg-white py-1'}`}>
@@ -80,41 +100,71 @@ const Navbar = () => {
 
           {/* Icons & Actions */}
           <div className="flex items-center space-x-5">
-            <Link
-              to={isAuthenticated() ? "/profile" : "/login"}
-              className="text-gray-600 hover:text-[var(--color-primary)] transition-colors hidden sm:block"
-              title={isAuthenticated() ? "Profile" : "Login"}
-            >
-              <User className="w-5 h-5" />
-            </Link>
-
-            <Link to="/wishlist" className="relative text-gray-600 hover:text-[var(--color-primary)] transition-colors">
-              <Heart className="w-5 h-5" />
-              {getWishlistCount() > 0 && (
-                <span className="absolute -top-2 -right-2 bg-[var(--color-primary)] text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-bold">
-                  {getWishlistCount()}
-                </span>
-              )}
-            </Link>
-
-            <Link to="/cart" className="relative text-gray-600 hover:text-[var(--color-primary)] transition-colors">
-              <ShoppingCart className="w-5 h-5" />
-              {getCartCount() > 0 && (
-                <span className="absolute -top-2 -right-2 bg-[var(--color-accent)] text-gray-900 text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-bold">
-                  {getCartCount()}
-                </span>
-              )}
-            </Link>
-
-            {isAuthenticated() && (
+            {/* Profile Dropdown */}
+            <div className="relative profile-dropdown-container">
               <button
-                onClick={handleLogout}
-                className="text-gray-600 hover:text-[var(--color-primary)] transition-colors hidden sm:block"
-                title="Logout"
+                onClick={() => setIsProfileOpen(!isProfileOpen)}
+                className={`text-gray-600 hover:text-[var(--color-primary)] transition-all p-2 rounded-full ${isProfileOpen ? 'bg-purple-50 text-[var(--color-primary)]' : ''}`}
+                title="Account"
               >
-                <LogOut className="w-5 h-5" />
+                <User className="w-5 h-5" />
               </button>
-            )}
+
+              {isProfileOpen && (
+                <div className="absolute right-0 mt-4 w-64 bg-white rounded-3xl shadow-2xl border border-gray-100 p-2 animate-slide-up">
+                  {isAuthenticated() ? (
+                    <>
+                      <div className="px-4 py-3 mb-2 border-b border-gray-50">
+                        <p className="text-[10px] font-body font-bold text-gray-400 uppercase tracking-widest">Signed in as</p>
+                        <p className="text-sm font-body font-bold text-gray-900 truncate">{user?.name || user?.email}</p>
+                      </div>
+                      <div className="space-y-1">
+                        {profileMenuItems.map((item) => (
+                          <Link
+                            key={item.path}
+                            to={item.path}
+                            onClick={() => setIsProfileOpen(false)}
+                            className="flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-body font-bold text-gray-600 hover:bg-gray-50 hover:text-[var(--color-primary)] transition-all group"
+                          >
+                            <div className="flex items-center gap-3">
+                              <item.icon className="w-4 h-4" />
+                              <span>{item.label}</span>
+                            </div>
+                            {item.count > 0 && (
+                              <span className="bg-purple-50 text-[var(--color-primary)] px-2 py-0.5 rounded-full text-[8px]">
+                                {item.count}
+                              </span>
+                            )}
+                          </Link>
+                        ))}
+                      </div>
+                      <button
+                        onClick={handleLogout}
+                        className="w-full mt-2 flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-body font-bold text-red-500 hover:bg-red-50 transition-all"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        <span>Logout</span>
+                      </button>
+                    </>
+                  ) : (
+                    <div className="p-4">
+                      <p className="text-xs font-body text-gray-400 mb-4 text-center">Sign in to access your curated dashboard.</p>
+                      <Link
+                        to="/login"
+                        onClick={() => setIsProfileOpen(false)}
+                        className="w-full py-3 bg-gray-900 text-white rounded-2xl font-body font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[var(--color-primary)] transition-all"
+                      >
+                        <User className="w-4 h-4" />
+                        <span>Sign In</span>
+                      </Link>
+                      <p className="mt-4 text-center text-[10px] font-body text-gray-400">
+                        New here? <Link to="/signup" className="text-gray-900 font-bold hover:underline">Join Us</Link>
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
 
             {/* Mobile Menu Toggle */}
             <button
@@ -140,22 +190,16 @@ const Navbar = () => {
                   {link.label}
                 </Link>
               ))}
-              {isAuthenticated() ? (
-                <button
-                  onClick={handleLogout}
-                  className="text-lg font-body font-medium text-red-500 text-left"
-                >
-                  Logout
-                </button>
-              ) : (
-                <Link
-                  to="/login"
-                  onClick={() => setIsOpen(false)}
-                  className="text-lg font-body font-medium text-gray-700"
-                >
-                  Login
-                </Link>
-              )}
+              <div className="pt-4 border-t border-gray-50 flex flex-col space-y-4">
+                {isAuthenticated() ? (
+                  <>
+                    <Link to="/profile?tab=profile" onClick={() => setIsOpen(false)} className="text-lg font-body font-medium text-gray-700">Profile Dashboard</Link>
+                    <button onClick={handleLogout} className="text-lg font-body font-medium text-red-500 text-left">Logout</button>
+                  </>
+                ) : (
+                  <Link to="/login" onClick={() => setIsOpen(false)} className="text-lg font-body font-medium text-gray-700">Login</Link>
+                )}
+              </div>
             </div>
           </div>
         )}
