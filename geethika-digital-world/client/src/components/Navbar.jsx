@@ -48,12 +48,20 @@ const Navbar = () => {
       <div className="container-custom">
         <div className="flex justify-between items-center h-12 sm:h-14">
           {/* Logo */}
-          <Link to="/" className="flex items-center flex-shrink-0">
+          <Link to="/" className="flex items-center gap-4 flex-shrink-0 group">
             <img 
               src="/logo.png" 
-              alt="Geethika Digital World" 
-              className="h-10 w-auto object-contain"
+              alt="Logo" 
+              className="h-10 w-auto object-contain transition-transform duration-500 group-hover:scale-110"
             />
+            <div className="flex flex-col">
+              <span className="text-xl font-display font-bold tracking-tight text-gray-900 leading-none">
+                Geethika
+              </span>
+              <span className="text-[10px] font-body font-bold text-[var(--color-primary)] uppercase tracking-[0.3em] leading-none mt-1">
+                Digital World
+              </span>
+            </div>
           </Link>
 
           {/* Desktop Nav Links */}
