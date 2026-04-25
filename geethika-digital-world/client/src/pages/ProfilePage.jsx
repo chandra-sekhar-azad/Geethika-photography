@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { User, Mail, Phone, Lock, Save, ArrowLeft, Camera, ShieldCheck, ShoppingBag, Heart, Package, Trash2, Plus, Minus, MessageCircle, ChevronRight, Clock, CheckCircle, XCircle, Eye } from 'lucide-react';
+import { User, Mail, Phone, Lock, Save, ArrowLeft, Camera, ShieldCheck, ShoppingBag, Heart, Package, Trash2, Plus, Minus, MessageCircle, ChevronRight, Clock, CheckCircle, XCircle, Eye, LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
