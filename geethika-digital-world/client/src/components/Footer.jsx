@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Heart, Phone, Mail, MapPin, Instagram } from 'lucide-react';
+import { Phone, Mail, MapPin, Instagram, Facebook, Twitter, Youtube } from 'lucide-react';
 
 const Footer = () => {
   const location = useLocation();
@@ -8,144 +8,107 @@ const Footer = () => {
     return null;
   }
 
+  const quickLinks = [
+    { to: '/', label: 'Home' },
+    { to: '/shop', label: 'Shop' },
+    { to: '/services', label: 'Services' },
+    { to: '/gallery', label: 'Gallery' },
+    { to: '/about', label: 'About Us' },
+  ];
+
+  const legalLinks = [
+    { to: '/privacy-policy', label: 'Privacy Policy' },
+    { to: '/terms-conditions', label: 'Terms & Conditions' },
+    { to: '/refund-policy', label: 'Refund Policy' },
+  ];
+
   return (
-    <footer style={{ backgroundColor: 'var(--color-navy-900)', color: 'rgba(255,255,255,0.85)' }}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12 md:py-14">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-10">
-          {/* Brand */}
-          <div className="text-center sm:text-left">
-            <div className="flex items-center justify-center sm:justify-start space-x-2 mb-4">
-              <Heart className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: 'var(--color-teal-300)', fill: 'var(--color-teal-300)' }} />
-              <h3 className="font-display font-semibold text-lg sm:text-xl text-white">Geethika Digital World</h3>
+    <footer className="bg-[#F3F4F6] text-gray-700 pt-20 pb-10">
+      <div className="container-custom">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+          
+          {/* Brand & Social */}
+          <div>
+            <div className="flex items-center space-x-2 mb-6">
+              <div className="w-8 h-8 rounded-full bg-[var(--color-primary)] flex items-center justify-center">
+                <span className="text-white font-display font-bold text-xs">GW</span>
+              </div>
+              <h1 className="text-xl font-display font-semibold tracking-tight text-gray-900 uppercase">
+                Geethika <span className="text-[var(--color-primary)]">Digital World</span>
+              </h1>
             </div>
-            <p className="font-body text-xs sm:text-sm" style={{ color: 'rgba(255,255,255,0.55)' }}>
-              Your one-stop destination for personalized gifts, photography services, and event decoration.
+            <p className="font-body text-sm text-gray-500 mb-8 leading-relaxed">
+              Your one-stop destination for premium personalized gifts, professional photography, and cinematic memories.
             </p>
-            {/* Teal accent line */}
-            <div className="mt-5">
-              <div className="h-0.5 w-10 rounded sm:mx-0 mx-auto" style={{ backgroundColor: 'var(--color-teal-400)' }}></div>
+            <div className="flex space-x-4">
+              <a href="#" className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center hover:bg-[var(--color-primary)] hover:text-white hover:border-[var(--color-primary)] transition-all">
+                <Instagram className="w-5 h-5" />
+              </a>
+              <a href="#" className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center hover:bg-[var(--color-primary)] hover:text-white hover:border-[var(--color-primary)] transition-all">
+                <Facebook className="w-5 h-5" />
+              </a>
+              <a href="#" className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center hover:bg-[var(--color-primary)] hover:text-white hover:border-[var(--color-primary)] transition-all">
+                <Twitter className="w-5 h-5" />
+              </a>
+              <a href="#" className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center hover:bg-[var(--color-primary)] hover:text-white hover:border-[var(--color-primary)] transition-all">
+                <Youtube className="w-5 h-5" />
+              </a>
             </div>
           </div>
 
           {/* Quick Links */}
-          <div className="text-center sm:text-left">
-            <h4 className="font-display font-semibold text-base sm:text-lg text-white mb-4">Quick Links</h4>
-            <ul className="space-y-2">
-              {[
-                { to: '/', label: 'Home' },
-                { to: '/shop', label: 'Shop' },
-                { to: '/services', label: 'Services' },
-                { to: '/gallery', label: 'Gallery' },
-                { to: '/about', label: 'About Us' },
-              ].map(link => (
+          <div>
+            <h4 className="font-display font-bold text-lg text-gray-900 mb-8 uppercase tracking-widest">Quick Links</h4>
+            <ul className="space-y-4">
+              {quickLinks.map(link => (
                 <li key={link.to}>
-                  <Link to={link.to}
-                    className="font-body text-sm transition-colors hover:text-white"
-                    style={{ color: 'rgba(255,255,255,0.55)' }}
-                    onMouseEnter={e => e.currentTarget.style.color = 'var(--color-teal-300)'}
-                    onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.55)'}
-                  >{link.label}</Link>
+                  <Link to={link.to} className="text-sm text-gray-500 hover:text-[var(--color-primary)] transition-colors">
+                    {link.label}
+                  </Link>
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* Categories */}
-          <div className="text-center sm:text-left">
-            <h4 className="font-display font-semibold text-base sm:text-lg text-white mb-4">Popular Categories</h4>
-            <ul className="space-y-2">
-              {[
-                { to: '/shop/couple-gifts', label: 'Couple Gifts' },
-                { to: '/shop/personalised-gifts', label: 'Personalised Gifts' },
-                { to: '/shop/flower-bouquets', label: 'Flower Bouquets' },
-                { to: '/shop/cakes', label: 'Cakes' },
-                { to: '/services', label: 'Photography' },
-              ].map(link => (
-                <li key={link.to}>
-                  <Link to={link.to}
-                    className="font-body text-sm transition-colors"
-                    style={{ color: 'rgba(255,255,255,0.55)' }}
-                    onMouseEnter={e => e.currentTarget.style.color = 'var(--color-teal-300)'}
-                    onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.55)'}
-                  >{link.label}</Link>
-                </li>
-              ))}
+          {/* Contact Info */}
+          <div>
+            <h4 className="font-display font-bold text-lg text-gray-900 mb-8 uppercase tracking-widest">Connect Us</h4>
+            <ul className="space-y-4">
+              <li className="flex items-start">
+                <MapPin className="w-5 h-5 mr-3 text-[var(--color-primary)] shrink-0" />
+                <span className="text-sm text-gray-500">123 Creative Street, Digital Hub, Eluru, Andhra Pradesh</span>
+              </li>
+              <li className="flex items-center">
+                <Phone className="w-5 h-5 mr-3 text-[var(--color-primary)] shrink-0" />
+                <a href="tel:+919492686421" className="text-sm text-gray-500 hover:text-[var(--color-primary)]">+91 94926 86421</a>
+              </li>
+              <li className="flex items-center">
+                <Mail className="w-5 h-5 mr-3 text-[var(--color-primary)] shrink-0" />
+                <a href="mailto:geethikadigital@world.com" className="text-sm text-gray-500 hover:text-[var(--color-primary)] underline decoration-[var(--color-primary)]">geethikadigital@world.com</a>
+              </li>
             </ul>
           </div>
 
-          {/* Contact */}
-          <div className="text-center sm:text-left sm:col-span-2 lg:col-span-1">
-            <h4 className="font-display font-semibold text-base sm:text-lg text-white mb-4">Contact Us</h4>
-            <ul className="space-y-3">
-              <li className="flex items-start justify-center sm:justify-start space-x-2">
-                <MapPin className="w-4 h-4 sm:w-5 sm:h-5 shrink-0 mt-0.5" style={{ color: 'var(--color-teal-300)' }} />
-                <a
-                  href="https://maps.app.goo.gl/xWe5mszQAzkjj3iQA"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-body text-xs sm:text-sm transition-colors"
-                  style={{ color: 'rgba(255,255,255,0.55)' }}
-                  onMouseEnter={e => e.currentTarget.style.color = 'var(--color-teal-300)'}
-                  onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.55)'}
-                >
-                  Geethika Digital World<br />View on Google Maps →
-                </a>
-              </li>
-              <li className="flex items-center justify-center sm:justify-start space-x-2">
-                <Phone className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: 'var(--color-teal-300)' }} />
-                <a href="tel:+919492686421"
-                  className="font-body text-xs sm:text-sm transition-colors"
-                  style={{ color: 'rgba(255,255,255,0.55)' }}
-                  onMouseEnter={e => e.currentTarget.style.color = 'var(--color-teal-300)'}
-                  onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.55)'}
-                >+91 94926 86421</a>
-              </li>
-              <li className="flex items-center justify-center sm:justify-start space-x-2">
-                <Mail className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: 'var(--color-teal-300)' }} />
-                <a href="mailto:geethikaphotoplanet9@gmail.com"
-                  className="font-body text-xs sm:text-sm transition-colors break-all"
-                  style={{ color: 'rgba(255,255,255,0.55)' }}
-                  onMouseEnter={e => e.currentTarget.style.color = 'var(--color-teal-300)'}
-                  onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.55)'}
-                >geethikaphotoplanet9@gmail.com</a>
-              </li>
-            </ul>
-
-            {/* Social */}
-            <div className="mt-5">
-              <a
-                href="https://www.instagram.com/geethikadigitalworld?igsh=czdycmR3aXEwdnN6"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center space-x-2 transition-colors group justify-center sm:justify-start"
-                style={{ color: 'rgba(255,255,255,0.55)' }}
-                onMouseEnter={e => e.currentTarget.style.color = 'var(--color-teal-300)'}
-                onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.55)'}
-                aria-label="Follow us on Instagram"
-              >
-                <Instagram className="w-5 h-5 sm:w-6 sm:h-6" />
-                <span className="font-body text-sm font-medium">@geethikadigitalworld</span>
-              </a>
+          {/* Map */}
+          <div>
+            <h4 className="font-display font-bold text-lg text-gray-900 mb-8 uppercase tracking-widest">Our Location</h4>
+            <div className="rounded-xl overflow-hidden shadow-md h-40 group">
+              <img src="/assets/map.png" alt="Map Location" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-125" />
             </div>
           </div>
+
         </div>
 
-        {/* Bottom bar */}
-        <div className="mt-10 pt-6 text-center font-body text-xs sm:text-sm"
-          style={{ borderTop: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.4)' }}>
-          <p className="mb-3">© {new Date().getFullYear()} Geethika Digital World. All rights reserved.</p>
-          <div className="flex flex-wrap justify-center gap-3 sm:gap-5 text-[10px] sm:text-xs">
-            {[
-              { to: '/privacy-policy', label: 'Privacy Policy' },
-              { to: '/terms-conditions', label: 'Terms & Conditions' },
-              { to: '/refund-policy', label: 'Refund Policy' },
-            ].map(link => (
-              <Link key={link.to} to={link.to}
-                className="transition-colors"
-                style={{ color: 'rgba(255,255,255,0.4)' }}
-                onMouseEnter={e => e.currentTarget.style.color = 'var(--color-teal-300)'}
-                onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.4)'}
-              >{link.label}</Link>
+        {/* Bottom Bar */}
+        <div className="pt-10 border-t border-gray-200 flex flex-col md:flex-row justify-between items-center gap-6">
+          <p className="text-xs text-gray-400 font-body">
+            © {new Date().getFullYear()} Geethika Digital World. All rights reserved. Premium Design by Antigravity AI.
+          </p>
+          <div className="flex gap-8">
+            {legalLinks.map(link => (
+              <Link key={link.to} to={link.to} className="text-xs text-gray-400 hover:text-[var(--color-primary)] transition-colors">
+                {link.label}
+              </Link>
             ))}
           </div>
         </div>

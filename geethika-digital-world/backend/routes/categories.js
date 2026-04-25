@@ -21,7 +21,7 @@ router.get('/', cacheMiddleware(300), async (req, res) => {
 // Create category (admin only)
 router.post('/', authenticate, isAdmin, upload.single('image'), async (req, res) => {
   try {
-    const { name, slug, icon } = req.body;
+    const { name, slug, icon, is_occasion, occasion_order } = req.body;
     let image_url = null;
     let image_public_id = null;
 
@@ -37,6 +37,8 @@ router.post('/', authenticate, isAdmin, upload.single('image'), async (req, res)
       icon,
       image_url,
       image_public_id,
+      is_occasion: is_occasion === 'true' || is_occasion === true,
+      occasion_order: Number(occasion_order) || 0,
     });
 
     invalidateCache((key) => key.startsWith('/api/categories'));
@@ -51,7 +53,7 @@ router.post('/', authenticate, isAdmin, upload.single('image'), async (req, res)
 router.put('/:id', authenticate, isAdmin, upload.single('image'), async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, slug, icon } = req.body;
+    const { name, slug, icon, is_occasion, occasion_order } = req.body;
 
     const existing = await Category.findById(id);
     if (!existing) return res.status(404).json({ error: 'Category not found' });
@@ -60,6 +62,8 @@ router.put('/:id', authenticate, isAdmin, upload.single('image'), async (req, re
       name: name || existing.name,
       slug: slug || existing.slug,
       icon: icon || existing.icon,
+      is_occasion: is_occasion !== undefined ? (is_occasion === 'true' || is_occasion === true) : existing.is_occasion,
+      occasion_order: occasion_order !== undefined ? Number(occasion_order) : existing.occasion_order,
     };
 
     if (req.file) {
