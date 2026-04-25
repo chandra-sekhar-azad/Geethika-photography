@@ -27,10 +27,10 @@ const Navbar = () => {
   }
 
   const navLinks = [
-    { path: '/', label: 'Home' },
+    { path: '/', label: 'Studio' },
     { path: '/shop', label: 'Shop' },
-    { path: '/gallery', label: 'Gallery' },
-    { path: '/services', label: 'Services' },
+    { path: '/gallery', label: 'Collections' },
+    { path: '/shop', label: 'Gifts' },
     { path: '/about', label: 'About' },
   ];
 
