@@ -78,6 +78,7 @@ const Navbar = () => {
     { id: 'event-needs', name: 'Event Needs' },
     { id: 'flower-bouquets', name: 'Flower Bouquets' },
     { id: 'interior-gifts-decor', name: 'Interior Gifts & Decor' },
+    { id: 'mugs', name: 'Mugs' },
     { id: 'personalised-gifts', name: 'Personalised Gifts' },
     { id: 'photo-frames', name: 'Photo Frames' },
     { id: 'plants', name: 'Plants' },

@@ -8,7 +8,7 @@ const TrendingSection = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('All');
 
-  const categories = ['All', 'Mugs', 'T-Shirts', 'Frames', 'Studio'];
+  const categories = ['All', 'Mugs', 'T-Shirts', 'Frames', 'Gifts'];
 
   useEffect(() => {
     fetchProducts();
