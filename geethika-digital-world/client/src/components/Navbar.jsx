@@ -94,18 +94,18 @@ const Navbar = () => {
             <img 
               src="/logo.png" 
               alt="Geethika Digital World" 
-              width="40"
-              height="40"
-              className="h-10 w-10 object-contain transition-transform duration-500 group-hover:scale-110"
+              width="48"
+              height="48"
+              className="h-12 w-12 object-contain transition-transform duration-500 group-hover:scale-110"
               onError={(e) => {
                 e.target.src = "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=100&h=100&fit=crop";
               }}
             />
             <div className="flex flex-col">
-              <span className="text-lg font-display font-bold tracking-tight text-gray-900 leading-none">
+              <span className="text-2xl font-display font-bold tracking-tight text-gray-900 leading-none">
                 Geethika
               </span>
-              <span className="text-[9px] font-body font-bold text-[var(--color-primary)] uppercase tracking-[0.2em] leading-none mt-1">
+              <span className="text-xs font-body font-bold text-[var(--color-primary)] uppercase tracking-[0.2em] leading-none mt-1">
                 Digital World
               </span>
             </div>
