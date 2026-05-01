@@ -43,7 +43,7 @@ const HeroBanner = () => {
               </svg>
             </button>
             <button 
-              onClick={() => navigate('/shop')}
+              onClick={() => navigate('/shop/gifts')}
               className="px-8 py-4 sm:py-3 rounded-md font-medium text-sm border border-gray-400 text-gray-700 hover:bg-gray-50 transition-all shadow-sm text-center"
             >
               Explore Gifts
