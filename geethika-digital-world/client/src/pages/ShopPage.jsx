@@ -86,7 +86,6 @@ const ShopPage = () => {
     { id: 'couple-gifts', name: 'Couple Gifts' },
     { id: 'event-needs', name: 'Event Needs' },
     { id: 'flower-bouquets', name: 'Flower Bouquets' },
-    { id: 'gifts', name: 'Gifts' },
     { id: 'interior-gifts-decor', name: 'Interior Gifts & Decor' },
     { id: 'mugs', name: 'Mugs' },
     { id: 'personalised-gifts', name: 'Personalised Gifts' },

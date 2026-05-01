@@ -19,7 +19,10 @@ const TrendingSection = () => {
     try {
       let url = `${import.meta.env.VITE_API_URL}/api/products?limit=8`;
       if (activeTab !== 'All') {
-        url += `&category=${activeTab}`;
+        let categorySlug = activeTab.toLowerCase();
+        if (activeTab === 'Frames') categorySlug = 'photo-frames';
+        if (activeTab === 'Gifts') categorySlug = 'personalised-gifts';
+        url += `&category=${categorySlug}`;
       }
       
       const response = await fetch(url);
