@@ -155,7 +155,7 @@
 
   /* ── Utilities ── */
   .container-custom {
-    @apply max-w-7xl mx-auto px-6 sm:px-12 lg:px-24;
+    @apply w-full px-4 sm:px-6 lg:px-8;
   }
 
   .badge-yellow {

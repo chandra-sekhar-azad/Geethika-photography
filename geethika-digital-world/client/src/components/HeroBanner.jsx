@@ -17,7 +17,7 @@ const HeroBanner = () => {
       </div>
 
       {/* Content Container */}
-      <div className="relative z-10 w-full px-6 sm:px-12 lg:px-24 pb-20 sm:pb-0 sm:pt-20">
+      <div className="relative z-10 w-full container-custom pb-20 sm:pb-0 sm:pt-20">
         <div className="md:max-w-2xl max-w-full animate-slide-up text-left sm:text-left">
           {/* Badge */}
           <span className="badge-yellow mb-4 inline-block">Suitable for all occasions</span>
