@@ -80,7 +80,6 @@ router.post('/register',
 // Login
 router.post('/login',
   [
-    body('identifier').notEmpty().withMessage('Email or Phone is required'),
     body('password').notEmpty()
   ],
   async (req, res) => {
@@ -88,7 +87,11 @@ router.post('/login',
       const errors = validationResult(req);
       if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
  
-      const { identifier, password } = req.body;
+      const identifier = req.body.identifier || req.body.email;
+      if (!identifier) {
+        return res.status(400).json({ errors: [{ msg: 'Email or Phone is required' }] });
+      }
+      const { password } = req.body;
  
       const user = await User.findOne({
         $or: [
