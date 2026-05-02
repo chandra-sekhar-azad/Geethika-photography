@@ -1,14 +1,32 @@
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const HeroBanner = () => {
   const navigate = useNavigate();
+  const [bgImage, setBgImage] = useState('/assets/hero-bg.png');
+
+  useEffect(() => {
+    const fetchBanner = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/homepage/content`);
+        const data = await response.json();
+        if (data.success && data.content?.hero_banner?.image_url) {
+          const imgUrl = data.content.hero_banner.image_url;
+          setBgImage(imgUrl.startsWith('http') ? imgUrl : `${import.meta.env.VITE_API_URL}${imgUrl}`);
+        }
+      } catch (error) {
+        console.error('Failed to fetch hero banner:', error);
+      }
+    };
+    fetchBanner();
+  }, []);
 
   return (
     <section className="relative w-full h-[100vh] sm:min-h-[90vh] flex flex-col justify-end sm:justify-center overflow-hidden">
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
         <img 
-          src="/assets/hero-bg.png" 
+          src={bgImage} 
           alt="Happy couple with gift"
           className="w-full h-full object-cover object-center sm:object-right-top transition-transform duration-1000"
         />
