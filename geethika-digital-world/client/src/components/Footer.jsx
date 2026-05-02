@@ -14,7 +14,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-16 mb-16">
           
           {/* Brand */}
-          <div className="space-y-8">
+          <div className="space-y-4">
             <Link to="/" className="flex flex-col gap-2 group">
               <span className="text-2xl font-display font-bold text-gray-900 group-hover:text-[var(--color-primary)] transition-colors">
                 Geethika Digital World
@@ -29,7 +29,7 @@ const Footer = () => {
           </div>
 
           {/* Curated Studio */}
-          <div className="space-y-8">
+          <div className="space-y-4">
             <h4 className="text-[10px] font-body font-bold text-gray-900 uppercase tracking-[0.3em]">
               CURATED STUDIO
             </h4>
@@ -41,7 +41,7 @@ const Footer = () => {
           </div>
 
           {/* Support */}
-          <div className="space-y-8">
+          <div className="space-y-4">
             <h4 className="text-[10px] font-body font-bold text-gray-900 uppercase tracking-[0.3em]">
               SUPPORT
             </h4>
@@ -53,7 +53,7 @@ const Footer = () => {
           </div>
 
           {/* Newsletter */}
-          <div className="space-y-8">
+          <div className="space-y-4">
             <h4 className="text-[10px] font-body font-bold text-gray-900 uppercase tracking-[0.3em]">
               NEWSLETTER
             </h4>
@@ -72,7 +72,7 @@ const Footer = () => {
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-12 border-t border-gray-50 flex flex-col md:flex-row justify-between items-center gap-8">
+        <div className="pt-8 border-t border-gray-50 flex flex-col md:flex-row justify-between items-center gap-8">
           <p className="text-[10px] text-gray-400 font-body font-bold tracking-[0.2em] uppercase">
             © {new Date().getFullYear()} Geethika Digital World. Crafted with sentiment.
           </p>
