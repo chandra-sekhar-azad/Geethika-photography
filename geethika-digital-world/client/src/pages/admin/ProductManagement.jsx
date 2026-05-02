@@ -311,13 +311,18 @@ const ProductManagement = () => {
 
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = 
+    
+    const matchesType = 
       filterType === 'all' ? true :
       filterType === 'trending' ? product.valentine_special === true :
       filterType === 'special_offers' ? product.special_offer === true :
       filterType === 'regular' ? !product.valentine_special && !product.special_offer : true;
+      
+    const matchesCategory = 
+      filterCategory === 'all' ? true :
+      product.category_id && product.category_id.toString() === filterCategory;
     
-    return matchesSearch && matchesFilter;
+    return matchesSearch && matchesType && matchesCategory;
   });
 
   if (loading) {
