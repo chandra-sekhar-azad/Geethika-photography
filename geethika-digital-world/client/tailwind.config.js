@@ -23,6 +23,12 @@ export default {
           DEFAULT: "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",
         },
+        'valentine-red': '#e11d48',
+        'valentine-darkRed': '#be123c',
+        'valentine-pink': '#fb7185',
+        'valentine-rose': '#ffe4e6',
+        'orange-primary': '#f97316',
+        'orange-hover': '#ea580c',
       },
       fontFamily: {
         sans: ['Outfit', 'Inter', 'sans-serif'],
