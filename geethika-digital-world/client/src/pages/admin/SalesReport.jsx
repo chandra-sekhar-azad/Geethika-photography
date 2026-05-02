@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { TrendingUp, Download, Calendar } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 const SalesReport = () => {
   const [reportData, setReportData] = useState([]);
@@ -27,7 +28,16 @@ const SalesReport = () => {
       });
       
       const data = await response.json();
-      setReportData(data.report || []);
+      
+      // Ensure numeric values for the charts
+      const formattedReport = (data.report || []).map(row => ({
+        ...row,
+        total_sales: Number(row.total_sales || 0),
+        order_count: Number(row.order_count || 0),
+        average_order_value: Number(row.average_order_value || 0)
+      }));
+      
+      setReportData(formattedReport);
       setSummary(data.summary || {});
     } catch (error) {
       console.error('Failed to fetch sales report:', error);
@@ -150,6 +160,33 @@ const SalesReport = () => {
             </div>
           </div>
         </div>
+
+        {/* Charts */}
+        {reportData.length > 0 && (
+          <div className="bg-white rounded-lg shadow p-6 mb-8">
+            <h2 className="text-xl font-bold text-gray-900 mb-6">Sales Trends</h2>
+            <div className="h-80 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={reportData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="period" tick={{fontSize: 12}} />
+                  <YAxis yAxisId="left" orientation="left" stroke="#f43f5e" tick={{fontSize: 12}} />
+                  <YAxis yAxisId="right" orientation="right" stroke="#6366f1" tick={{fontSize: 12}} />
+                  <Tooltip 
+                    formatter={(value, name) => {
+                      if (name === 'Total Sales') return [`₹${value}`, name];
+                      return [value, name];
+                    }}
+                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                  />
+                  <Legend />
+                  <Bar yAxisId="left" dataKey="total_sales" name="Total Sales" fill="#f43f5e" radius={[4, 4, 0, 0]} />
+                  <Bar yAxisId="right" dataKey="order_count" name="Orders" fill="#6366f1" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        )}
 
         {/* Report Table */}
         <div className="bg-white rounded-lg shadow overflow-hidden">
