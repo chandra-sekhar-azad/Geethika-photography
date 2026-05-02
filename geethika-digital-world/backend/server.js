@@ -47,12 +47,8 @@ app.set('trust proxy', 1);
 // Create uploads directory if it doesn't exist
 const uploadsDir = path.join(__dirname, 'uploads');
 const designsDir = path.join(__dirname, 'uploads', 'designs');
-try {
-  if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
-  if (!fs.existsSync(designsDir)) fs.mkdirSync(designsDir, { recursive: true });
-} catch (error) {
-  console.warn('Could not create upload directories (read-only file system):', error.message);
-}
+if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+if (!fs.existsSync(designsDir)) fs.mkdirSync(designsDir, { recursive: true });
 
 // Security middleware
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
@@ -75,7 +71,6 @@ const allowedOrigins = [
   'https://geethikadigitalworld.com',
   'https://www.geethikadigitalworld.com',
   'https://geethika-digital-world.onrender.com',
-  'https://geethika-photography.vercel.app',
   process.env.FRONTEND_URL,
 ].filter(Boolean);
 
@@ -160,28 +155,26 @@ app.get('/', (req, res) => {
 app.use(notFound);
 app.use(errorHandler);
 
-// Start server (only if not on Vercel serverless)
-if (!process.env.VERCEL) {
-  const server = app.listen(PORT, () => {
-    console.log(
-      `[${new Date().toISOString()}] Geethika API listening on port ${PORT} (${process.env.NODE_ENV || 'development'})`
-    );
+// Start server
+const server = app.listen(PORT, () => {
+  console.log(
+    `[${new Date().toISOString()}] Geethika API listening on port ${PORT} (${process.env.NODE_ENV || 'development'})`
+  );
+});
+
+// Graceful shutdown
+const gracefulShutdown = async (signal) => {
+  console.log(`${signal} received: closing HTTP server`);
+  server.close(async () => {
+    console.log('HTTP server closed');
+    const mongoose = await import('mongoose');
+    await mongoose.default.connection.close();
+    console.log('MongoDB connection closed');
+    process.exit(0);
   });
+};
 
-  // Graceful shutdown
-  const gracefulShutdown = async (signal) => {
-    console.log(`${signal} received: closing HTTP server`);
-    server.close(async () => {
-      console.log('HTTP server closed');
-      const mongoose = await import('mongoose');
-      await mongoose.default.connection.close();
-      console.log('MongoDB connection closed');
-      process.exit(0);
-    });
-  };
-
-  process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-  process.on('SIGINT', () => gracefulShutdown('SIGINT'));
-}
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 export default app;
