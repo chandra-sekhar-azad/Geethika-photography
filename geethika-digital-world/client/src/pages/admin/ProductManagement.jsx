@@ -263,10 +263,14 @@ const ProductManagement = () => {
 
   const handleEdit = (product) => {
     setEditingProduct(product);
+    const pCatId = typeof product.category_id === 'object' && product.category_id !== null 
+      ? (product.category_id._id || product.category_id.id) 
+      : product.category_id;
+
     setFormData({
       name: product.name,
       description: product.description || '',
-      category_id: product.category_id,
+      category_id: pCatId || '',
       price: product.price,
       discount: product.discount || 0,
       stock_quantity: product.stock_quantity || 0,
@@ -318,9 +322,13 @@ const ProductManagement = () => {
       filterType === 'special_offers' ? product.special_offer === true :
       filterType === 'regular' ? !product.valentine_special && !product.special_offer : true;
       
+    const pCatId = typeof product.category_id === 'object' && product.category_id !== null 
+      ? (product.category_id._id || product.category_id.id) 
+      : product.category_id;
+
     const matchesCategory = 
       filterCategory === 'all' ? true :
-      product.category_id && product.category_id.toString() === filterCategory;
+      pCatId && pCatId.toString() === filterCategory;
     
     return matchesSearch && matchesType && matchesCategory;
   });
@@ -403,7 +411,12 @@ const ProductManagement = () => {
             {/* Category Tabs */}
             <div className="border-l border-gray-300 mx-2"></div>
             {categories.map((category) => {
-              const categoryProductCount = products.filter(p => p.category_id === category.id).length;
+              const categoryProductCount = products.filter(p => {
+                const pCatId = typeof p.category_id === 'object' && p.category_id !== null 
+                  ? (p.category_id._id || p.category_id.id) 
+                  : p.category_id;
+                return pCatId && pCatId.toString() === category.id.toString();
+              }).length;
               return (
                 <button
                   key={category.id}
