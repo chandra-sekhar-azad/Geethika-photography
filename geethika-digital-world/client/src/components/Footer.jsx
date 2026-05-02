@@ -11,10 +11,10 @@ const Footer = () => {
   return (
     <footer className="bg-white pt-16 pb-8">
       <div className="container-custom">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-16 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-16 mb-12">
           
           {/* Brand */}
-          <div className="space-y-4">
+          <div className="space-y-3">
             <Link to="/" className="flex flex-col gap-2 group">
               <span className="text-2xl font-display font-bold text-gray-900 group-hover:text-[var(--color-primary)] transition-colors">
                 Geethika Digital World
@@ -29,11 +29,11 @@ const Footer = () => {
           </div>
 
           {/* Curated Studio */}
-          <div className="space-y-4">
+          <div className="space-y-3">
             <h4 className="text-[10px] font-body font-bold text-gray-900 uppercase tracking-[0.3em]">
               CURATED STUDIO
             </h4>
-            <ul className="space-y-4">
+            <ul className="space-y-2">
               <li><Link to="/services" className="text-xs font-body font-bold text-gray-400 uppercase tracking-widest hover:text-[var(--color-primary)] transition-colors">Studio</Link></li>
               <li><Link to="/gallery" className="text-xs font-body font-bold text-gray-400 uppercase tracking-widest hover:text-[var(--color-primary)] transition-colors">Collections</Link></li>
               <li><Link to="/shop" className="text-xs font-body font-bold text-gray-400 uppercase tracking-widest hover:text-[var(--color-primary)] transition-colors">Gifts</Link></li>
@@ -41,11 +41,11 @@ const Footer = () => {
           </div>
 
           {/* Support */}
-          <div className="space-y-4">
+          <div className="space-y-3">
             <h4 className="text-[10px] font-body font-bold text-gray-900 uppercase tracking-[0.3em]">
               SUPPORT
             </h4>
-            <ul className="space-y-4">
+            <ul className="space-y-2">
               <li><Link to="/shipping-info" className="text-xs font-body font-bold text-gray-400 uppercase tracking-widest hover:text-[var(--color-primary)] transition-colors">Shipping Info</Link></li>
               <li><Link to="/contact" className="text-xs font-body font-bold text-gray-400 uppercase tracking-widest hover:text-[var(--color-primary)] transition-colors">Contact Us</Link></li>
               <li><Link to="/privacy-policy" className="text-xs font-body font-bold text-gray-400 uppercase tracking-widest hover:text-[var(--color-primary)] transition-colors">Privacy Policy</Link></li>
@@ -53,7 +53,7 @@ const Footer = () => {
           </div>
 
           {/* Newsletter */}
-          <div className="space-y-4">
+          <div className="space-y-3">
             <h4 className="text-[10px] font-body font-bold text-gray-900 uppercase tracking-[0.3em]">
               NEWSLETTER
             </h4>
