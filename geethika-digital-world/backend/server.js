@@ -75,6 +75,7 @@ const allowedOrigins = [
   'https://geethikadigitalworld.com',
   'https://www.geethikadigitalworld.com',
   'https://geethika-digital-world.onrender.com',
+  'https://geethika-photography.vercel.app',
   process.env.FRONTEND_URL,
 ].filter(Boolean);
 
