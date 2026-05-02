@@ -16,6 +16,7 @@ const ProductDetailPage = () => {
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState('description');
   const [selectedImage, setSelectedImage] = useState(0);
+  const [selectedSizeIndex, setSelectedSizeIndex] = useState(0);
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [customization, setCustomization] = useState({
     image: null,
@@ -73,12 +74,17 @@ const ProductDetailPage = () => {
       return;
     }
 
+    const selectedSize = product.customization_options?.sizes?.length > 0 
+      ? product.customization_options.sizes[selectedSizeIndex]
+      : null;
+
     const cartItem = {
       id: product.id,
       name: product.name,
       image: product.image_url || product.image,
-      price: product.price,
+      price: selectedSize ? selectedSize.price : product.price,
       quantity,
+      size: selectedSize ? selectedSize.name : null,
       customization: product.customizable ? {
         image: customization.imagePreview,
         message: customization.message,
@@ -161,7 +167,11 @@ const ProductDetailPage = () => {
               {product.name}
             </h1>
             <div className="flex items-center gap-4 mb-8">
-              <span className="text-3xl font-display font-bold text-[var(--color-primary)]">₹{product.price}</span>
+              <span className="text-3xl font-display font-bold text-[var(--color-primary)]">
+                ₹{product.customization_options?.sizes?.length > 0 
+                    ? product.customization_options.sizes[selectedSizeIndex]?.price || product.price
+                    : product.price}
+              </span>
               <div className="flex items-center gap-1">
                 <div className="flex">
                   {[...Array(5)].map((_, i) => (
@@ -215,6 +225,28 @@ const ProductDetailPage = () => {
                     onChange={(e) => setCustomization({...customization, message: e.target.value})}
                     className="w-full bg-gray-50 border-none rounded-2xl p-6 font-body text-sm text-gray-700 focus:ring-2 focus:ring-purple-100 h-32 resize-none transition-all"
                   />
+                </div>
+              </div>
+            )}
+
+            {/* Size Options */}
+            {product.customization_options?.sizes?.length > 0 && (
+              <div className="mb-10 animate-fade-in">
+                <h4 className="text-xs font-body font-bold tracking-[0.2em] text-gray-400 uppercase mb-4">Select Size</h4>
+                <div className="flex flex-wrap gap-4">
+                  {product.customization_options.sizes.map((size, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setSelectedSizeIndex(index)}
+                      className={`px-6 py-3 rounded-xl border-2 font-body font-bold transition-all ${
+                        selectedSizeIndex === index 
+                          ? 'border-[var(--color-primary)] bg-purple-50 text-[var(--color-primary)] shadow-md' 
+                          : 'border-gray-100 text-gray-500 hover:border-gray-200 hover:bg-gray-50'
+                      }`}
+                    >
+                      {size.name}
+                    </button>
+                  ))}
                 </div>
               </div>
             )}

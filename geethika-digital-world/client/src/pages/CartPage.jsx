@@ -55,9 +55,9 @@ const CartPage = () => {
                     <div>
                       <h3 className="text-2xl font-display font-bold text-gray-900 mb-4">{item.name}</h3>
                       <div className="flex flex-wrap gap-2 mb-4">
-                        {item.customization?.size && (
+                        {item.size && (
                           <span className="px-3 py-1 bg-pink-50 text-[10px] font-body font-bold text-pink-600 uppercase tracking-widest rounded-full">
-                            SIZE: {item.customization.size}
+                            SIZE: {item.size}
                           </span>
                         )}
                         {item.customization?.image && (
