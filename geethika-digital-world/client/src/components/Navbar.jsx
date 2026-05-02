@@ -95,8 +95,8 @@ const Navbar = () => {
             <img 
               src="/logo.png" 
               alt="Geethika Digital World" 
-              width="56"
-              height="56"
+              width="58"
+              height="58"
               className="h-14 w-14 object-contain transition-transform duration-500 group-hover:scale-110"
               onError={(e) => {
                 e.target.src = "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=100&h=100&fit=crop";
