@@ -106,7 +106,7 @@ const Navbar = () => {
               <span className="text-[28px] font-display font-bold tracking-tight text-gray-900 leading-none">
                 Geethika
               </span>
-              <span className="text-[13px] font-body font-bold text-[var(--color-primary)] uppercase tracking-[0.2em] leading-none mt-1">
+              <span className="text-[15px] font-body font-bold text-[var(--color-primary)] uppercase tracking-[0.2em] leading-none mt-1">
                 Digital World
               </span>
             </div>
