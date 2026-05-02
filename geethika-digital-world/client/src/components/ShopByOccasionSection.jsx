@@ -53,7 +53,7 @@ const ShopByOccasionSection = () => {
   };
 
   return (
-    <section className="py-20 bg-white">
+    <section className="py-12 md:py-16 bg-white">
       <div className="container-custom">
         {/* Section Title */}
         <div className="text-center mb-16">

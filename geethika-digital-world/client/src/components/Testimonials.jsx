@@ -23,7 +23,7 @@ const Testimonials = () => {
   ];
 
   return (
-    <section className="py-24 bg-[#F9FAFB]">
+    <section className="py-12 md:py-16 bg-[#F9FAFB]">
       <div className="container-custom">
         {/* Section Header */}
         <div className="flex justify-between items-end mb-16">

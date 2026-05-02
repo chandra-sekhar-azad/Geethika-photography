@@ -36,7 +36,7 @@ const TrendingSection = () => {
   };
 
   return (
-    <section className="py-20 bg-[#F9F9F9]">
+    <section className="py-12 md:py-16 bg-[#F9F9F9]">
       <div className="container-custom">
         {/* Section Header */}
         <div className="text-center mb-16">

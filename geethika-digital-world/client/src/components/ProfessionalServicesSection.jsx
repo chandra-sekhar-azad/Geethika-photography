@@ -23,7 +23,7 @@ const ProfessionalServicesSection = () => {
   ];
 
   return (
-    <section className="py-24 bg-[#EFEBE9] overflow-hidden">
+    <section className="py-12 md:py-16 bg-[#EFEBE9] overflow-hidden">
       <div className="container-custom">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           

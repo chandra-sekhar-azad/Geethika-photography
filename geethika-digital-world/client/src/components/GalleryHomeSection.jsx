@@ -38,7 +38,7 @@ const GalleryHomeSection = () => {
   };
 
   return (
-    <section className="py-24 bg-white">
+    <section className="py-12 md:py-16 bg-white">
       <div className="container-custom">
         {/* Section Header */}
         <div className="text-center mb-16">

@@ -4,9 +4,9 @@ const CTASection = () => {
   const navigate = useNavigate();
 
   return (
-    <section className="py-24 bg-white">
+    <section className="py-12 md:py-16 bg-white">
       <div className="container-custom">
-        <div className="relative overflow-hidden rounded-[2rem] bg-[var(--color-primary)] py-20 px-8 text-center shadow-2xl">
+        <div className="relative overflow-hidden rounded-[2rem] bg-[var(--color-primary)] py-12 md:py-16 px-8 text-center shadow-2xl">
           {/* Decorative Pattern / Texture */}
           <div className="absolute inset-0 opacity-10 pointer-events-none">
             <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
