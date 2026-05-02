@@ -16,7 +16,7 @@ const Footer = () => {
           {/* Brand */}
           <div className="space-y-3">
             <Link to="/" className="flex flex-col gap-2 group">
-              <span className="text-2xl font-display font-bold text-gray-900 group-hover:text-[var(--color-primary)] transition-colors">
+              <span className="text-[28px] font-display font-bold text-gray-900 group-hover:text-[var(--color-primary)] transition-colors">
                 Geethika Digital World
               </span>
               <p className="text-[10px] font-body font-bold text-gray-300 uppercase tracking-[0.3em]">
