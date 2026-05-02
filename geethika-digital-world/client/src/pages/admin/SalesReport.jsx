@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { TrendingUp, Download, Calendar } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 const SalesReport = () => {
   const [reportData, setReportData] = useState([]);
@@ -77,8 +77,8 @@ const SalesReport = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Sales Report</h1>
-            <p className="text-gray-600 mt-2">Track your sales performance over time</p>
+            <h1 className="text-3xl font-bold text-gray-900">Analytics & Sales Report</h1>
+            <p className="text-gray-600 mt-2">Comprehensive visualization of your business performance</p>
           </div>
           <button
             onClick={exportToCSV}
@@ -107,7 +107,7 @@ const SalesReport = () => {
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600 mb-1">Total Sales</p>
+                  <p className="text-sm text-gray-600 mb-1">Total Revenue</p>
                   <p className="text-3xl font-bold text-gray-900">
                     ₹{parseFloat(summary.total_sales || 0).toLocaleString()}
                   </p>
@@ -161,29 +161,61 @@ const SalesReport = () => {
           </div>
         </div>
 
-        {/* Charts */}
+        {/* Analytics Charts */}
         {reportData.length > 0 && (
-          <div className="bg-white rounded-lg shadow p-6 mb-8">
-            <h2 className="text-xl font-bold text-gray-900 mb-6">Sales Trends</h2>
-            <div className="h-80 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={reportData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="period" tick={{fontSize: 12}} />
-                  <YAxis yAxisId="left" orientation="left" stroke="#f43f5e" tick={{fontSize: 12}} />
-                  <YAxis yAxisId="right" orientation="right" stroke="#6366f1" tick={{fontSize: 12}} />
-                  <Tooltip 
-                    formatter={(value, name) => {
-                      if (name === 'Total Sales') return [`₹${value}`, name];
-                      return [value, name];
-                    }}
-                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                  />
-                  <Legend />
-                  <Bar yAxisId="left" dataKey="total_sales" name="Total Sales" fill="#f43f5e" radius={[4, 4, 0, 0]} />
-                  <Bar yAxisId="right" dataKey="order_count" name="Orders" fill="#6366f1" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+          <div className="space-y-6 mb-8">
+            {/* Main Trend Chart */}
+            <div className="bg-white rounded-lg shadow p-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-6">Revenue & Orders Analytics</h2>
+              <div className="h-80 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={[...reportData].reverse()} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                    <defs>
+                      <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.8}/>
+                        <stop offset="95%" stopColor="#f43f5e" stopOpacity={0}/>
+                      </linearGradient>
+                      <linearGradient id="colorOrders" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="period" tick={{fontSize: 12}} />
+                    <YAxis yAxisId="left" orientation="left" stroke="#f43f5e" tick={{fontSize: 12}} />
+                    <YAxis yAxisId="right" orientation="right" stroke="#6366f1" tick={{fontSize: 12}} />
+                    <Tooltip 
+                      formatter={(value, name) => {
+                        if (name === 'Total Sales') return [`₹${value.toLocaleString()}`, name];
+                        return [value, name];
+                      }}
+                      contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                    />
+                    <Legend />
+                    <Area yAxisId="left" type="monotone" dataKey="total_sales" name="Total Sales" stroke="#f43f5e" strokeWidth={3} fillOpacity={1} fill="url(#colorSales)" />
+                    <Area yAxisId="right" type="monotone" dataKey="order_count" name="Orders" stroke="#6366f1" strokeWidth={2} fillOpacity={1} fill="url(#colorOrders)" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Secondary Chart */}
+            <div className="bg-white rounded-lg shadow p-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-6">Average Order Value</h2>
+              <div className="h-64 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={[...reportData].reverse()} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="period" tick={{fontSize: 12}} />
+                    <YAxis stroke="#10b981" tick={{fontSize: 12}} />
+                    <Tooltip 
+                      formatter={(value) => [`₹${value.toLocaleString()}`, 'Avg Order Value']}
+                      contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                    />
+                    <Bar dataKey="average_order_value" name="Avg Order Value" fill="#10b981" radius={[4, 4, 0, 0]} barSize={40} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
           </div>
         )}
