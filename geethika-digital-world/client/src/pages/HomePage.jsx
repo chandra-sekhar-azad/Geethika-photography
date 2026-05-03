@@ -1,3 +1,4 @@
+import FlashRibbon from '../components/FlashRibbon';
 import HeroBanner from '../components/HeroBanner';
 import FeaturesSection from '../components/FeaturesSection';
 import TrendingSection from '../components/TrendingSection';
@@ -10,6 +11,7 @@ import CTASection from '../components/CTASection';
 const HomePage = () => {
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--color-bg-light)' }}>
+      <FlashRibbon />
       <HeroBanner />
       <FeaturesSection />
       <TrendingSection />
