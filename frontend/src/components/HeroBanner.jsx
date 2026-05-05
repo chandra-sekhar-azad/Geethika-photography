@@ -28,7 +28,7 @@ const HeroBanner = () => {
         <img 
           src={bgImage} 
           alt="Hero Background"
-          className="w-full h-full object-cover object-center"
+          className="w-full h-full object-cover object-[75%_center]"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-white via-white/80 to-transparent" />
       </div>
