@@ -37,23 +37,23 @@ const SimpleProductCard = ({ image, title, description, price, onClick }) => {
       </div>
 
       {/* Content */}
-      <div className="p-4 flex flex-col flex-grow">
-        <h3 className="font-display font-bold text-base text-gray-900 mb-1 group-hover:text-[var(--color-primary)] transition-colors">
+      <div className="p-2 flex flex-col flex-grow">
+        <h3 className="font-display font-bold text-sm text-gray-900 mb-1 group-hover:text-[var(--color-primary)] transition-colors line-clamp-1">
           {title || "Custom Gift Item"}
         </h3>
-        <p className="text-gray-500 font-body text-xs line-clamp-2 mb-4 leading-relaxed">
-          {description || "Personalized gifts crafted with love for your special ones."}
+        <p className="text-gray-500 font-body text-[10px] line-clamp-1 mb-2 leading-tight">
+          {description || "Personalized gifts crafted with love."}
         </p>
         
-        <div className="mt-auto flex items-center justify-between gap-4">
-          <p className="font-display font-bold text-base text-[var(--color-primary)]">
+        <div className="mt-auto flex items-center justify-between gap-1">
+          <p className="font-display font-bold text-sm text-[var(--color-primary)]">
             ₹{Math.round(price)}
           </p>
           <button
-            className="btn-accent !px-4 !py-2 !text-[10px] !rounded-sm whitespace-nowrap"
+            className="bg-[var(--color-primary)] text-white px-2 py-1 text-[9px] rounded-sm whitespace-nowrap hover:bg-[var(--color-primary-dark)] transition-colors"
             onClick={(e) => { e.stopPropagation(); onClick && onClick(); }}
           >
-            Customize Now
+            Customize
           </button>
         </div>
       </div>

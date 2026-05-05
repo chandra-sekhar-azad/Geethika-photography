@@ -34,9 +34,9 @@ const Footer = () => {
               CURATED STUDIO
             </h4>
             <ul className="space-y-2">
-              <li><Link to="/services" className="text-xs font-body font-bold text-gray-400 uppercase tracking-widest hover:text-[var(--color-primary)] transition-colors">Studio</Link></li>
-              <li><Link to="/gallery" className="text-xs font-body font-bold text-gray-400 uppercase tracking-widest hover:text-[var(--color-primary)] transition-colors">Collections</Link></li>
-              <li><Link to="/shop" className="text-xs font-body font-bold text-gray-400 uppercase tracking-widest hover:text-[var(--color-primary)] transition-colors">Gifts</Link></li>
+              <li><Link to="/services" className="text-xs font-body font-bold text-gray-400 uppercase tracking-widest hover:text-[var(--color-primary)] transition-colors">Services</Link></li>
+              <li><Link to="/gallery" className="text-xs font-body font-bold text-gray-400 uppercase tracking-widest hover:text-[var(--color-primary)] transition-colors">Gallery</Link></li>
+              <li><Link to="/shop" className="text-xs font-body font-bold text-gray-400 uppercase tracking-widest hover:text-[var(--color-primary)] transition-colors">Shop</Link></li>
             </ul>
           </div>
 
@@ -55,17 +55,8 @@ const Footer = () => {
           {/* Newsletter */}
           <div className="space-y-3">
             <h4 className="text-[10px] font-body font-bold text-gray-900 uppercase tracking-[0.3em]">
-              NEWSLETTER
             </h4>
             <div className="relative group max-w-xs">
-              <input 
-                type="email" 
-                placeholder="YOUR EMAIL" 
-                className="w-full bg-transparent border-b border-gray-200 py-4 text-[10px] font-body font-bold tracking-[0.2em] focus:border-[var(--color-primary)] transition-all outline-none"
-              />
-              <button className="absolute right-0 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-[var(--color-primary)] transition-colors">
-                <ArrowRight className="w-4 h-4" />
-              </button>
             </div>
           </div>
 

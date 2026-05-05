@@ -41,10 +41,10 @@ const AboutPage = () => {
       <div className="py-4">
         <div className="container-custom">
           <div className="flex flex-col lg:flex-row items-center gap-20">
-            <div className="relative flex-1">
-              <div className="relative rounded-[40px] overflow-hidden aspect-[4/5] shadow-2xl">
+            <div className="relative flex-[0.4] max-w-md lg:mx-0 mx-auto">
+              <div className="relative rounded-[30px] overflow-hidden aspect-[4/5] shadow-2xl">
                 <img 
-                  src="https://images.unsplash.com/photo-1556157382-97dee2dcb96a?w=800&h=1000&fit=crop" 
+                  src="logo.png" 
                   className="w-full h-full object-cover" 
                   alt="Artisan at work" 
                 />

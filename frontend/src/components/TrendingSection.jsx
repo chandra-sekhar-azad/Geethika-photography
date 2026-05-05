@@ -66,7 +66,7 @@ const TrendingSection = () => {
             <div className="w-10 h-10 border-4 border-purple-200 border-t-[var(--color-primary)] rounded-full animate-spin"></div>
           </div>
         ) : products.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-4 gap-14 px-4 md:px-10 lg:px-20">
             {products.map((product, index) => (
               <div
                 key={product.id}
