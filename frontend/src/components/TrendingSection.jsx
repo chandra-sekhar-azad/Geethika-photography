@@ -74,13 +74,7 @@ const TrendingSection = () => {
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
                 <SimpleProductCard
-                  title={product.name}
-                  description={product.short_description || product.description}
-                  image={product.image_url?.startsWith('http')
-                    ? product.image_url
-                    : `${import.meta.env.VITE_API_URL}${product.image_url}`
-                  }
-                  price={product.price}
+                  product={product}
                   onClick={() => navigate(`/product/${product.id}`)}
                 />
               </div>

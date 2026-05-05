@@ -1,13 +1,25 @@
 import { useNavigate } from 'react-router-dom';
-import { Star, Edit3 } from 'lucide-react';
+import { Star, Edit3, Heart } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useWishlist } from '../context/WishlistContext';
 
 const ProductCard = ({ product }) => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
+  const { toggleWishlist, isInWishlist } = useWishlist();
 
   const handleCardClick = () => {
     navigate(`/product/${product.id}`);
+  };
+
+  const handleWishlist = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isAuthenticated()) {
+      navigate('/login');
+      return;
+    }
+    toggleWishlist(product);
   };
 
   const handleCustomize = (e) => {
@@ -62,6 +74,20 @@ const ProductCard = ({ product }) => {
             </span>
           )}
         </div>
+
+        {/* Wishlist Button */}
+        <button
+          onClick={handleWishlist}
+          className="absolute top-3 right-3 z-10 bg-white/80 backdrop-blur-md p-2 rounded-full shadow-sm hover:bg-white transition-all duration-300 group/wishlist"
+        >
+          <Heart 
+            className={`w-4 h-4 transition-all duration-300 ${
+              isInWishlist(product.id) 
+                ? 'fill-[var(--color-primary)] text-[var(--color-primary)] scale-110' 
+                : 'text-gray-400 group-hover/wishlist:text-[var(--color-primary)]'
+            }`} 
+          />
+        </button>
       </div>
 
       {/* Content */}

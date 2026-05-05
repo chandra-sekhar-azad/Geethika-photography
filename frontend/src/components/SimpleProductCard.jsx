@@ -1,8 +1,26 @@
 import { Heart } from 'lucide-react';
-import { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { useWishlist } from '../context/WishlistContext';
+import { useNavigate } from 'react-router-dom';
 
-const SimpleProductCard = ({ image, title, description, price, onClick }) => {
-  const [isLiked, setIsLiked] = useState(false);
+const SimpleProductCard = ({ product, onClick }) => {
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+  const { toggleWishlist, isInWishlist } = useWishlist();
+
+  const handleWishlist = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isAuthenticated()) {
+      navigate('/login');
+      return;
+    }
+    toggleWishlist(product);
+  };
+
+  const imageUrl = product.image_url?.startsWith('http')
+    ? product.image_url
+    : `${import.meta.env.VITE_API_URL}${product.image_url}`;
 
   return (
     <div 
@@ -12,42 +30,43 @@ const SimpleProductCard = ({ image, title, description, price, onClick }) => {
       {/* Image Container */}
       <div className="aspect-square overflow-hidden relative bg-gray-50">
         <img
-          src={image || 'https://images.unsplash.com/photo-1513885535751-8b9238bd345a?w=400&h=400&fit=crop'}
-          alt={title || "Gift product"}
+          src={imageUrl || 'https://images.unsplash.com/photo-1513885535751-8b9238bd345a?w=400&h=400&fit=crop'}
+          alt={product.name || "Gift product"}
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
         />
         
         {/* Wishlist Heart */}
         <button
-          className="absolute top-4 right-4 z-10 bg-white/80 backdrop-blur-sm p-2 rounded-full shadow-sm transition-all hover:bg-white hover:scale-110"
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsLiked(!isLiked);
-          }}
+          className="absolute top-2 right-2 z-10 bg-white/80 backdrop-blur-sm p-1.5 rounded-full shadow-sm transition-all hover:bg-white hover:scale-110"
+          onClick={handleWishlist}
         >
           <Heart
-            className={`w-4 h-4 transition-colors ${isLiked ? 'fill-[var(--color-primary)] text-[var(--color-primary)]' : 'text-gray-400'}`}
+            className={`w-3.5 h-3.5 transition-colors ${
+              isInWishlist(product.id) 
+                ? 'fill-[var(--color-primary)] text-[var(--color-primary)]' 
+                : 'text-gray-400'
+            }`}
           />
         </button>
-
+ 
         {/* Badge (Optional) */}
-        <div className="absolute top-4 left-4">
-          <span className="bg-[var(--color-primary)] text-white text-[10px] font-bold px-2 py-1 rounded-sm uppercase tracking-tighter">New</span>
+        <div className="absolute top-2 left-2">
+          <span className="bg-[var(--color-primary)] text-white text-[8px] font-bold px-1.5 py-0.5 rounded-sm uppercase tracking-tighter">New</span>
         </div>
       </div>
-
+ 
       {/* Content */}
       <div className="p-2 flex flex-col flex-grow">
         <h3 className="font-display font-bold text-sm text-gray-900 mb-1 group-hover:text-[var(--color-primary)] transition-colors line-clamp-1">
-          {title || "Custom Gift Item"}
+          {product.name || "Custom Gift Item"}
         </h3>
         <p className="text-gray-500 font-body text-[10px] line-clamp-1 mb-2 leading-tight">
-          {description || "Personalized gifts crafted with love."}
+          {product.short_description || "Personalized gifts crafted with love."}
         </p>
         
         <div className="mt-auto flex items-center justify-between gap-1">
           <p className="font-display font-bold text-sm text-[var(--color-primary)]">
-            ₹{Math.round(price)}
+            ₹{Math.round(product.price)}
           </p>
           <button
             className="bg-[var(--color-primary)] text-white px-2 py-1 text-[9px] rounded-sm whitespace-nowrap hover:bg-[var(--color-primary-dark)] transition-colors"
@@ -60,5 +79,5 @@ const SimpleProductCard = ({ image, title, description, price, onClick }) => {
     </div>
   );
 };
-
+ 
 export default SimpleProductCard;
