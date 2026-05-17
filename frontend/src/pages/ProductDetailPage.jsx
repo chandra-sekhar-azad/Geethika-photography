@@ -22,6 +22,7 @@ const ProductDetailPage = () => {
     image: null,
     imagePreview: null,
     message: '',
+    uploadingImage: false,
   });
 
   useEffect(() => {
@@ -57,14 +58,44 @@ const ProductDetailPage = () => {
     }
   };
 
-  const handleImageUpload = (e) => {
+  const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (file) {
       setCustomization({
         ...customization,
-        image: file,
-        imagePreview: URL.createObjectURL(file),
+        uploadingImage: true,
       });
+
+      try {
+        const formData = new FormData();
+        formData.append('customizationImage', file);
+
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/designs/upload-customization`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+          body: formData,
+        });
+
+        const data = await response.json();
+        if (response.ok && data.imageUrl) {
+          setCustomization({
+            ...customization,
+            image: data.imageUrl,
+            imagePreview: `${import.meta.env.VITE_API_URL}${data.imageUrl}`,
+            uploadingImage: false,
+          });
+        } else {
+          alert('Failed to upload image. Please try again.');
+          setCustomization(prev => ({ ...prev, uploadingImage: false }));
+        }
+      } catch (error) {
+        console.error('Error uploading customization image:', error);
+        alert('Error uploading image');
+        setCustomization(prev => ({ ...prev, uploadingImage: false }));
+      }
     }
   };
 
@@ -86,7 +117,7 @@ const ProductDetailPage = () => {
       quantity,
       size: selectedSize ? selectedSize.name : null,
       customization: product.customizable ? {
-        image: customization.imagePreview,
+        image: customization.image, // Use the server URL if uploaded, otherwise blob URL
         message: customization.message,
       } : null,
     };
@@ -203,6 +234,14 @@ const ProductDetailPage = () => {
                           <Plus className="w-4 h-4 rotate-45" />
                         </button>
                       </div>
+                    ) : customization.uploadingImage ? (
+                      <div className="cursor-not-allowed block">
+                        <div className="w-14 h-14 bg-white rounded-full shadow-sm flex items-center justify-center mx-auto mb-4">
+                          <div className="w-6 h-6 border-2 border-gray-200 border-t-[var(--color-primary)] rounded-full animate-spin"></div>
+                        </div>
+                        <p className="text-sm font-body font-bold text-gray-700 mb-1">Uploading...</p>
+                        <p className="text-[10px] text-gray-400 font-body">Please wait while we upload your image</p>
+                      </div>
                     ) : (
                       <label className="cursor-pointer block group">
                         <div className="w-14 h-14 bg-white rounded-full shadow-sm flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
@@ -210,7 +249,7 @@ const ProductDetailPage = () => {
                         </div>
                         <p className="text-sm font-body font-bold text-gray-700 mb-1">Upload Photo</p>
                         <p className="text-[10px] text-gray-400 font-body">High resolution JPG or PNG recommended</p>
-                        <input type="file" className="hidden" onChange={handleImageUpload} accept="image/*" />
+                        <input type="file" className="hidden" onChange={handleImageUpload} accept="image/*" disabled={customization.uploadingImage} />
                       </label>
                     )}
                   </div>

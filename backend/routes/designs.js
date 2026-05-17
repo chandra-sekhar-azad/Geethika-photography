@@ -45,6 +45,24 @@ const upload = multer({
   },
 });
 
+// Customer: Upload customization image (for product customization before order)
+router.post('/upload-customization', authenticate, upload.single('customizationImage'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file provided' });
+    }
+    const customizationImageUrl = `/uploads/designs/${req.file.filename}`;
+    res.json({ 
+      success: true, 
+      imageUrl: customizationImageUrl,
+      message: 'Customization image uploaded successfully' 
+    });
+  } catch (error) {
+    console.error('Error uploading customization image:', error);
+    res.status(500).json({ error: 'Failed to upload customization image' });
+  }
+});
+
 // Get design approval for an order item
 router.get('/order-item/:orderItemId', authenticate, async (req, res) => {
   try {

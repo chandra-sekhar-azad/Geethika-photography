@@ -12,7 +12,7 @@ const PaymentPage = () => {
   
   const [step, setStep] = useState(1); // 1: Details, 2: Payment
   const [loading, setLoading] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState('upi');
+  const [paymentMethod, setPaymentMethod] = useState('paytm');
 
   const [formData, setFormData] = useState({
     name: user?.name || '',
@@ -50,6 +50,116 @@ const PaymentPage = () => {
     });
   };
 
+  const handlePaytmPayment = async (createdOrder) => {
+    try {
+      // Get Paytm parameters
+      const paytmResponse = await fetch(`${API_BASE_URL}/api/orders/create-paytm-order`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: getFinalTotal(),
+          orderId: createdOrder.id,
+        })
+      });
+
+      const paytmData = await paytmResponse.json();
+      if (!paytmResponse.ok) throw new Error('Failed to create Paytm order');
+
+      // Create and submit Paytm form
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = paytmData.paytmGatewayUrl;
+      form.style.display = 'none';
+
+      // Add all parameters to form
+      Object.keys(paytmData.paytmParams).forEach(key => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = key;
+        input.value = paytmData.paytmParams[key];
+        form.appendChild(input);
+      });
+
+      document.body.appendChild(form);
+      form.submit();
+      document.body.removeChild(form);
+    } catch (error) {
+      console.error('Paytm payment error:', error);
+      alert('Failed to initialize Paytm payment');
+      setLoading(false);
+    }
+  };
+
+  const handleRazorpayPayment = async (createdOrder, razorpay_order_id) => {
+    try {
+      // Load Razorpay script
+      await loadRazorpay();
+
+      // Open Razorpay Modal
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_demo',
+        amount: Math.round(getFinalTotal() * 100),
+        currency: 'INR',
+        name: 'Geethika Digital World',
+        description: `Order #${createdOrder.order_number}`,
+        image: '/logo.png',
+        order_id: razorpay_order_id,
+        handler: async (response) => {
+          try {
+            // Verify Payment in Backend
+            const verifyRes = await fetch(`${API_BASE_URL}/api/orders/verify-payment`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature
+              })
+            });
+
+            const verifyData = await verifyRes.json();
+            if (verifyRes.ok && verifyData.success) {
+              // Update Order Status
+              await fetch(`${API_BASE_URL}/api/orders/${createdOrder.id}/payment`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_signature: response.razorpay_signature
+                })
+              });
+
+              clearCart();
+              navigate('/profile?tab=orders');
+            } else {
+              alert('Payment verification failed. Please contact support.');
+              setLoading(false);
+            }
+          } catch (err) {
+            console.error('Verification error:', err);
+            alert('Something went wrong during verification.');
+            setLoading(false);
+          }
+        },
+        prefill: {
+          name: formData.name,
+          email: formData.email,
+          contact: formData.phone
+        },
+        theme: {
+          color: '#8E447E'
+        }
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } catch (error) {
+      console.error('Razorpay payment error:', error);
+      alert('Failed to initialize Razorpay payment');
+      setLoading(false);
+    }
+  };
+
   const handleProcessPayment = async () => {
     setLoading(true);
     try {
@@ -71,13 +181,13 @@ const PaymentPage = () => {
           subtotal: getCartSubtotal(),
           service_charge: getServiceCharge(),
           total: getFinalTotal(),
-          payment_method: 'razorpay',
+          payment_method: paymentMethod,
           shipping_info: {
             address: formData.address,
             landmark: formData.landmark,
             city: formData.city,
             pincode: formData.pincode,
-            state: 'Andhra Pradesh' // Default state
+            state: 'Andhra Pradesh'
           }
         })
       });
@@ -87,72 +197,22 @@ const PaymentPage = () => {
 
       const { razorpay_order_id, order: createdOrder } = orderData;
 
-      // 2. Open Razorpay Modal
-      const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_demo',
-        amount: Math.round(getFinalTotal() * 100),
-        currency: 'INR',
-        name: 'Geethika Digital World',
-        description: `Order #${createdOrder.order_number}`,
-        image: '/logo.png',
-        order_id: razorpay_order_id,
-        handler: async (response) => {
-          try {
-            // 3. Verify Payment in Backend
-            const verifyRes = await fetch(`${API_BASE_URL}/api/orders/verify-payment`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature
-              })
-            });
-
-            const verifyData = await verifyRes.json();
-            if (verifyRes.ok && verifyData.success) {
-              // 4. Update Order Status
-              await fetch(`${API_BASE_URL}/api/orders/${createdOrder.id}/payment`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  razorpay_payment_id: response.razorpay_payment_id,
-                  razorpay_signature: response.razorpay_signature
-                })
-              });
-
-              clearCart();
-              navigate('/profile?tab=orders');
-            } else {
-              alert('Payment verification failed. Please contact support.');
-            }
-          } catch (err) {
-            console.error('Verification error:', err);
-            alert('Something went wrong during verification.');
-          }
-        },
-        prefill: {
-          name: formData.name,
-          email: formData.email,
-          contact: formData.phone
-        },
-        theme: {
-          color: '#8E447E'
-        }
-      };
-
-      const rzp = new window.Razorpay(options);
-      rzp.open();
+      // 2. Route to appropriate payment gateway
+      if (paymentMethod === 'paytm') {
+        await handlePaytmPayment(createdOrder);
+      } else {
+        await handleRazorpayPayment(createdOrder, razorpay_order_id);
+      }
     } catch (error) {
       console.error('Payment initialization failed:', error);
       alert(error.message);
-    } finally {
       setLoading(false);
     }
   };
 
   const paymentOptions = [
-    { id: 'upi', label: 'Razorpay Secure Checkout', icon: Wallet, desc: 'UPI, Cards, NetBanking, Wallets' },
+    { id: 'paytm', label: 'Paytm Secure Checkout', icon: Wallet, desc: 'UPI, Wallet, NetBanking, Cards' },
+    { id: 'upi', label: 'Razorpay Secure Checkout', icon: CreditCard, desc: 'UPI, Cards, NetBanking, Wallets' },
   ];
 
   return (
@@ -309,7 +369,7 @@ const PaymentPage = () => {
                   ) : (
                     <>
                       <CheckCircle2 className="w-6 h-6" />
-                      <span>Pay Securely with Razorpay</span>
+                      <span>Pay Securely with {paymentMethod === 'paytm' ? 'Paytm' : 'Razorpay'}</span>
                     </>
                   )}
                 </button>

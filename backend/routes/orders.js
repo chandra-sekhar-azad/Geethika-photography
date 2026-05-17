@@ -3,7 +3,9 @@ import { body, validationResult } from 'express-validator';
 import Order from '../models/Order.js';
 import Product from '../models/Product.js';
 import razorpay from '../config/razorpay.js';
+import { paytmConfig, generateChecksum, verifyChecksum } from '../config/paytm.js';
 import crypto from 'crypto';
+import axios from 'axios';
 import { authenticate, isAdmin } from '../middleware/auth.js';
 import { logAdminAction, getChanges } from '../middleware/auditLog.js';
 
@@ -52,6 +54,101 @@ router.post('/verify-payment', async (req, res) => {
     res.status(500).json({ error: 'Payment verification failed' });
   }
 });
+
+// Create Paytm Order
+router.post('/create-paytm-order', async (req, res) => {
+  try {
+    const { amount, orderId } = req.body;
+
+    const params = {
+      MID: paytmConfig.MID,
+      WEBSITE: paytmConfig.WEBSITE,
+      CHANNEL_ID: paytmConfig.CHANNEL_ID_WEB,
+      INDUSTRY_TYPE_ID: paytmConfig.INDUSTRY_TYPE_ID,
+      ORDER_ID: orderId,
+      CUST_ID: orderId,
+      TXN_AMOUNT: amount.toString(),
+      EMAIL: 'customer@geethikadigitalworld.com',
+      MOBILE_NO: '9999999999',
+      CALLBACK_URL: `${process.env.BACKEND_URL || 'http://localhost:3000'}/api/orders/paytm-callback`,
+    };
+
+    // Generate checksum
+    const checksum = generateChecksum(params, paytmConfig.MERCHANT_KEY);
+    params.CHECKSUMHASH = checksum;
+
+    res.json({
+      success: true,
+      paytmParams: params,
+      paytmGatewayUrl: paytmConfig.PAYTM_GATEWAY_URL,
+    });
+  } catch (error) {
+    console.error('Paytm order creation error:', error);
+    res.status(500).json({ error: 'Failed to create Paytm payment order' });
+  }
+});
+
+// Verify Paytm Payment
+router.post('/verify-paytm-payment', async (req, res) => {
+  try {
+    const { ORDERID, TXNID, TXNAMOUNT, TXNSTATUS } = req.body;
+    let checksumhash = req.body.CHECKSUMHASH;
+
+    const verifyParams = {
+      MID: paytmConfig.MID,
+      ORDERID,
+      TXNID,
+      TXNAMOUNT,
+      TXNSTATUS,
+    };
+
+    const isValidChecksum = verifyChecksum(verifyParams, paytmConfig.MERCHANT_KEY, checksumhash);
+
+    if (!isValidChecksum) {
+      return res.status(400).json({ success: false, error: 'Invalid checksum' });
+    }
+
+    if (TXNSTATUS === 'TXN_SUCCESS') {
+      res.json({ success: true, message: 'Payment verified successfully' });
+    } else {
+      res.status(400).json({ success: false, error: 'Transaction failed', status: TXNSTATUS });
+    }
+  } catch (error) {
+    console.error('Paytm verification error:', error);
+    res.status(500).json({ error: 'Payment verification failed' });
+  }
+});
+
+// Paytm Callback Handler
+router.post('/paytm-callback', async (req, res) => {
+  try {
+    const { ORDERID, TXNSTATUS, TXNAMOUNT } = req.body;
+    let checksumhash = req.body.CHECKSUMHASH;
+
+    const verifyParams = {
+      MID: paytmConfig.MID,
+      ORDERID,
+      TXNSTATUS,
+      TXNAMOUNT,
+    };
+
+    const isValidChecksum = verifyChecksum(verifyParams, paytmConfig.MERCHANT_KEY, checksumhash);
+
+    if (isValidChecksum && TXNSTATUS === 'TXN_SUCCESS') {
+      // Update order payment status
+      await Order.findByIdAndUpdate(
+        ORDERID,
+        { payment_status: 'paid', paytm_order_id: ORDERID },
+        { new: true }
+      );
+      res.json({ success: true, message: 'Payment processed successfully' });
+    } else {
+      res.status(400).json({ success: false, error: 'Invalid payment' });
+    }
+  } catch (error) {
+    console.error('Paytm callback error:', error);
+    res.status(500).json({ error: 'Callback processing failed' });
+  }
 
 // Create order
 router.post('/',

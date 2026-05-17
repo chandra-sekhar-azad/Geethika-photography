@@ -27,6 +27,9 @@ const orderSchema = new mongoose.Schema({
   razorpay_order_id: { type: String, default: null },
   razorpay_payment_id: { type: String, default: null },
   razorpay_signature: { type: String, default: null },
+  paytm_order_id: { type: String, default: null },
+  paytm_transaction_id: { type: String, default: null },
+  paytm_transaction_status: { type: String, default: null },
 }, { timestamps: true });
 
 export default mongoose.model('Order', orderSchema);
