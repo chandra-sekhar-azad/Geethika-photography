@@ -195,9 +195,9 @@ const MyOrdersPage = () => {
                       <p className="font-bold text-xl text-valentine-red">₹{order.total || order.total_amount || 0}</p>
                     </div>
                     <div className="flex items-center gap-2">
-                      {getStatusIcon(order.status)}
-                      <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(order.status)}`}>
-                        {order.status || 'Pending'}
+                      {getStatusIcon(order.order_status || order.status)}
+                      <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(order.order_status || order.status)} capitalize`}>
+                        {order.order_status || order.status || 'Pending'}
                       </span>
                     </div>
                   </div>
@@ -210,7 +210,13 @@ const MyOrdersPage = () => {
                     {order.items?.map((item, index) => (
                       <div key={index} className="flex gap-4 pb-4 border-b last:border-b-0">
                         <img
-                          src={item.product_image_url || item.image_url || '/images/image.png'}
+                          src={
+                            item.product_image?.startsWith('http')
+                              ? item.product_image
+                              : (item.product_image || item.product_image_url || item.image_url
+                                  ? `${import.meta.env.VITE_API_URL}${item.product_image || item.product_image_url || item.image_url}`
+                                  : '/images/image.png')
+                          }
                           alt={item.product_name}
                           className="w-20 h-20 object-cover rounded-lg"
                         />

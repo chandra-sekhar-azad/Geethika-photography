@@ -201,6 +201,9 @@
   .text-gradient {
     @apply bg-clip-text text-transparent bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-light)];
   }
+  .pt-12 {
+    padding-top: 1.2rem !important;
+  }
   .animate-float {
     animation: float 6s ease-in-out infinite;
   }

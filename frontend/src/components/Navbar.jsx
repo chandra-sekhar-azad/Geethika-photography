@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Heart, ShoppingCart, Menu, X, User, LogOut, Package, ChevronDown, ChevronRight } from 'lucide-react';
+import { Heart, ShoppingCart, Menu, X, User, LogOut, Package, ChevronDown, ChevronRight, Bell } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { useAuth } from '../context/AuthContext';
@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext';
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isMobileShopOpen, setIsMobileShopOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
@@ -15,6 +16,47 @@ const Navbar = () => {
   const { getCartCount } = useCart();
   const { getWishlistCount } = useWishlist();
   const { user, logout, isAuthenticated } = useAuth();
+  
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  const fetchNotifications = async () => {
+    if (!isAuthenticated()) return;
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/notifications`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setNotifications(data.notifications || []);
+        setUnreadCount(data.unreadCount || 0);
+      }
+    } catch (error) {
+      console.error('Failed to fetch notifications:', error);
+    }
+  };
+
+  const handleMarkAllRead = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      await fetch(`${import.meta.env.VITE_API_URL}/api/notifications/mark-read`, {
+        method: 'PATCH',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      setUnreadCount(0);
+      setNotifications(notifications.map(n => ({ ...n, read: true })));
+    } catch (error) {
+      console.error('Failed to mark read:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchNotifications();
+    // Poll every 30 seconds
+    const interval = setInterval(fetchNotifications, 30000);
+    return () => clearInterval(interval);
+  }, [isAuthenticated()]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -26,6 +68,9 @@ const Navbar = () => {
       if (isProfileOpen && !e.target.closest('.profile-dropdown-container')) {
         setIsProfileOpen(false);
       }
+      if (isNotificationsOpen && !e.target.closest('.notifications-dropdown-container')) {
+        setIsNotificationsOpen(false);
+      }
     };
     document.addEventListener('mousedown', handleClickOutside);
 
@@ -33,7 +78,7 @@ const Navbar = () => {
       window.removeEventListener('scroll', handleScroll);
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isProfileOpen]);
+  }, [isProfileOpen, isNotificationsOpen]);
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -47,7 +92,7 @@ const Navbar = () => {
 
   const navLinks = [
     { path: '/', label: 'Home' },
-    { path: '/shop', label: 'Shop', hasDropdown: true },
+    { path: '/shop', label: 'Shop' },
     { path: '/services', label: 'Services' },
     { path: '/gallery', label: 'Gallery' },
     { path: '/about', label: 'About' },
@@ -147,8 +192,60 @@ const Navbar = () => {
 
           {/* Icons & Actions */}
           <div className="flex items-center space-x-4">
-            {/* Cart & Wishlist (Desktop) */}
+            {/* Notifications, Cart & Wishlist (Desktop) */}
             <div className="hidden sm:flex items-center space-x-2">
+              {/* Notifications Dropdown */}
+              <div className="relative notifications-dropdown-container">
+                <button 
+                  onClick={() => {
+                    setIsNotificationsOpen(!isNotificationsOpen);
+                    if (unreadCount > 0 && !isNotificationsOpen) handleMarkAllRead();
+                  }}
+                  className={`p-2 text-gray-600 hover:text-[var(--color-primary)] relative transition-all rounded-full ${isNotificationsOpen ? 'bg-purple-50 text-[var(--color-primary)]' : ''}`}
+                  title="Notifications"
+                >
+                  <Bell className="w-5 h-5" />
+                  {unreadCount > 0 && (
+                    <span className="absolute top-1 right-1 bg-valentine-red text-white text-[8px] font-bold w-4 h-4 rounded-full flex items-center justify-center border-2 border-white">
+                      {unreadCount}
+                    </span>
+                  )}
+                </button>
+
+                {isNotificationsOpen && (
+                  <div className="absolute right-0 mt-4 w-72 bg-white rounded-3xl shadow-2xl border border-gray-100 p-2 animate-slide-up z-[60]">
+                    <div className="px-4 py-3 border-b border-gray-50 flex justify-between items-center">
+                      <p className="text-xs font-body font-bold text-gray-900">Notifications</p>
+                      {unreadCount > 0 && (
+                        <button onClick={handleMarkAllRead} className="text-[10px] text-[var(--color-primary)] font-bold hover:underline">Mark all read</button>
+                      )}
+                    </div>
+                    <div className="max-h-64 overflow-y-auto custom-scrollbar">
+                      {notifications.length === 0 ? (
+                        <div className="p-6 text-center text-gray-400 text-xs">
+                          No notifications yet.
+                        </div>
+                      ) : (
+                        notifications.map((notif) => (
+                          <div 
+                            key={notif._id} 
+                            onClick={() => {
+                              setIsNotificationsOpen(false);
+                              if (notif.link) navigate(notif.link);
+                            }}
+                            className={`p-4 border-b border-gray-50 hover:bg-gray-50 transition-colors cursor-pointer ${!notif.read ? 'bg-purple-50/30' : ''}`}
+                          >
+                            <p className={`text-xs font-bold ${!notif.read ? 'text-[var(--color-primary)]' : 'text-gray-900'}`}>{notif.title}</p>
+                            <p className="text-[10px] text-gray-500 mt-1">{notif.message}</p>
+                            <p className="text-[8px] text-gray-400 mt-2">{new Date(notif.createdAt).toLocaleDateString()}</p>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <Link to="/profile?tab=wishlist" className="p-2 text-gray-600 hover:text-[var(--color-primary)] relative">
                 <Heart className="w-5 h-5" />
                 {getWishlistCount() > 0 && (

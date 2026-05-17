@@ -7,6 +7,10 @@ import { Readable } from 'stream';
 import { v2 as cloudinary } from 'cloudinary';
 import dotenv from 'dotenv';
 import { authenticate, isAdmin } from '../middleware/auth.js';
+import Order from '../models/Order.js';
+import Notification from '../models/Notification.js';
+import User from '../models/User.js';
+import { sendWhatsAppMessage } from '../config/whatsapp.js';
 
 dotenv.config();
 
@@ -162,6 +166,27 @@ router.post('/upload/:orderItemId', authenticate, isAdmin, upload.single('design
       { admin_designed_image: designImageUrl, status: 'pending_approval' },
       { new: true, upsert: true }
     );
+
+    // Create notification for the user
+    const order = await Order.findOne({ "items._id": orderItemId });
+    if (order) {
+      const user = await User.findOne({ email: order.customer_email });
+      if (user) {
+        await Notification.create({
+          user_id: user._id,
+          title: 'Design Ready for Review',
+          message: `Please review the custom design for your order ${order.order_number}.`,
+          type: 'design',
+          link: `/order/${order._id}`
+        });
+      }
+
+      if (order.customer_phone) {
+        const frontendUrl = process.env.FRONTEND_URL || 'https://geethikadigitalworld.com';
+        const waMessage = `🎨 Design Ready for Review!\n\nHi ${order.customer_name},\n\nWe have created the custom design for your order #${order.order_number}.\n\nPlease review and approve it here: ${frontendUrl}/order/${order._id}\n\nQuestions? Call us at +91 9492686421`;
+        sendWhatsAppMessage(order.customer_phone, waMessage).catch(err => console.error('Failed to send WA design review:', err));
+      }
+    }
 
     res.json({ success: true, design, message: 'Design uploaded successfully' });
   } catch (error) {

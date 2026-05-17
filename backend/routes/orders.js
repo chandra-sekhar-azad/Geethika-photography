@@ -5,6 +5,9 @@ import Product from '../models/Product.js';
 import { paytmConfig, generateChecksum, verifyChecksum } from '../config/paytm.js';
 import { authenticate, isAdmin } from '../middleware/auth.js';
 import { logAdminAction, getChanges } from '../middleware/auditLog.js';
+import Notification from '../models/Notification.js';
+import User from '../models/User.js';
+import { sendWhatsAppMessage } from '../config/whatsapp.js';
 
 const router = express.Router();
 
@@ -274,7 +277,14 @@ router.get('/:id', authenticate, async (req, res) => {
   try {
     const order = await Order.findById(req.params.id).lean();
     if (!order) return res.status(404).json({ error: 'Order not found' });
-    res.json({ ...order, id: order._id });
+    
+    // Return order with all items included
+    console.log('Returning order:', order.order_number, 'with', order.items?.length || 0, 'items');
+    res.json({ 
+      ...order,
+      id: order._id,
+      items: order.items || []
+    });
   } catch (error) {
     console.error('Get order error:', error);
     res.status(500).json({ error: 'Failed to fetch order' });
@@ -313,6 +323,54 @@ router.patch('/:id/status', authenticate, isAdmin, async (req, res) => {
 
     const changes = getChanges(oldOrder, order);
     await logAdminAction(req, 'UPDATE', 'order', order._id, order.order_number, changes);
+
+    if (order_status && oldOrder.order_status !== order_status) {
+      const user = await User.findOne({ email: order.customer_email });
+      if (user) {
+        let title = 'Order Update';
+        let message = `Your order ${order.order_number} status has been updated to ${order_status}.`;
+        
+        if (order_status === 'shipped') {
+          title = 'Order Shipped';
+          message = `Great news! Your order ${order.order_number} is on its way.`;
+        } else if (order_status === 'delivered') {
+          title = 'Order Delivered';
+          message = `Your order ${order.order_number} has been delivered. Enjoy!`;
+        }
+
+        await Notification.create({
+          user_id: user._id,
+          title,
+          message,
+          type: 'order',
+          link: `/order/${order._id}`
+        });
+      }
+
+      // Send WhatsApp Notification
+      if (order.customer_phone) {
+        const statusEmojis = {
+          'pending': '⏳',
+          'processing': '📦',
+          'shipped': '🚚',
+          'delivered': '✅',
+          'cancelled': '❌'
+        };
+        const statusMessages = {
+          'pending': 'Your order is pending confirmation',
+          'processing': 'Your order is being processed',
+          'shipped': 'Your order has been shipped!',
+          'delivered': 'Your order has been delivered',
+          'cancelled': 'Your order has been cancelled'
+        };
+        
+        const frontendUrl = process.env.FRONTEND_URL || 'https://geethikadigitalworld.com';
+        const waMessage = `${statusEmojis[order_status] || '📦'} Order Update\n\nHi ${order.customer_name}!\n\nOrder #${order.order_number}\nStatus: ${statusMessages[order_status] || `Your order status is now ${order_status}`}\n\nView details: ${frontendUrl}/order/${order._id}\n\nQuestions? Call us at +91 9492686421`;
+        
+        // Send asynchronously without awaiting
+        sendWhatsAppMessage(order.customer_phone, waMessage).catch(err => console.error('Failed to send WA update:', err));
+      }
+    }
 
     res.json({ message: 'Order status updated successfully', order });
   } catch (error) {

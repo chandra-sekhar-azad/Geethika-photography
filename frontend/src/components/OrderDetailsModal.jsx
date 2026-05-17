@@ -1,9 +1,12 @@
 import { useState } from 'react';
-import { Download, Upload, X, Image as ImageIcon, CheckCircle, XCircle, MapPin, Phone, Mail, DollarSign } from 'lucide-react';
+import { Download, Upload, X, Image as ImageIcon, CheckCircle, XCircle, MapPin, Phone, Mail, DollarSign, AlertCircle } from 'lucide-react';
 
 const OrderDetailsModal = ({ order, onClose, onUpdateStatus }) => {
   const [uploadingDesign, setUploadingDesign] = useState(null);
   const [designFile, setDesignFile] = useState(null);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [statusUpdateError, setStatusUpdateError] = useState(null);
+  const [updatedOrder, setUpdatedOrder] = useState(order);
 
   const handleDesignUpload = async (orderItemId) => {
     if (!designFile) return;
@@ -69,6 +72,45 @@ const OrderDetailsModal = ({ order, onClose, onUpdateStatus }) => {
     return [];
   };
 
+  const handleStatusUpdate = async (newStatus) => {
+    if (newStatus === updatedOrder.order_status) return;
+
+    setUpdatingStatus(true);
+    setStatusUpdateError(null);
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/orders/${updatedOrder.id || updatedOrder._id}/status`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            order_status: newStatus
+          })
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        setUpdatedOrder(data.order || { ...updatedOrder, order_status: newStatus });
+        if (onUpdateStatus) {
+          onUpdateStatus(updatedOrder.id || updatedOrder._id, newStatus);
+        }
+      } else {
+        setStatusUpdateError('Failed to update order status');
+      }
+    } catch (error) {
+      console.error('Error updating order status:', error);
+      setStatusUpdateError('Error updating status. Please try again.');
+    } finally {
+      setUpdatingStatus(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg max-w-5xl w-full max-h-[95vh] overflow-y-auto">
@@ -84,17 +126,17 @@ const OrderDetailsModal = ({ order, onClose, onUpdateStatus }) => {
           <div className="grid grid-cols-3 gap-4">
             <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
               <p className="text-xs text-blue-600 font-semibold uppercase mb-1">Order Number</p>
-              <p className="font-bold text-lg text-gray-900">{order.order_number}</p>
+              <p className="font-bold text-lg text-gray-900">{updatedOrder.order_number}</p>
             </div>
             <div className="bg-green-50 p-4 rounded-lg border border-green-200">
               <p className="text-xs text-green-600 font-semibold uppercase mb-1">Order Date</p>
-              <p className="font-bold text-lg text-gray-900">{new Date(order.created_at).toLocaleDateString()}</p>
-              <p className="text-xs text-gray-600">{new Date(order.created_at).toLocaleTimeString()}</p>
+              <p className="font-bold text-lg text-gray-900">{new Date(updatedOrder.created_at).toLocaleDateString()}</p>
+              <p className="text-xs text-gray-600">{new Date(updatedOrder.created_at).toLocaleTimeString()}</p>
             </div>
             <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
               <p className="text-xs text-purple-600 font-semibold uppercase mb-1">Payment Status</p>
-              <p className={`font-bold text-lg ${order.payment_status === 'paid' ? 'text-green-600' : 'text-yellow-600'}`}>
-                {order.payment_status?.toUpperCase()}
+              <p className={`font-bold text-lg ${updatedOrder.payment_status === 'paid' ? 'text-green-600' : 'text-yellow-600'}`}>
+                {updatedOrder.payment_status?.toUpperCase()}
               </p>
             </div>
           </div>
@@ -108,20 +150,20 @@ const OrderDetailsModal = ({ order, onClose, onUpdateStatus }) => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-xs text-gray-600 font-semibold uppercase mb-1">Name</p>
-                <p className="font-semibold text-gray-900">{order.customer_name}</p>
+                <p className="font-semibold text-gray-900">{updatedOrder.customer_name}</p>
               </div>
               <div>
                 <p className="text-xs text-gray-600 font-semibold uppercase mb-1">Phone</p>
                 <p className="font-semibold text-gray-900 flex items-center gap-2">
                   <Phone className="w-4 h-4 text-blue-600" />
-                  {order.customer_phone}
+                  {updatedOrder.customer_phone}
                 </p>
               </div>
               <div className="col-span-2">
                 <p className="text-xs text-gray-600 font-semibold uppercase mb-1">Email</p>
                 <p className="font-semibold text-gray-900 flex items-center gap-2">
                   <Mail className="w-4 h-4 text-blue-600" />
-                  {order.customer_email || 'N/A'}
+                  {updatedOrder.customer_email || 'N/A'}
                 </p>
               </div>
             </div>
@@ -134,12 +176,12 @@ const OrderDetailsModal = ({ order, onClose, onUpdateStatus }) => {
               Shipping Address
             </h3>
             <div className="bg-white rounded p-3 border-l-4 border-orange-500">
-              <p className="text-gray-900 font-semibold mb-2">{order.shipping_address || order.shipping_info?.address || 'N/A'}</p>
-              {order.shipping_info ? (
+              <p className="text-gray-900 font-semibold mb-2">{updatedOrder.shipping_address || updatedOrder.shipping_info?.address || 'N/A'}</p>
+              {updatedOrder.shipping_info ? (
                 <div className="text-sm text-gray-700 space-y-1">
-                  <p><span className="font-semibold">City:</span> {order.shipping_info.city}</p>
-                  <p><span className="font-semibold">State:</span> {order.shipping_info.state}</p>
-                  <p><span className="font-semibold">Pincode:</span> {order.shipping_info.pincode}</p>
+                  <p><span className="font-semibold">City:</span> {updatedOrder.shipping_info.city}</p>
+                  <p><span className="font-semibold">State:</span> {updatedOrder.shipping_info.state}</p>
+                  <p><span className="font-semibold">Pincode:</span> {updatedOrder.shipping_info.pincode}</p>
                 </div>
               ) : null}
             </div>
@@ -152,7 +194,7 @@ const OrderDetailsModal = ({ order, onClose, onUpdateStatus }) => {
               Order Items
             </h3>
             <div className="space-y-4">
-              {order.items?.map((item, index) => {
+              {updatedOrder.items?.map((item, index) => {
                 const customizationImages = getCustomizationImages(item);
                 const isCustomizable = customizationImages.length > 0;
 
@@ -271,18 +313,18 @@ const OrderDetailsModal = ({ order, onClose, onUpdateStatus }) => {
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-700">Payment Method:</span>
-                  <span className="font-semibold text-gray-900">{(order.payment_method || 'razorpay').toUpperCase()}</span>
+                  <span className="font-semibold text-gray-900">{(updatedOrder.payment_method || 'razorpay').toUpperCase()}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-700">Payment Status:</span>
-                  <span className={`font-semibold ${order.payment_status === 'paid' ? 'text-green-600' : 'text-yellow-600'}`}>
-                    {order.payment_status?.toUpperCase()}
+                  <span className={`font-semibold ${updatedOrder.payment_status === 'paid' ? 'text-green-600' : 'text-yellow-600'}`}>
+                    {updatedOrder.payment_status?.toUpperCase()}
                   </span>
                 </div>
-                {order.razorpay_payment_id && (
+                {updatedOrder.razorpay_payment_id && (
                   <div className="flex justify-between">
                     <span className="text-gray-700">Payment ID:</span>
-                    <span className="font-semibold text-gray-900 text-xs truncate">{order.razorpay_payment_id}</span>
+                    <span className="font-semibold text-gray-900 text-xs truncate">{updatedOrder.razorpay_payment_id}</span>
                   </div>
                 )}
               </div>
@@ -294,16 +336,43 @@ const OrderDetailsModal = ({ order, onClose, onUpdateStatus }) => {
                 <span className="w-5 h-5 bg-indigo-600 text-white rounded-full flex items-center justify-center text-xs">✓</span>
                 Order Status
               </h4>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
+              <div className="space-y-3 text-sm">
+                <div className="flex justify-between items-center">
                   <span className="text-gray-700">Current Status:</span>
                   <span className="font-semibold text-gray-900 px-2 py-1 bg-blue-200 text-blue-800 rounded-full">
-                    {(order.order_status || 'pending').toUpperCase()}
+                    {(updatedOrder.order_status || 'pending').toUpperCase()}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-700">Order Type:</span>
-                  <span className="font-semibold text-gray-900">{(order.order_type || 'online').toUpperCase()}</span>
+                  <span className="font-semibold text-gray-900">{(updatedOrder.order_type || 'online').toUpperCase()}</span>
+                </div>
+                
+                {/* Status Update Section */}
+                <div className="border-t pt-3 mt-3">
+                  <p className="text-xs text-gray-600 font-semibold uppercase mb-2">Update Status</p>
+                  <div className="flex gap-2">
+                    <select
+                      value={updatedOrder.order_status || 'pending'}
+                      onChange={(e) => handleStatusUpdate(e.target.value)}
+                      disabled={updatingStatus}
+                      className="flex-1 px-3 py-2 border border-indigo-300 rounded bg-white text-sm font-medium text-gray-900 focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                    >
+                      <option value="pending">Pending</option>
+                      <option value="processing">Processing</option>
+                      <option value="shipped">Shipped</option>
+                      <option value="delivered">Delivered</option>
+                    </select>
+                  </div>
+                  {statusUpdateError && (
+                    <div className="mt-2 flex items-center gap-2 text-red-600 text-xs bg-red-50 p-2 rounded">
+                      <AlertCircle className="w-4 h-4" />
+                      {statusUpdateError}
+                    </div>
+                  )}
+                  {updatingStatus && (
+                    <p className="mt-2 text-xs text-indigo-600">Updating status...</p>
+                  )}
                 </div>
               </div>
             </div>

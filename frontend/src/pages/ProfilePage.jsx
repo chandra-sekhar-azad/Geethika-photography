@@ -18,6 +18,7 @@ const ProfilePage = () => {
   const [message, setMessage] = useState({ type: '', text: '' });
   const [orders, setOrders] = useState([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
+  const [designs, setDesigns] = useState({});
 
   const [formData, setFormData] = useState({
     name: '',
@@ -64,7 +65,31 @@ const ProfilePage = () => {
       });
       if (response.ok) {
         const data = await response.json();
-        setOrders(data.orders || []);
+        const fetchedOrders = data.orders || [];
+        setOrders(fetchedOrders);
+        
+        // Fetch designs for customized items
+        fetchedOrders.forEach(order => {
+          order.items?.forEach(async (item) => {
+            if (item.customization) {
+              try {
+                const itemId = item._id || item.id;
+                if (!itemId) return;
+                const designRes = await fetch(`${import.meta.env.VITE_API_URL}/api/designs/order-item/${itemId}`, {
+                  headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (designRes.ok) {
+                  const designData = await designRes.json();
+                  if (designData.design?.admin_designed_image) {
+                    setDesigns(prev => ({ ...prev, [itemId]: designData.design }));
+                  }
+                }
+              } catch (e) {
+                console.error("Failed to fetch design:", e);
+              }
+            }
+          });
+        });
       }
     } catch (error) {
       console.error('Failed to fetch orders:', error);
@@ -233,35 +258,63 @@ const ProfilePage = () => {
               ) : (
                 <div className="grid gap-6">
                   {orders.map(order => (
-                    <div key={order.id} className="bg-white rounded-[30px] border border-gray-100 p-8 shadow-sm hover:shadow-md transition-shadow">
+                    <div key={order.id} className="bg-gradient-to-br from-white to-purple-50/30 rounded-[30px] border border-gray-200 p-8 shadow-sm hover:shadow-xl transition-all duration-300 group">
                       <div className="flex flex-wrap justify-between items-center gap-6 mb-8">
                         <div>
                           <p className="text-[10px] font-body font-bold text-gray-400 uppercase tracking-widest mb-1">ORDER ID</p>
-                          <p className="font-display font-bold text-xl text-gray-900">#{order.id}</p>
+                          <p className="font-display font-bold text-xl text-gray-900">#{order.id || order._id}</p>
                         </div>
-                        <div className="flex items-center gap-12">
+                        <div className="flex items-center gap-6 sm:gap-12 flex-wrap">
                           <div>
                             <p className="text-[10px] font-body font-bold text-gray-400 uppercase tracking-widest mb-1">DATE</p>
-                            <p className="font-body font-bold text-sm text-gray-900">{new Date(order.created_at).toLocaleDateString()}</p>
+                            <p className="font-body font-bold text-sm text-gray-900">
+                              {new Date(order.createdAt || order.created_at).toLocaleDateString()}
+                            </p>
                           </div>
                           <div>
                             <p className="text-[10px] font-body font-bold text-gray-400 uppercase tracking-widest mb-1">TOTAL</p>
-                            <p className="font-display font-bold text-xl text-[var(--color-primary)]">₹{order.total}</p>
+                            <p className="font-display font-bold text-xl text-[var(--color-primary)]">
+                              ₹{parseFloat(order.total || 0).toLocaleString()}
+                            </p>
                           </div>
-                          <div className={`px-4 py-1 rounded-full text-[10px] font-body font-bold uppercase tracking-widest ${order.status === 'completed' ? 'bg-green-50 text-green-600' : 'bg-yellow-50 text-yellow-600'}`}>
-                            {order.status}
+                          <div className={`px-4 py-1.5 rounded-full text-[10px] font-body font-bold uppercase tracking-widest ${
+                            (order.order_status || order.status) === 'delivered' 
+                              ? 'bg-green-100 text-green-700' 
+                              : 'bg-yellow-100 text-yellow-700'
+                          }`}>
+                            {order.order_status || order.status || 'Pending'}
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center justify-between pt-6 border-t border-gray-50">
+                      <div className="flex items-center justify-between pt-6 border-t border-gray-100">
                         <div className="flex -space-x-4">
-                          {order.items?.slice(0, 4).map((item, i) => (
-                            <img key={i} src={item.image_url} className="w-12 h-12 rounded-full border-2 border-white object-cover" alt="Product" />
-                          ))}
+                          {order.items?.slice(0, 4).map((item, i) => {
+                            const designImg = designs[item._id || item.id]?.admin_designed_image;
+                            const imageSrc = designImg 
+                              ? (designImg.startsWith('http') ? designImg : `${import.meta.env.VITE_API_URL}${designImg}`)
+                              : (item.product_image?.startsWith('http') 
+                                  ? item.product_image 
+                                  : (item.product_image ? `${import.meta.env.VITE_API_URL}${item.product_image}` : '/images/image.png'));
+
+                            return (
+                              <img 
+                                key={i} 
+                                src={imageSrc} 
+                                className={`w-12 h-12 rounded-full border-2 ${designImg ? 'border-[var(--color-primary)]' : 'border-white'} object-cover shadow-sm relative z-[${10 - i}]`} 
+                                alt={item.product_name || "Product"} 
+                                title={designImg ? "Admin Designed Image" : ""}
+                              />
+                            );
+                          })}
+                          {order.items?.length > 4 && (
+                            <div className="w-12 h-12 rounded-full border-2 border-white bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-600 shadow-sm z-10">
+                              +{order.items.length - 4}
+                            </div>
+                          )}
                         </div>
-                        <Link to={`/order/${order.id}`} className="flex items-center gap-2 text-[10px] font-body font-bold text-[var(--color-primary)] uppercase tracking-widest hover:gap-4 transition-all">
+                        <Link to={`/order/${order.id || order._id}`} className="flex items-center gap-2 text-[10px] font-body font-bold text-white bg-gray-900 px-5 py-2.5 rounded-full uppercase tracking-widest hover:bg-[var(--color-primary)] transition-all shadow-md group-hover:shadow-lg">
                           <span>View Details</span>
-                          <ChevronRight className="w-3 h-3" />
+                          <ChevronRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
                         </Link>
                       </div>
                     </div>

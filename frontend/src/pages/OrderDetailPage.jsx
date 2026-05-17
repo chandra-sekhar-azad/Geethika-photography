@@ -9,6 +9,78 @@ const OrderDetailPage = () => {
   const { isAuthenticated } = useAuth();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [designs, setDesigns] = useState({});
+  const [feedbackText, setFeedbackText] = useState({});
+  const [submittingAction, setSubmittingAction] = useState(null);
+
+  const handleApproveDesign = async (itemId) => {
+    try {
+      setSubmittingAction(itemId);
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/designs/approve/${itemId}`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setDesigns(prev => ({ ...prev, [itemId]: data.design }));
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSubmittingAction(null);
+    }
+  };
+
+  const handleRequestRevision = async (itemId) => {
+    try {
+      setSubmittingAction(itemId);
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/designs/request-revision/${itemId}`, {
+        method: 'POST',
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ feedback: feedbackText[itemId] || '' })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setDesigns(prev => ({ ...prev, [itemId]: data.design }));
+        setFeedbackText(prev => ({ ...prev, [itemId]: '' }));
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSubmittingAction(null);
+    }
+  };
+
+  useEffect(() => {
+    if (order?.items) {
+      order.items.forEach(async (item) => {
+        // Fetch design if customization exists
+        try {
+          const token = localStorage.getItem('token');
+          const itemId = item._id || item.id;
+          if (!itemId) return;
+          const response = await fetch(`${import.meta.env.VITE_API_URL}/api/designs/order-item/${itemId}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          if (response.ok) {
+            const data = await response.json();
+            if (data.design) {
+              setDesigns(prev => ({ ...prev, [itemId]: data.design }));
+            }
+          }
+        } catch (error) {
+          console.error('Failed to fetch design for item:', error);
+        }
+      });
+    }
+  }, [order]);
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -60,14 +132,18 @@ const OrderDetailPage = () => {
   };
 
   const getStatusSteps = () => {
-    const currentStatus = order?.order_status || order?.status || 'pending';
-    const steps = [
+    const currentStatus = (order?.order_status || order?.status || 'pending').toLowerCase();
+    
+    const statuses = ['pending', 'processing', 'shipped', 'delivered'];
+    const currentIndex = statuses.indexOf(currentStatus) !== -1 ? statuses.indexOf(currentStatus) : 0;
+    
+    return [
       { label: 'Order Placed', status: 'completed' },
-      { label: 'Processing', status: currentStatus === 'pending' ? 'current' : 'completed' },
-      { label: 'Shipped', status: currentStatus === 'completed' ? 'completed' : 'pending' },
-      { label: 'Delivered', status: currentStatus === 'completed' ? 'completed' : 'pending' }
+      { label: 'Pending', status: currentIndex >= 0 ? (currentIndex === 0 ? 'current' : 'completed') : 'pending' },
+      { label: 'Processing', status: currentIndex >= 1 ? (currentIndex === 1 ? 'current' : 'completed') : 'pending' },
+      { label: 'Shipped', status: currentIndex >= 2 ? (currentIndex === 2 ? 'current' : 'completed') : 'pending' },
+      { label: 'Delivered', status: currentIndex >= 3 ? 'completed' : 'pending' }
     ];
-    return steps;
   };
 
   if (loading) {
@@ -96,19 +172,19 @@ const OrderDetailPage = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="valentine-gradient text-white py-4">
+      <div className="bg-gradient-to-r from-[var(--color-primary-dark)] to-[var(--color-primary)] text-white py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <button
             onClick={() => navigate('/my-orders')}
-            className="flex items-center gap-2 mb-4 hover:underline"
+            className="flex items-center gap-2 mb-4 hover:underline text-gray-200 hover:text-white"
           >
             <ArrowLeft className="w-5 h-5" />
             Back to My Orders
           </button>
-          <h1 className="text-4xl md:text-5xl font-display font-bold mb-4">
+          <h1 className="text-4xl md:text-5xl font-display font-bold mb-4 text-white">
             Order Details
           </h1>
-          <p className="text-lg">Order ID: #{order.id}</p>
+          <p className="text-lg text-gray-200">Order ID: #{order.id}</p>
         </div>
       </div>
 
@@ -117,7 +193,7 @@ const OrderDetailPage = () => {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Order Status Timeline */}
-            <div className="bg-white rounded-xl shadow-lg p-6">
+            <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
               <h2 className="text-2xl font-bold mb-6">Order Status</h2>
               <div className="relative">
                 <div className="flex justify-between">
@@ -145,13 +221,19 @@ const OrderDetailPage = () => {
             </div>
 
             {/* Order Items */}
-            <div className="bg-white rounded-xl shadow-lg p-6">
+            <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
               <h2 className="text-2xl font-bold mb-6">Order Items</h2>
               <div className="space-y-4">
                 {order.items?.map((item, index) => (
                   <div key={index} className="flex gap-4 pb-4 border-b last:border-b-0">
                     <img
-                      src={item.product_image_url || item.image_url || '/images/image.png'}
+                      src={
+                        item.product_image?.startsWith('http')
+                          ? item.product_image
+                          : (item.product_image || item.product_image_url || item.image_url 
+                              ? `${import.meta.env.VITE_API_URL}${item.product_image || item.product_image_url || item.image_url}` 
+                              : '/images/image.png')
+                      }
                       alt={item.product_name}
                       className="w-24 h-24 object-cover rounded-lg"
                     />
@@ -167,6 +249,58 @@ const OrderDetailPage = () => {
                           {Object.entries(item.customization.textInputs || {}).map(([key, value]) => (
                             <p key={key}>{key}: {value}</p>
                           ))}
+                        </div>
+                      )}
+                      
+                      {/* Admin Designed Image Display */}
+                      {designs[item._id || item.id]?.admin_designed_image && (
+                        <div className="mt-4 p-4 bg-purple-50 rounded-lg border border-purple-200">
+                          <p className="font-semibold text-purple-800 mb-2">🎨 Designed Image from Admin</p>
+                          <img 
+                            src={
+                              designs[item._id || item.id].admin_designed_image.startsWith('http') 
+                                ? designs[item._id || item.id].admin_designed_image 
+                                : `${import.meta.env.VITE_API_URL}${designs[item._id || item.id].admin_designed_image}`
+                            } 
+                            alt="Admin Design"
+                            className="w-full max-w-sm rounded-lg shadow-sm border border-gray-200"
+                          />
+                          <p className="text-sm mt-2 font-medium capitalize text-purple-700">
+                            Status: {designs[item._id || item.id].status.replace('_', ' ')}
+                          </p>
+                          
+                          {designs[item._id || item.id].status === 'pending_approval' && (
+                            <div className="mt-4 space-y-3 bg-white p-4 rounded-lg shadow-sm border border-purple-100">
+                              <h4 className="font-bold text-gray-900 mb-2">Review Design</h4>
+                              <p className="text-sm text-gray-600 mb-3">Please approve this design to proceed, or let us know if you need any changes.</p>
+                              
+                              <button
+                                onClick={() => handleApproveDesign(item._id || item.id)}
+                                disabled={submittingAction === (item._id || item.id)}
+                                className="w-full sm:w-auto px-6 py-2.5 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 disabled:opacity-50 transition-colors shadow-sm"
+                              >
+                                {submittingAction === (item._id || item.id) ? 'Processing...' : 'Yes, Approve Design'}
+                              </button>
+                              
+                              <div className="mt-4 border-t border-gray-100 pt-4">
+                                <p className="text-sm font-semibold text-gray-700 mb-2">Need Changes?</p>
+                                <textarea
+                                  placeholder="Type your feedback or revision requests here..."
+                                  className="w-full p-3 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-200 focus:border-[var(--color-primary)] transition-all bg-gray-50 outline-none"
+                                  rows="3"
+                                  value={feedbackText[item._id || item.id] || ''}
+                                  onChange={(e) => setFeedbackText(prev => ({ ...prev, [item._id || item.id]: e.target.value }))}
+                                />
+                                <button
+                                  onClick={() => handleRequestRevision(item._id || item.id)}
+                                  disabled={submittingAction === (item._id || item.id) || !feedbackText[item._id || item.id]}
+                                  className="mt-3 w-full sm:w-auto px-6 py-2 bg-gray-900 text-white font-semibold rounded-lg hover:bg-[var(--color-primary)] disabled:opacity-50 transition-colors text-sm"
+                                >
+                                  Request Revision
+                                </button>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -186,7 +320,7 @@ const OrderDetailPage = () => {
           {/* Sidebar */}
           <div className="lg:col-span-1 space-y-6">
             {/* Order Summary */}
-            <div className="bg-white rounded-xl shadow-lg p-6">
+            <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
               <h2 className="text-xl font-bold mb-4">Order Summary</h2>
               <div className="space-y-3">
                 <div className="flex justify-between">

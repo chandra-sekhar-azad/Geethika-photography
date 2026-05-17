@@ -59,9 +59,13 @@ const OrderManagement = () => {
 
   const viewOrderDetails = async (orderId) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/orders/${orderId}`);
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/orders/${orderId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       const data = await response.json();
-      setSelectedOrder({ ...data.order, items: data.items });
+      // Data IS the order object, it already contains items
+      setSelectedOrder(data);
     } catch (error) {
       console.error('Failed to fetch order details:', error);
     }
@@ -84,9 +88,7 @@ const OrderManagement = () => {
     pending: 'bg-yellow-100 text-yellow-800',
     processing: 'bg-blue-100 text-blue-800',
     shipped: 'bg-purple-100 text-purple-800',
-    delivered: 'bg-green-100 text-green-800',
-    completed: 'bg-green-100 text-green-800',
-    cancelled: 'bg-red-100 text-red-800'
+    delivered: 'bg-green-100 text-green-800'
   };
 
   if (loading) {
@@ -130,8 +132,6 @@ const OrderManagement = () => {
             <option value="processing">Processing</option>
             <option value="shipped">Shipped</option>
             <option value="delivered">Delivered</option>
-            <option value="completed">Completed</option>
-            <option value="cancelled">Cancelled</option>
           </select>
 
           <select
@@ -162,7 +162,11 @@ const OrderManagement = () => {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredOrders.map((order) => (
-                <tr key={order.id} className="hover:bg-gray-50">
+                <tr key={order.id} className="hover:bg-gray-50 cursor-pointer" onClick={(e) => {
+                  if (e.target.tagName !== 'SELECT' && e.target.tagName !== 'BUTTON' && !e.target.closest('button')) {
+                    viewOrderDetails(order.id);
+                  }
+                }}>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {order.order_number}
                   </td>
@@ -190,8 +194,6 @@ const OrderManagement = () => {
                       <option value="processing">Processing</option>
                       <option value="shipped">Shipped</option>
                       <option value="delivered">Delivered</option>
-                      <option value="completed">Completed</option>
-                      <option value="cancelled">Cancelled</option>
                     </select>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
