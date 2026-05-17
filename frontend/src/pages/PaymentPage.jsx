@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { ShoppingBag, ChevronRight, MapPin, Phone, User, ShieldCheck, CreditCard, Wallet, Landmark, CheckCircle2, ArrowRight } from 'lucide-react';
+import { ShoppingBag, ChevronRight, MapPin, Phone, User, ShieldCheck, Wallet, Landmark, CheckCircle2, ArrowRight } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL } from '../utils/api';
@@ -12,7 +12,6 @@ const PaymentPage = () => {
   
   const [step, setStep] = useState(1); // 1: Details, 2: Payment
   const [loading, setLoading] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState('paytm');
 
   const [formData, setFormData] = useState({
     name: user?.name || '',
@@ -38,16 +37,6 @@ const PaymentPage = () => {
     }
     setStep(2);
     window.scrollTo(0, 0);
-  };
-
-  const loadRazorpay = () => {
-    return new Promise((resolve) => {
-      const script = document.createElement('script');
-      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-      script.onload = () => resolve(true);
-      script.onerror = () => resolve(false);
-      document.body.appendChild(script);
-    });
   };
 
   const handlePaytmPayment = async (createdOrder) => {
@@ -90,76 +79,6 @@ const PaymentPage = () => {
     }
   };
 
-  const handleRazorpayPayment = async (createdOrder, razorpay_order_id) => {
-    try {
-      // Load Razorpay script
-      await loadRazorpay();
-
-      // Open Razorpay Modal
-      const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_demo',
-        amount: Math.round(getFinalTotal() * 100),
-        currency: 'INR',
-        name: 'Geethika Digital World',
-        description: `Order #${createdOrder.order_number}`,
-        image: '/logo.png',
-        order_id: razorpay_order_id,
-        handler: async (response) => {
-          try {
-            // Verify Payment in Backend
-            const verifyRes = await fetch(`${API_BASE_URL}/api/orders/verify-payment`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature
-              })
-            });
-
-            const verifyData = await verifyRes.json();
-            if (verifyRes.ok && verifyData.success) {
-              // Update Order Status
-              await fetch(`${API_BASE_URL}/api/orders/${createdOrder.id}/payment`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  razorpay_payment_id: response.razorpay_payment_id,
-                  razorpay_signature: response.razorpay_signature
-                })
-              });
-
-              clearCart();
-              navigate('/profile?tab=orders');
-            } else {
-              alert('Payment verification failed. Please contact support.');
-              setLoading(false);
-            }
-          } catch (err) {
-            console.error('Verification error:', err);
-            alert('Something went wrong during verification.');
-            setLoading(false);
-          }
-        },
-        prefill: {
-          name: formData.name,
-          email: formData.email,
-          contact: formData.phone
-        },
-        theme: {
-          color: '#8E447E'
-        }
-      };
-
-      const rzp = new window.Razorpay(options);
-      rzp.open();
-    } catch (error) {
-      console.error('Razorpay payment error:', error);
-      alert('Failed to initialize Razorpay payment');
-      setLoading(false);
-    }
-  };
-
   const handleProcessPayment = async () => {
     setLoading(true);
     try {
@@ -181,7 +100,7 @@ const PaymentPage = () => {
           subtotal: getCartSubtotal(),
           service_charge: getServiceCharge(),
           total: getFinalTotal(),
-          payment_method: paymentMethod,
+          payment_method: 'paytm',
           shipping_info: {
             address: formData.address,
             landmark: formData.landmark,
@@ -195,25 +114,16 @@ const PaymentPage = () => {
       const orderData = await orderResponse.json();
       if (!orderResponse.ok) throw new Error(orderData.error || 'Failed to create order');
 
-      const { razorpay_order_id, order: createdOrder } = orderData;
+      const { order: createdOrder } = orderData;
 
-      // 2. Route to appropriate payment gateway
-      if (paymentMethod === 'paytm') {
-        await handlePaytmPayment(createdOrder);
-      } else {
-        await handleRazorpayPayment(createdOrder, razorpay_order_id);
-      }
+      // 2. Process Paytm payment
+      await handlePaytmPayment(createdOrder);
     } catch (error) {
       console.error('Payment initialization failed:', error);
       alert(error.message);
       setLoading(false);
     }
   };
-
-  const paymentOptions = [
-    { id: 'paytm', label: 'Paytm Secure Checkout', icon: Wallet, desc: 'UPI, Wallet, NetBanking, Cards' },
-    { id: 'upi', label: 'Razorpay Secure Checkout', icon: CreditCard, desc: 'UPI, Cards, NetBanking, Wallets' },
-  ];
 
   return (
     <div className="min-h-screen bg-gray-50/50 pb-24">
@@ -318,45 +228,22 @@ const PaymentPage = () => {
               <div className="bg-white rounded-[40px] shadow-sm border border-gray-100 p-8 md:p-12 animate-fade-in">
                 <div className="mb-12 flex items-center justify-between">
                   <div>
-                    <h2 className="text-4xl font-display font-bold text-gray-900 mb-4 tracking-tight">Payment Selection</h2>
-                    <p className="text-gray-400 font-body">Complete your purchase securely via Razorpay.</p>
+                    <h2 className="text-4xl font-display font-bold text-gray-900 mb-4 tracking-tight">Paytm Payment</h2>
+                    <p className="text-gray-400 font-body">Complete your purchase securely via Paytm.</p>
                   </div>
                   <button onClick={() => setStep(1)} className="text-[10px] font-body font-bold text-[var(--color-primary)] uppercase tracking-widest hover:underline underline-offset-4">Back to info</button>
                 </div>
 
-                <div className="space-y-4 mb-12">
-                  {paymentOptions.map((option) => (
-                    <label
-                      key={option.id}
-                      className={`flex items-center gap-6 p-6 rounded-[30px] border-2 cursor-pointer transition-all ${
-                        paymentMethod === option.id 
-                        ? 'border-[var(--color-primary)] bg-purple-50/30' 
-                        : 'border-gray-50 hover:border-gray-100'
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name="payment"
-                        className="hidden"
-                        checked={paymentMethod === option.id}
-                        onChange={() => setPaymentMethod(option.id)}
-                      />
-                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors ${
-                        paymentMethod === option.id ? 'bg-[var(--color-primary)] text-white' : 'bg-gray-50 text-gray-400'
-                      }`}>
-                        <option.icon className="w-6 h-6" />
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="font-display font-bold text-lg text-gray-900">{option.label}</h4>
-                        <p className="text-xs font-body text-gray-400 uppercase tracking-widest">{option.desc}</p>
-                      </div>
-                      <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                        paymentMethod === option.id ? 'border-[var(--color-primary)]' : 'border-gray-200'
-                      }`}>
-                        {paymentMethod === option.id && <div className="w-3 h-3 rounded-full bg-[var(--color-primary)]" />}
-                      </div>
-                    </label>
-                  ))}
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-8 rounded-[30px] border-2 border-blue-100 mb-12">
+                  <div className="flex items-center gap-6">
+                    <div className="w-16 h-16 rounded-2xl bg-[var(--color-primary)] flex items-center justify-center">
+                      <Wallet className="w-8 h-8 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-display font-bold text-lg text-gray-900">Paytm Secure Checkout</h4>
+                      <p className="text-xs font-body text-gray-600 uppercase tracking-widest">UPI, Wallet, NetBanking, Cards & More</p>
+                    </div>
+                  </div>
                 </div>
 
                 <button
@@ -369,7 +256,7 @@ const PaymentPage = () => {
                   ) : (
                     <>
                       <CheckCircle2 className="w-6 h-6" />
-                      <span>Pay Securely with {paymentMethod === 'paytm' ? 'Paytm' : 'Razorpay'}</span>
+                      <span>Pay Securely with Paytm</span>
                     </>
                   )}
                 </button>

@@ -2,10 +2,7 @@ import express from 'express';
 import { body, validationResult } from 'express-validator';
 import Order from '../models/Order.js';
 import Product from '../models/Product.js';
-import razorpay from '../config/razorpay.js';
 import { paytmConfig, generateChecksum, verifyChecksum } from '../config/paytm.js';
-import crypto from 'crypto';
-import axios from 'axios';
 import { authenticate, isAdmin } from '../middleware/auth.js';
 import { logAdminAction, getChanges } from '../middleware/auditLog.js';
 
@@ -16,47 +13,6 @@ const generateOrderNumber = () => {
   const random = Math.random().toString(36).substring(2, 7);
   return `ORD-${timestamp}-${random}`.toUpperCase();
 };
-
-// Create Razorpay order
-router.post('/create-razorpay-order', async (req, res) => {
-  try {
-    if (!razorpay) {
-      return res.status(500).json({ error: 'Razorpay is not configured' });
-    }
-    const { amount } = req.body;
-    const options = {
-      amount: amount * 100,
-      currency: 'INR',
-      receipt: generateOrderNumber(),
-    };
-    const order = await razorpay.orders.create(options);
-    res.json({ orderId: order.id, amount: order.amount, currency: order.currency });
-  } catch (error) {
-    console.error('Razorpay order creation error:', error);
-    res.status(500).json({ error: 'Failed to create payment order' });
-  }
-});
-
-// Verify Razorpay payment
-router.post('/verify-payment', async (req, res) => {
-  try {
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
-    const sign = razorpay_order_id + '|' + razorpay_payment_id;
-    const expectedSign = crypto
-      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
-      .update(sign.toString())
-      .digest('hex');
-
-    if (razorpay_signature === expectedSign) {
-      res.json({ success: true, message: 'Payment verified successfully' });
-    } else {
-      res.status(400).json({ success: false, error: 'Invalid signature' });
-    }
-  } catch (error) {
-    console.error('Payment verification error:', error);
-    res.status(500).json({ error: 'Payment verification failed' });
-  }
-});
 
 // Create Paytm Order
 router.post('/create-paytm-order', async (req, res) => {
@@ -179,20 +135,6 @@ router.post('/',
       const shippingAddressText = shipping_address ||
         (shipping_info ? `${shipping_info.address}, ${shipping_info.city}, ${shipping_info.state} - ${shipping_info.pincode}` : null);
 
-      let razorpayOrderId = null;
-      try {
-        if (razorpay && process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_ID !== 'rzp_test_demo') {
-          const rpOrder = await razorpay.orders.create({
-            amount: Math.round(total * 100),
-            currency: 'INR',
-            receipt: orderNumber,
-          });
-          razorpayOrderId = rpOrder.id;
-        }
-      } catch (rpError) {
-        console.error('Razorpay order creation failed (continuing):', rpError.message);
-      }
-
       // Build order items and update stock
       const orderItems = items.map((item) => ({
         product_id: item.product_id || item.id || null,
@@ -225,8 +167,7 @@ router.post('/',
         shipping_cost,
         service_charge,
         total,
-        payment_method,
-        razorpay_order_id: razorpayOrderId,
+        payment_method: payment_method || 'paytm',
         payment_status: 'pending',
         order_status: 'pending',
       });
@@ -239,7 +180,6 @@ router.post('/',
           total: order.total,
           status: order.order_status,
         },
-        razorpay_order_id: razorpayOrderId,
       });
     } catch (error) {
       console.error('Create order error:', error);
