@@ -12,6 +12,7 @@ const PaymentPage = () => {
   
   const [step, setStep] = useState(1); // 1: Details, 2: Payment
   const [loading, setLoading] = useState(false);
+  const [useTestMode, setUseTestMode] = useState(false);
 
   const [formData, setFormData] = useState({
     name: user?.name || '',
@@ -48,11 +49,14 @@ const PaymentPage = () => {
         body: JSON.stringify({
           amount: getFinalTotal(),
           orderId: createdOrder.id,
+          orderNumber: createdOrder.order_number, // Use order_number instead of MongoDB ID
         })
       });
 
       const paytmData = await paytmResponse.json();
       if (!paytmResponse.ok) throw new Error('Failed to create Paytm order');
+
+      console.log('Paytm params:', paytmData.paytmParams);
 
       // Create and submit Paytm form
       const form = document.createElement('form');
@@ -75,6 +79,28 @@ const PaymentPage = () => {
     } catch (error) {
       console.error('Paytm payment error:', error);
       alert('Failed to initialize Paytm payment');
+      setLoading(false);
+    }
+  };
+
+  const handleTestPayment = async (createdOrder) => {
+    try {
+      const testResponse = await fetch(`${API_BASE_URL}/api/orders/test-payment/${createdOrder.id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      const testData = await testResponse.json();
+      if (testResponse.ok && testData.success) {
+        clearCart();
+        navigate('/profile?tab=orders');
+      } else {
+        alert('Test payment failed: ' + testData.error);
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error('Test payment error:', error);
+      alert('Test payment error: ' + error.message);
       setLoading(false);
     }
   };
@@ -116,8 +142,12 @@ const PaymentPage = () => {
 
       const { order: createdOrder } = orderData;
 
-      // 2. Process Paytm payment
-      await handlePaytmPayment(createdOrder);
+      // 2. Process payment
+      if (useTestMode) {
+        await handleTestPayment(createdOrder);
+      } else {
+        await handlePaytmPayment(createdOrder);
+      }
     } catch (error) {
       console.error('Payment initialization failed:', error);
       alert(error.message);
@@ -245,6 +275,23 @@ const PaymentPage = () => {
                     </div>
                   </div>
                 </div>
+
+                {(import.meta.env.MODE === 'development' || process.env.NODE_ENV === 'development') && (
+                  <div className="mb-8 p-4 bg-yellow-50 border-2 border-yellow-200 rounded-2xl">
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={useTestMode}
+                        onChange={(e) => setUseTestMode(e.target.checked)}
+                        className="w-5 h-5 rounded"
+                      />
+                      <span className="text-xs font-body font-bold text-yellow-700 uppercase tracking-widest">
+                        🧪 Test Mode - Skip Payment Gateway
+                      </span>
+                    </label>
+                    <p className="text-xs text-yellow-600 mt-2 ml-8">Order will be marked as paid immediately for testing purposes</p>
+                  </div>
+                )}
 
                 <button
                   onClick={handleProcessPayment}

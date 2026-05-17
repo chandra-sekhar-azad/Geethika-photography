@@ -17,20 +17,25 @@ const generateOrderNumber = () => {
 // Create Paytm Order
 router.post('/create-paytm-order', async (req, res) => {
   try {
-    const { amount, orderId } = req.body;
+    const { amount, orderId, orderNumber } = req.body;
+
+    // Use order_number as ORDER_ID (Paytm requirement)
+    const paymentOrderId = orderNumber || orderId;
 
     const params = {
       MID: paytmConfig.MID,
       WEBSITE: paytmConfig.WEBSITE,
       CHANNEL_ID: paytmConfig.CHANNEL_ID_WEB,
       INDUSTRY_TYPE_ID: paytmConfig.INDUSTRY_TYPE_ID,
-      ORDER_ID: orderId,
-      CUST_ID: orderId,
+      ORDER_ID: paymentOrderId,
+      CUST_ID: paymentOrderId,
       TXN_AMOUNT: amount.toString(),
       EMAIL: 'customer@geethikadigitalworld.com',
       MOBILE_NO: '9999999999',
       CALLBACK_URL: `${process.env.BACKEND_URL || 'http://localhost:3000'}/api/orders/paytm-callback`,
     };
+
+    console.log('Creating Paytm order with params:', params);
 
     // Generate checksum
     const checksum = generateChecksum(params, paytmConfig.MERCHANT_KEY);
@@ -44,6 +49,36 @@ router.post('/create-paytm-order', async (req, res) => {
   } catch (error) {
     console.error('Paytm order creation error:', error);
     res.status(500).json({ error: 'Failed to create Paytm payment order' });
+  }
+});
+
+// Test Mode: Bypass Paytm and mark order as paid (for development/testing)
+router.post('/test-payment/:orderId', async (req, res) => {
+  try {
+    // Only allow in development mode or if test flag is enabled
+    if (process.env.NODE_ENV !== 'development' && !process.env.ENABLE_TEST_PAYMENTS) {
+      return res.status(403).json({ error: 'Test payments not enabled' });
+    }
+
+    const order = await Order.findByIdAndUpdate(
+      req.params.orderId,
+      { 
+        payment_status: 'paid',
+        order_status: 'confirmed',
+        paytm_transaction_status: 'TEST_MODE_SUCCESS'
+      },
+      { new: true }
+    );
+
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    console.log('✅ Test payment processed for order:', order.order_number);
+    res.json({ success: true, message: 'Test payment successful', order });
+  } catch (error) {
+    console.error('Test payment error:', error);
+    res.status(500).json({ error: 'Test payment failed' });
   }
 });
 
