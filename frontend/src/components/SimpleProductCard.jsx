@@ -1,22 +1,7 @@
-import { Heart } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import { useWishlist } from '../context/WishlistContext';
 import { useNavigate } from 'react-router-dom';
 
 const SimpleProductCard = ({ product, onClick }) => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
-  const { toggleWishlist, isInWishlist } = useWishlist();
-
-  const handleWishlist = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!isAuthenticated()) {
-      navigate('/login');
-      return;
-    }
-    toggleWishlist(product);
-  };
 
   const imageUrl = product.image_url?.startsWith('http')
     ? product.image_url
@@ -35,20 +20,6 @@ const SimpleProductCard = ({ product, onClick }) => {
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
         />
         
-        {/* Wishlist Heart */}
-        <button
-          className="absolute top-2 right-2 z-10 bg-white/80 backdrop-blur-sm p-1.5 rounded-full shadow-sm transition-all hover:bg-white hover:scale-110"
-          onClick={handleWishlist}
-        >
-          <Heart
-            className={`w-3.5 h-3.5 transition-colors ${
-              isInWishlist(product.id) 
-                ? 'fill-[var(--color-primary)] text-[var(--color-primary)]' 
-                : 'text-gray-400'
-            }`}
-          />
-        </button>
- 
         {/* Badge (Optional) */}
         <div className="absolute top-2 left-2">
           <span className="bg-[var(--color-primary)] text-white text-[8px] font-bold px-1.5 py-0.5 rounded-sm uppercase tracking-tighter">New</span>

@@ -3,7 +3,7 @@ import { Star, Edit3, Heart } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useWishlist } from '../context/WishlistContext';
 
-const ProductCard = ({ product }) => {
+const ProductCard = ({ product, showWishlist = false }) => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const { toggleWishlist, isInWishlist } = useWishlist();
@@ -76,18 +76,20 @@ const ProductCard = ({ product }) => {
         </div>
 
         {/* Wishlist Button */}
-        <button
-          onClick={handleWishlist}
-          className="absolute top-3 right-3 z-10 bg-white/80 backdrop-blur-md p-2 rounded-full shadow-sm hover:bg-white transition-all duration-300 group/wishlist"
-        >
-          <Heart 
-            className={`w-4 h-4 transition-all duration-300 ${
-              isInWishlist(product.id) 
-                ? 'fill-[var(--color-primary)] text-[var(--color-primary)] scale-110' 
-                : 'text-gray-400 group-hover/wishlist:text-[var(--color-primary)]'
-            }`} 
-          />
-        </button>
+        {showWishlist && (
+          <button
+            onClick={handleWishlist}
+            className="absolute top-3 right-3 z-10 bg-white/80 backdrop-blur-md p-2 rounded-full shadow-sm hover:bg-white transition-all duration-300 group/wishlist"
+          >
+            <Heart 
+              className={`w-4 h-4 transition-all duration-300 ${
+                isInWishlist(product.id) 
+                  ? 'fill-[var(--color-primary)] text-[var(--color-primary)] scale-110' 
+                  : 'text-gray-400 group-hover/wishlist:text-[var(--color-primary)]'
+              }`} 
+            />
+          </button>
+        )}
       </div>
 
       {/* Content */}

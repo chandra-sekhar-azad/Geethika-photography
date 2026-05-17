@@ -166,7 +166,7 @@ const ShopPage = () => {
                   className="animate-slide-up"
                   style={{ animationDelay: `${index * 0.05}s` }}
                 >
-                  <ProductCard product={product} />
+                  <ProductCard product={product} showWishlist={true} />
                 </div>
               ))}
             </div>
