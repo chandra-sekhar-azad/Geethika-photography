@@ -20,6 +20,9 @@ const generateOrderNumber = () => {
 // Create Razorpay order
 router.post('/create-razorpay-order', async (req, res) => {
   try {
+    if (!razorpay) {
+      return res.status(500).json({ error: 'Razorpay is not configured' });
+    }
     const { amount } = req.body;
     const options = {
       amount: amount * 100,
@@ -178,7 +181,7 @@ router.post('/',
 
       let razorpayOrderId = null;
       try {
-        if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_ID !== 'rzp_test_demo') {
+        if (razorpay && process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_ID !== 'rzp_test_demo') {
           const rpOrder = await razorpay.orders.create({
             amount: Math.round(total * 100),
             currency: 'INR',

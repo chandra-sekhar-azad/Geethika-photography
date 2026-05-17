@@ -70,12 +70,8 @@ const ProductDetailPage = () => {
         const formData = new FormData();
         formData.append('customizationImage', file);
 
-        const token = localStorage.getItem('token');
         const response = await fetch(`${import.meta.env.VITE_API_URL}/api/designs/upload-customization`, {
           method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
           body: formData,
         });
 
@@ -84,16 +80,16 @@ const ProductDetailPage = () => {
           setCustomization({
             ...customization,
             image: data.imageUrl,
-            imagePreview: `${import.meta.env.VITE_API_URL}${data.imageUrl}`,
+            imagePreview: data.imageUrl,
             uploadingImage: false,
           });
         } else {
-          alert('Failed to upload image. Please try again.');
+          alert(`Failed to upload image: ${data.error || 'Unknown error'}`);
           setCustomization(prev => ({ ...prev, uploadingImage: false }));
         }
       } catch (error) {
         console.error('Error uploading customization image:', error);
-        alert('Error uploading image');
+        alert('Error uploading image: ' + error.message);
         setCustomization(prev => ({ ...prev, uploadingImage: false }));
       }
     }

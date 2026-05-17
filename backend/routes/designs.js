@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import { Readable } from 'stream';
 import { v2 as cloudinary } from 'cloudinary';
 import dotenv from 'dotenv';
 import { authenticate, isAdmin } from '../middleware/auth.js';
@@ -48,8 +49,11 @@ const upload = multer({
   storage,
   limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
-    const allowed = /jpeg|jpg|png|gif|pdf/;
-    if (allowed.test(path.extname(file.originalname).toLowerCase()) && allowed.test(file.mimetype)) {
+    const ext = path.extname(file.originalname).toLowerCase();
+    const allowedExts = ['.jpeg', '.jpg', '.png', '.gif', '.pdf'];
+    const allowedMimes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'application/pdf'];
+    
+    if (allowedExts.includes(ext) && allowedMimes.includes(file.mimetype)) {
       cb(null, true);
     } else {
       cb(new Error('Only image and PDF files are allowed'));
@@ -64,8 +68,11 @@ const uploadCustomised = multer({
   storage: memoryStorage,
   limits: { fileSize: 50 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
-    const allowed = /jpeg|jpg|png|gif/;
-    if (allowed.test(path.extname(file.originalname).toLowerCase()) && allowed.test(file.mimetype)) {
+    const ext = path.extname(file.originalname).toLowerCase();
+    const allowedExts = ['.jpeg', '.jpg', '.png', '.gif'];
+    const allowedMimes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+    
+    if (allowedExts.includes(ext) && allowedMimes.includes(file.mimetype)) {
       cb(null, true);
     } else {
       cb(new Error('Only image files are allowed'));
@@ -80,8 +87,12 @@ router.post('/upload-customization', uploadCustomised.single('customizationImage
       return res.status(400).json({ error: 'No file provided' });
     }
 
-    // Upload to Cloudinary
+    console.log('Starting Cloudinary upload for file:', req.file.originalname);
+
+    // Upload to Cloudinary using Readable stream
     const result = await new Promise((resolve, reject) => {
+      const stream = Readable.from(req.file.buffer);
+      
       const uploadStream = cloudinary.uploader.upload_stream(
         {
           folder: 'geethika/customised',
@@ -93,12 +104,24 @@ router.post('/upload-customization', uploadCustomised.single('customizationImage
           ]
         },
         (error, result) => {
-          if (error) reject(error);
-          else resolve(result);
+          if (error) {
+            console.error('Cloudinary upload error:', error);
+            reject(error);
+          } else {
+            console.log('Cloudinary upload successful:', result.public_id);
+            resolve(result);
+          }
         }
       );
 
-      uploadStream.end(req.file.buffer);
+      // Handle stream errors
+      uploadStream.on('error', (error) => {
+        console.error('Upload stream error:', error);
+        reject(error);
+      });
+
+      // Pipe stream to upload
+      stream.pipe(uploadStream);
     });
 
     res.json({ 
@@ -109,7 +132,10 @@ router.post('/upload-customization', uploadCustomised.single('customizationImage
     });
   } catch (error) {
     console.error('Error uploading customization image to Cloudinary:', error);
-    res.status(500).json({ error: 'Failed to upload customization image' });
+    res.status(500).json({ 
+      error: 'Failed to upload customization image', 
+      details: error.message || 'Unknown error' 
+    });
   }
 });
 
