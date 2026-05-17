@@ -149,6 +149,7 @@ router.post('/paytm-callback', async (req, res) => {
     console.error('Paytm callback error:', error);
     res.status(500).json({ error: 'Callback processing failed' });
   }
+});
 
 // Create order
 router.post('/',
