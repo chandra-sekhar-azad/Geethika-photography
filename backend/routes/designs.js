@@ -2,7 +2,19 @@ import express from 'express';
 import mongoose from 'mongoose';
 import multer from 'multer';
 import path from 'path';
+import fs from 'fs';
+import { v2 as cloudinary } from 'cloudinary';
+import dotenv from 'dotenv';
 import { authenticate, isAdmin } from '../middleware/auth.js';
+
+dotenv.config();
+
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 const router = express.Router();
 
@@ -45,20 +57,58 @@ const upload = multer({
   },
 });
 
-// Customer: Upload customization image (for product customization before order)
-router.post('/upload-customization', authenticate, upload.single('customizationImage'), async (req, res) => {
+// Configure multer for customer customization uploads (memory storage for Cloudinary)
+const memoryStorage = multer.memoryStorage();
+
+const uploadCustomised = multer({
+  storage: memoryStorage,
+  limits: { fileSize: 50 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowed = /jpeg|jpg|png|gif/;
+    if (allowed.test(path.extname(file.originalname).toLowerCase()) && allowed.test(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed'));
+    }
+  },
+});
+
+// Customer: Upload customization image to Cloudinary (NO AUTHENTICATION - for product customization before order)
+router.post('/upload-customization', uploadCustomised.single('customizationImage'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file provided' });
     }
-    const customizationImageUrl = `/uploads/designs/${req.file.filename}`;
+
+    // Upload to Cloudinary
+    const result = await new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          folder: 'geethika/customised',
+          resource_type: 'auto',
+          transformation: [
+            { width: 1000, height: 1000, crop: 'limit' },
+            { quality: 'auto' },
+            { fetch_format: 'auto' }
+          ]
+        },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      );
+
+      uploadStream.end(req.file.buffer);
+    });
+
     res.json({ 
       success: true, 
-      imageUrl: customizationImageUrl,
-      message: 'Customization image uploaded successfully' 
+      imageUrl: result.secure_url,
+      cloudinaryPublicId: result.public_id,
+      message: 'Customization image uploaded to Cloudinary successfully' 
     });
   } catch (error) {
-    console.error('Error uploading customization image:', error);
+    console.error('Error uploading customization image to Cloudinary:', error);
     res.status(500).json({ error: 'Failed to upload customization image' });
   }
 });
