@@ -8,7 +8,8 @@ const router = express.Router();
 // Get recent notifications for the logged-in user
 router.get('/', authenticate, async (req, res) => {
   try {
-    const notifications = await Notification.find({ user_id: req.user._id })
+    const userId = req.user.id || req.user._id;
+    const notifications = await Notification.find({ user_id: userId })
       .sort({ createdAt: -1 })
       .limit(20)
       .lean();
@@ -24,8 +25,9 @@ router.get('/', authenticate, async (req, res) => {
 // Mark all as read
 router.patch('/mark-read', authenticate, async (req, res) => {
   try {
+    const userId = req.user.id || req.user._id;
     await Notification.updateMany(
-      { user_id: req.user._id, read: false },
+      { user_id: userId, read: false },
       { read: true }
     );
     res.json({ success: true, message: 'All notifications marked as read' });
