@@ -286,11 +286,11 @@ const OrderDetailsModal = ({ order, onClose, onUpdateStatus }) => {
                               </p>
                             )}
                             <button
-                              onClick={() => handleDesignUpload(item.id)}
-                              disabled={!designFile || uploadingDesign === item.id}
+                              onClick={() => handleDesignUpload(item._id || item.id)}
+                              disabled={!designFile || uploadingDesign === (item._id || item.id)}
                               className="w-full px-4 py-2 bg-white text-valentine-red font-semibold rounded hover:bg-gray-100 disabled:bg-gray-300 disabled:text-gray-600 disabled:cursor-not-allowed transition-colors"
                             >
-                              {uploadingDesign === item.id ? 'Uploading...' : 'Upload Design'}
+                              {uploadingDesign === (item._id || item.id) ? 'Uploading...' : 'Upload Design'}
                             </button>
                           </div>
                         </div>
