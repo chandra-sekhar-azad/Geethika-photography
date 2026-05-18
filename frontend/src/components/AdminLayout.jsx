@@ -1,7 +1,7 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Package, ShoppingCart, Users, Tag,
-  TrendingUp, LogOut, Menu, X, Shield, FileText, MessageSquare, Send, Image
+  TrendingUp, LogOut, Menu, X, Shield, FileText, MessageSquare, Send, Image, Bell
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
@@ -29,7 +29,8 @@ const AdminLayout = ({ children }) => {
     { path: '/admin/homepage', icon: Image, label: 'Homepage' },
     { path: '/admin/sales-report', icon: TrendingUp, label: 'Sales Report' },
     { path: '/admin/whatsapp-templates', icon: MessageSquare, label: 'WhatsApp Templates' },
-    { path: '/admin/whatsapp-campaigns', icon: Send, label: 'WhatsApp Campaigns' }
+    { path: '/admin/whatsapp-campaigns', icon: Send, label: 'WhatsApp Campaigns' },
+    { path: '/admin/send-notifications', icon: Bell, label: 'Send Notifications' }
   ];
 
   // Add super admin only menu items

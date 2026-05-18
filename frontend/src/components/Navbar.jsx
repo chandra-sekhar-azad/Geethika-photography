@@ -24,9 +24,14 @@ const Navbar = () => {
     if (!isAuthenticated()) return;
     try {
       const token = localStorage.getItem('token');
+      if (!token) return;
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/notifications`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
+      if (response.status === 401) {
+        logout();
+        return;
+      }
       if (response.ok) {
         const data = await response.json();
         setNotifications(data.notifications || []);
@@ -52,11 +57,16 @@ const Navbar = () => {
   };
 
   useEffect(() => {
-    fetchNotifications();
-    // Poll every 30 seconds
-    const interval = setInterval(fetchNotifications, 30000);
-    return () => clearInterval(interval);
-  }, [isAuthenticated()]);
+    if (user) {
+      fetchNotifications();
+      // Poll every 30 seconds
+      const interval = setInterval(fetchNotifications, 30000);
+      return () => clearInterval(interval);
+    } else {
+      setNotifications([]);
+      setUnreadCount(0);
+    }
+  }, [user]);
 
   useEffect(() => {
     const handleScroll = () => {

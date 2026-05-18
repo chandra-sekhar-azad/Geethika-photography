@@ -39,11 +39,11 @@ const TrendingSection = () => {
     <section className="py-4 bg-[#F9F9F9]">
       <div className="container-custom">
         {/* Section Header */}
-        <div className="text-center mb-16">
+        <div className="text-center mb-8 md:mb-12 lg:mb-16">
           <h2 className="section-title">Curated for Your Special Moments</h2>
           
           {/* Tabs */}
-          <div className="flex flex-wrap justify-center gap-3 mt-8">
+          <div className="flex flex-wrap justify-center gap-3 mt-4 md:mt-6 lg:mt-8">
             {categories.map((cat) => (
               <button
                 key={cat}
@@ -66,7 +66,7 @@ const TrendingSection = () => {
             <div className="w-10 h-10 border-4 border-purple-200 border-t-[var(--color-primary)] rounded-full animate-spin"></div>
           </div>
         ) : products.length > 0 ? (
-          <div className="grid grid-cols-4 gap-14 px-4 md:px-10 lg:px-20">
+          <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8 lg:gap-14 px-4 md:px-10 lg:px-20">
             {products.map((product, index) => (
               <div
                 key={product.id}
@@ -87,7 +87,7 @@ const TrendingSection = () => {
         )}
 
         {/* View All */}
-        <div className="text-center mt-16">
+        <div className="text-center mt-8 md:mt-12 lg:mt-16">
           <button
             onClick={() => navigate('/shop')}
             className="btn-outline"

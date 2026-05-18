@@ -45,6 +45,7 @@ import GalleryManagement from './pages/admin/GalleryManagement';
 import Analytics from './pages/admin/Analytics';
 import HomePageManagement from './pages/admin/HomePageManagement';
 import CategoryManagement from './pages/admin/CategoryManagement';
+import SendNotifications from './pages/admin/SendNotifications';
 import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
 import { WishlistProvider } from './context/WishlistContext';
@@ -92,6 +93,7 @@ function App() {
                         <Route path="homepage" element={<HomePageManagement />} />
                         <Route path="categories" element={<CategoryManagement />} />
                         <Route path="analytics" element={<Analytics />} />
+                        <Route path="send-notifications" element={<SendNotifications />} />
                         <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
                       </Routes>
                     </PageTransition>
