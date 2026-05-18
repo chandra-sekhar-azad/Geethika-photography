@@ -168,22 +168,44 @@ router.post('/upload/:orderItemId', authenticate, isAdmin, upload.single('design
     );
 
     // Create notification for the user
-    const order = await Order.findOne({ "items._id": orderItemId });
+    console.log('[Design Upload Notification Debug] orderItemId string:', orderItemId);
+    let order;
+    try {
+      if (mongoose.Types.ObjectId.isValid(orderItemId)) {
+        order = await Order.findOne({ "items._id": new mongoose.Types.ObjectId(orderItemId) });
+      } else {
+        order = await Order.findOne({ "items._id": orderItemId });
+      }
+    } catch (e) {
+      console.error('[Design Upload Notification Debug] Error searching order:', e);
+    }
+    console.log('[Design Upload Notification Debug] Order found:', order ? order.order_number : 'NOT FOUND');
+
     if (order) {
+      console.log('[Design Upload Notification Debug] Searching user with email:', order.customer_email, 'or phone:', order.customer_phone);
       const user = await User.findOne({
         $or: [
           { email: order.customer_email },
           { phone: order.customer_phone }
         ]
       });
+      console.log('[Design Upload Notification Debug] User found:', user ? user.name : 'NOT FOUND');
+
       if (user) {
-        await Notification.create({
-          user_id: user._id,
-          title: 'Design Ready for Review',
-          message: `Please review the custom design for your order ${order.order_number}.`,
-          type: 'design',
-          link: `/order/${order._id}`
-        });
+        try {
+          const notif = await Notification.create({
+            user_id: user._id,
+            title: 'Design Ready for Review',
+            message: `Please review the custom design for your order ${order.order_number}.`,
+            type: 'design',
+            link: `/order/${order._id}`
+          });
+          console.log('[Design Upload Notification Debug] Notification created successfully:', notif._id);
+        } catch (notifErr) {
+          console.error('[Design Upload Notification Debug] Error creating Notification document:', notifErr);
+        }
+      } else {
+        console.log('[Design Upload Notification Debug] Notification skipped because user was NOT found.');
       }
 
       if (order.customer_phone) {
