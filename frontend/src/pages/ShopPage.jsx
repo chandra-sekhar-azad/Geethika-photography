@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Filter, ChevronDown, Search, SlidersHorizontal } from 'lucide-react';
+import { ChevronDown, Search } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
 
 const SORT_OPTIONS = [
@@ -120,31 +120,11 @@ const ShopPage = () => {
               </div>
             </div>
 
-            {/* Stats and Sort */}
+            {/* Stats */}
             <div className="flex items-center justify-between lg:justify-end gap-6 border-t lg:border-t-0 pt-4 lg:pt-0">
               <p className="text-gray-400 font-body text-sm italic">
                 Showing {products.length} treasures
               </p>
-
-              <div className="flex items-center gap-3">
-                <div className="relative group">
-                  <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
-                    className="appearance-none bg-gray-50 border-none rounded-lg px-6 py-2.5 pr-10 font-body text-sm font-semibold text-gray-700 focus:ring-2 focus:ring-[var(--color-primary-light)] cursor-pointer"
-                  >
-                    {SORT_OPTIONS.map(opt => (
-                      <option key={opt.value} value={opt.value}>{opt.label}</option>
-                    ))}
-                  </select>
-                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                </div>
-
-                <button className="flex items-center gap-2 bg-gray-50 px-4 py-2.5 rounded-lg font-body text-sm font-semibold text-gray-700 hover:bg-gray-100 transition-colors">
-                  <SlidersHorizontal className="w-4 h-4" />
-                  <span>Filters</span>
-                </button>
-              </div>
             </div>
           </div>
         </div>

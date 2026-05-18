@@ -104,7 +104,7 @@ const ContactPage = () => {
                   <div>
                     <h5 className="text-[10px] font-body font-bold text-gray-400 uppercase tracking-widest mb-1">Our Location</h5>
                     <p className="text-sm font-body text-gray-700 leading-relaxed">
-                      Vatluru, Eluru,<br />Andhra Pradesh 534007
+                      Police Bomma Road, Bhimavaram,<br />Andhra Pradesh 534204
                     </p>
                   </div>
                 </div>
@@ -156,21 +156,26 @@ const ContactPage = () => {
             <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center p-8 text-center">
               <h3 className="text-3xl font-display font-bold text-white mb-4">Visit Our Studio</h3>
               <p className="text-white/80 font-body text-sm mb-8 max-w-xs">Experience our artisanal craftsmanship in person and browse our exclusive physical collections.</p>
-              <button className="bg-white text-gray-900 px-8 py-3 rounded-xl font-body font-bold text-xs uppercase tracking-widest hover:bg-gray-100 transition-colors shadow-xl">
+              <a
+                href="https://share.google/IgsN3lVSHExKkHJzF"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-white text-gray-900 px-8 py-3 rounded-xl font-body font-bold text-xs uppercase tracking-widest hover:bg-gray-100 transition-colors shadow-xl"
+              >
                 Get Directions
-              </button>
+              </a>
             </div>
           </div>
 
           {/* Map Section */}
           <div className="relative rounded-[40px] overflow-hidden shadow-2xl h-[400px] lg:h-[500px] border border-gray-100">
-            <iframe 
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15298.521373457033!2d81.51627213472293!3d16.544749447289306!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a37d30a6f6646ab%3A0x349161fbbf6c561d!2sGeethika%20digital%20world!5e0!3m2!1sen!2sin!4v1777877490873!5m2!1sen!2sin" 
-              width="100%" 
-              height="100%" 
-              style={{ border: 0 }} 
-              allowFullScreen="" 
-              loading="lazy" 
+            <iframe
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d952.4117781428866!2d81.52284926957388!3d16.544234814703773!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a37d30a6f6646ab%3A0x349161fbbf6c561d!2sGeethika%20digital%20world!5e0!3m2!1sen!2sin!4v1747568400000!5m2!1sen!2sin"
+              width="100%"
+              height="100%"
+              style={{ border: 0 }}
+              allowFullScreen=""
+              loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
             ></iframe>
             <div className="absolute bottom-6 right-6 bg-white/90 backdrop-blur-md px-6 py-3 rounded-2xl shadow-xl flex items-center gap-3 border border-white/20">

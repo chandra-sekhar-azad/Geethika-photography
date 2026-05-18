@@ -6,7 +6,6 @@ import ShopByOccasionSection from '../components/ShopByOccasionSection';
 import ProfessionalServicesSection from '../components/ProfessionalServicesSection';
 
 import Testimonials from '../components/Testimonials';
-import CTASection from '../components/CTASection';
 
 const HomePage = () => {
   return (
@@ -19,7 +18,6 @@ const HomePage = () => {
       <ProfessionalServicesSection />
 
       <Testimonials />
-      <CTASection />
     </div>
   );
 };
