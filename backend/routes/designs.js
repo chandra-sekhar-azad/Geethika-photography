@@ -170,7 +170,12 @@ router.post('/upload/:orderItemId', authenticate, isAdmin, upload.single('design
     // Create notification for the user
     const order = await Order.findOne({ "items._id": orderItemId });
     if (order) {
-      const user = await User.findOne({ email: order.customer_email });
+      const user = await User.findOne({
+        $or: [
+          { email: order.customer_email },
+          { phone: order.customer_phone }
+        ]
+      });
       if (user) {
         await Notification.create({
           user_id: user._id,

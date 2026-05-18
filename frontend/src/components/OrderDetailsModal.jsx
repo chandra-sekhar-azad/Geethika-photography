@@ -1,12 +1,38 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Download, Upload, X, Image as ImageIcon, CheckCircle, XCircle, MapPin, Phone, Mail, DollarSign, AlertCircle } from 'lucide-react';
 
 const OrderDetailsModal = ({ order, onClose, onUpdateStatus }) => {
+  const [designs, setDesigns] = useState({});
   const [uploadingDesign, setUploadingDesign] = useState(null);
   const [designFile, setDesignFile] = useState(null);
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [statusUpdateError, setStatusUpdateError] = useState(null);
   const [updatedOrder, setUpdatedOrder] = useState(order);
+
+  useEffect(() => {
+    if (updatedOrder?.items) {
+      updatedOrder.items.forEach(async (item) => {
+        try {
+          const token = localStorage.getItem('token');
+          const itemId = item._id || item.id;
+          if (!itemId) return;
+          const response = await fetch(`${import.meta.env.VITE_API_URL}/api/designs/order-item/${itemId}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          if (response.ok) {
+            const data = await response.json();
+            if (data.design) {
+              setDesigns(prev => ({ ...prev, [itemId]: data.design }));
+            }
+          }
+        } catch (error) {
+          console.error('Failed to fetch design for item:', error);
+        }
+      });
+    }
+  }, [updatedOrder]);
 
   const handleDesignUpload = async (orderItemId) => {
     if (!designFile) return;
@@ -262,6 +288,75 @@ const OrderDetailsModal = ({ order, onClose, onUpdateStatus }) => {
                                 </button>
                               </div>
                             ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Current Design Status (If Already Uploaded) */}
+                      {isCustomizable && designs[item._id || item.id] && (
+                        <div className="mb-4 p-4 rounded-lg bg-gray-50 border border-gray-200 text-gray-800">
+                          <h4 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
+                            <span>🎨</span>
+                            Current Design Status
+                          </h4>
+                          <div className="space-y-3">
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <span className="text-xs text-gray-600 font-semibold uppercase">Status:</span>
+                              <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                                designs[item._id || item.id].status === 'approved'
+                                  ? 'bg-green-100 text-green-800 border border-green-200'
+                                  : designs[item._id || item.id].status === 'revision_requested'
+                                  ? 'bg-red-100 text-red-800 border border-red-200'
+                                  : 'bg-yellow-100 text-yellow-800 border border-yellow-200'
+                              }`}>
+                                {designs[item._id || item.id].status === 'approved' && '✅ Approved'}
+                                {designs[item._id || item.id].status === 'revision_requested' && '❌ Revision Requested'}
+                                {designs[item._id || item.id].status === 'pending_approval' && '⏳ Pending Customer Approval'}
+                              </span>
+                            </div>
+
+                            {/* Designed Image Preview */}
+                            <div className="mt-2">
+                              <p className="text-xs text-gray-600 font-semibold uppercase mb-1">Uploaded Design:</p>
+                              <div className="relative group max-w-xs">
+                                <div className="aspect-square bg-white rounded-lg overflow-hidden border">
+                                  <img
+                                    src={
+                                      designs[item._id || item.id].admin_designed_image.startsWith('http')
+                                        ? designs[item._id || item.id].admin_designed_image
+                                        : `${import.meta.env.VITE_API_URL}${designs[item._id || item.id].admin_designed_image}`
+                                    }
+                                    alt="Admin designed upload"
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
+                                <button
+                                  onClick={() => downloadImage(
+                                    designs[item._id || item.id].admin_designed_image,
+                                    `design-${updatedOrder.order_number}-${item._id || item.id}.jpg`
+                                  )}
+                                  className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-50 transition-all duration-200 flex items-center justify-center rounded-lg"
+                                >
+                                  <Download className="w-6 h-6 text-white opacity-0 hover:opacity-100 transition-opacity" />
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Customer Feedback (if revision requested) */}
+                            {designs[item._id || item.id].status === 'revision_requested' && designs[item._id || item.id].customer_feedback && (
+                              <div className="mt-3 p-3 bg-red-50 rounded-lg border border-red-200 text-red-950">
+                                <p className="text-xs font-bold uppercase mb-1">💭 Customer Feedback / Revision Instructions:</p>
+                                <p className="text-sm italic font-body">"{designs[item._id || item.id].customer_feedback}"</p>
+                              </div>
+                            )}
+
+                            {/* Revision Count and Approved Date */}
+                            <div className="text-xs text-gray-500 mt-2 space-y-1">
+                              <p>Revision Count: <span className="font-semibold text-gray-700">{designs[item._id || item.id].revision_count || 0}</span></p>
+                              {designs[item._id || item.id].approved_at && (
+                                <p>Approved At: <span className="font-semibold text-gray-700">{new Date(designs[item._id || item.id].approved_at).toLocaleString()}</span></p>
+                              )}
+                            </div>
                           </div>
                         </div>
                       )}
