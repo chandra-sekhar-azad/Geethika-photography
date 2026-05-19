@@ -87,8 +87,8 @@ router.get('/:id', cacheMiddleware(60), async (req, res) => {
   }
 });
 
-// Create product (admin only)
-router.post('/', authenticate, isAdmin, upload.single('image'),
+// Create product (admin only) — accepts up to 5 images via field "images"
+router.post('/', authenticate, isAdmin, upload.array('images', 5),
   [
     body('name').trim().notEmpty(),
     body('price').isFloat({ min: 0 }),
@@ -104,14 +104,18 @@ router.post('/', authenticate, isAdmin, upload.single('image'),
         valentine_special = false, special_offer = false, stock_quantity = 0
       } = req.body;
 
-      let image_url = null;
-      let image_public_id = null;
-
-      if (req.file) {
-        const uploadResult = await uploadToCloudinary(req.file, 'products');
-        image_url = uploadResult.url;
-        image_public_id = uploadResult.publicId;
+      // Upload all images to Cloudinary
+      let images = [];
+      if (req.files && req.files.length > 0) {
+        for (const file of req.files) {
+          const uploadResult = await uploadToCloudinary(file, 'products');
+          images.push({ url: uploadResult.url, public_id: uploadResult.publicId });
+        }
       }
+
+      // Primary image kept for backward compatibility
+      const image_url = images.length > 0 ? images[0].url : null;
+      const image_public_id = images.length > 0 ? images[0].public_id : null;
 
       const toBoolean = (val) => val === true || val === 'true';
 
@@ -124,6 +128,7 @@ router.post('/', authenticate, isAdmin, upload.single('image'),
         discount,
         image_url,
         image_public_id,
+        images,
         customizable: toBoolean(customizable),
         customization_options: customization_options
           ? (typeof customization_options === 'string' ? JSON.parse(customization_options) : customization_options)
@@ -144,21 +149,51 @@ router.post('/', authenticate, isAdmin, upload.single('image'),
   }
 );
 
-// Update product (admin only)
-router.put('/:id', authenticate, isAdmin, upload.single('image'), async (req, res) => {
+// Update product (admin only) — accepts up to 5 images via field "images"
+router.put('/:id', authenticate, isAdmin, upload.array('images', 5), async (req, res) => {
   try {
     const { id } = req.params;
     const existing = await Product.findById(id);
     if (!existing) return res.status(404).json({ error: 'Product not found' });
 
+    let images = existing.images || [];
     let image_url = existing.image_url;
     let image_public_id = existing.image_public_id;
 
-    if (req.file) {
-      if (image_public_id) await deleteFromCloudinary(image_public_id);
-      const uploadResult = await uploadToCloudinary(req.file, 'products');
-      image_url = uploadResult.url;
-      image_public_id = uploadResult.publicId;
+    // If new images are uploaded, replace ALL existing images
+    if (req.files && req.files.length > 0) {
+      // Delete old images from Cloudinary
+      for (const img of existing.images || []) {
+        if (img.public_id) {
+          try { await deleteFromCloudinary(img.public_id); } catch (e) {}
+        }
+      }
+      // Also delete legacy single image if not in images array
+      if (existing.image_public_id && !(existing.images || []).some(i => i.public_id === existing.image_public_id)) {
+        try { await deleteFromCloudinary(existing.image_public_id); } catch (e) {}
+      }
+
+      // Upload new images
+      images = [];
+      for (const file of req.files) {
+        const uploadResult = await uploadToCloudinary(file, 'products');
+        images.push({ url: uploadResult.url, public_id: uploadResult.publicId });
+      }
+
+      image_url = images[0]?.url || null;
+      image_public_id = images[0]?.public_id || null;
+    }
+
+    // Handle deletion of specific images sent from frontend (JSON array of public_ids to remove)
+    if (req.body.remove_image_ids) {
+      let toRemove = [];
+      try { toRemove = JSON.parse(req.body.remove_image_ids); } catch (e) {}
+      for (const pub_id of toRemove) {
+        try { await deleteFromCloudinary(pub_id); } catch (e) {}
+        images = images.filter(img => img.public_id !== pub_id);
+      }
+      image_url = images[0]?.url || null;
+      image_public_id = images[0]?.public_id || null;
     }
 
     const toBoolean = (val, fallback) => {
@@ -195,6 +230,7 @@ router.put('/:id', authenticate, isAdmin, upload.single('image'), async (req, re
       ...(toNumber(discount) !== null && { discount: toNumber(discount) }),
       image_url,
       image_public_id,
+      images,
       ...(customizable !== undefined && customizable !== '' && { customizable: toBoolean(customizable, existing.customizable) }),
       customization_options: parsedCustomizationOptions,
       ...(valentine_special !== undefined && valentine_special !== '' && { valentine_special: toBoolean(valentine_special, existing.valentine_special) }),
@@ -228,7 +264,14 @@ router.delete('/:id', authenticate, isAdmin, async (req, res) => {
       await Product.findByIdAndUpdate(id, { is_active: false });
       res.json({ message: 'Product deactivated (exists in orders)', deactivated: true });
     } else {
-      if (product.image_public_id) {
+      // Delete all images from Cloudinary
+      for (const img of product.images || []) {
+        if (img.public_id) {
+          try { await deleteFromCloudinary(img.public_id); } catch (e) {}
+        }
+      }
+      // Also delete legacy single image if not covered above
+      if (product.image_public_id && !(product.images || []).some(i => i.public_id === product.image_public_id)) {
         try { await deleteFromCloudinary(product.image_public_id); } catch (e) {}
       }
       await Product.findByIdAndDelete(id);

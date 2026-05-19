@@ -9,6 +9,12 @@ const productSchema = new mongoose.Schema({
   discount: { type: Number, default: 0, min: 0 },
   image_url: { type: String, default: null },
   image_public_id: { type: String, default: null },
+  images: [
+    {
+      url: { type: String },
+      public_id: { type: String },
+    }
+  ],
   customizable: { type: Boolean, default: false },
   customization_options: { type: mongoose.Schema.Types.Mixed, default: null },
   valentine_special: { type: Boolean, default: false },

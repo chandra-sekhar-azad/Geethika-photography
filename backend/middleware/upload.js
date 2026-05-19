@@ -32,3 +32,7 @@ export const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
   fileFilter: fileFilter
 });
+
+// Convenience wrappers
+export const uploadSingle = (field) => upload.single(field);
+export const uploadMultiple = (field, maxCount = 5) => upload.array(field, maxCount);

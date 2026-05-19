@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Search, X } from 'lucide-react';
+import { Plus, Trash2, Search, X } from 'lucide-react';
 import { getAuthHeaders, isAuthenticated, isAdmin } from '../../utils/api';
 
 const ProductManagement = () => {
@@ -30,9 +30,11 @@ const ProductManagement = () => {
     }
   });
 
-  const [imageFile, setImageFile] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
+  const [imageFiles, setImageFiles] = useState([]);       // new File objects to upload
+  const [imagePreviews, setImagePreviews] = useState([]);   // preview URLs (dataURL or existing URL)
+  const [imagePublicIds, setImagePublicIds] = useState([]); // public_ids for existing saved images
   const [isDragging, setIsDragging] = useState(false);
+  const MAX_IMAGES = 5;
 
   useEffect(() => {
     // Check authentication on mount
@@ -75,31 +77,38 @@ const ProductManagement = () => {
   };
 
   const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      processImageFile(file);
-    }
+    const files = Array.from(e.target.files || []);
+    processImageFiles(files);
+    e.target.value = ''; // reset input so same file can be re-added
   };
 
-  const processImageFile = (file) => {
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      alert('Please upload an image file');
+  const processImageFiles = (files) => {
+    const remaining = MAX_IMAGES - imagePreviews.length;
+    if (remaining <= 0) {
+      alert(`You can only upload up to ${MAX_IMAGES} images.`);
       return;
     }
+    const toAdd = files.slice(0, remaining);
+    const newFiles = [];
+    const newPreviews = [];
 
-    // Validate file size (5MB max)
-    if (file.size > 5 * 1024 * 1024) {
-      alert('Image size must be less than 5MB');
-      return;
-    }
-
-    setImageFile(file);
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setImagePreview(reader.result);
-    };
-    reader.readAsDataURL(file);
+    toAdd.forEach((file) => {
+      if (!file.type.startsWith('image/')) {
+        alert(`"${file.name}" is not an image file and was skipped.`);
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        alert(`"${file.name}" exceeds 5MB and was skipped.`);
+        return;
+      }
+      newFiles.push(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreviews((prev) => [...prev, reader.result]);
+      };
+      reader.readAsDataURL(file);
+    });
+    setImageFiles((prev) => [...prev, ...newFiles]);
   };
 
   const handleDragEnter = (e) => {
@@ -123,16 +132,20 @@ const ProductManagement = () => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
-
-    const files = e.dataTransfer.files;
-    if (files && files.length > 0) {
-      processImageFile(files[0]);
-    }
+    const files = Array.from(e.dataTransfer.files || []);
+    if (files.length > 0) processImageFiles(files);
   };
 
-  const handleRemoveImage = () => {
-    setImageFile(null);
-    setImagePreview(null);
+  // Remove a preview by index; also removes the corresponding File if it's a new upload
+  const handleRemoveImage = (index) => {
+    const isExisting = index < imagePublicIds.length;
+    setImagePreviews((prev) => prev.filter((_, i) => i !== index));
+    if (isExisting) {
+      setImagePublicIds((prev) => prev.filter((_, i) => i !== index));
+    } else {
+      const fileIndex = index - imagePublicIds.length;
+      setImageFiles((prev) => prev.filter((_, i) => i !== fileIndex));
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -172,10 +185,18 @@ const ProductManagement = () => {
         }
       });
 
-      // Append image if selected
-      if (imageFile) {
-        formDataToSend.append('image', imageFile);
+      // Append removed existing image public_ids so backend can clean them up
+      const existingPublicIds = imagePublicIds;
+      const keptPublicIds = imagePreviews.slice(0, existingPublicIds.length).map((_, i) => existingPublicIds[i]);
+      const removedIds = existingPublicIds.filter(id => !keptPublicIds.includes(id));
+      if (removedIds.length > 0) {
+        formDataToSend.append('remove_image_ids', JSON.stringify(removedIds));
       }
+
+      // Append new image files
+      imageFiles.forEach((file) => {
+        formDataToSend.append('images', file);
+      });
 
       console.log('Making request to:', url);
       console.log('Method:', editingProduct ? 'PUT' : 'POST');
@@ -284,16 +305,22 @@ const ProductManagement = () => {
         sizes: []
       }
     });
-    setImagePreview(product.image_url);
-    setImageFile(null);
+    // Load existing images into previews
+    const existingImages = product.images && product.images.length > 0
+      ? product.images
+      : (product.image_url ? [{ url: product.image_url, public_id: product.image_public_id }] : []);
+    setImagePreviews(existingImages.map(img => img.url));
+    setImagePublicIds(existingImages.map(img => img.public_id || ''));
+    setImageFiles([]);
     setShowModal(true);
   };
 
   const handleCloseModal = () => {
     setShowModal(false);
     setEditingProduct(null);
-    setImageFile(null);
-    setImagePreview(null);
+    setImageFiles([]);
+    setImagePreviews([]);
+    setImagePublicIds([]);
     setFormData({
       name: '',
       description: '',
@@ -568,85 +595,79 @@ const ProductManagement = () => {
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
-                  {/* Image Upload */}
+                  {/* Multi-Image Upload (up to 5) */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Product Image</label>
-                    <div
-                      onDragEnter={handleDragEnter}
-                      onDragOver={handleDragOver}
-                      onDragLeave={handleDragLeave}
-                      onDrop={handleDrop}
-                      className={`relative border-2 border-dashed rounded-lg p-6 transition-all ${
-                        isDragging
-                          ? 'border-valentine-red bg-valentine-pink/10 scale-105'
-                          : 'border-gray-300 hover:border-valentine-red'
-                      }`}
-                    >
-                      {imagePreview ? (
-                        <div className="flex items-center space-x-4">
-                          <img
-                            src={imagePreview}
-                            alt="Preview"
-                            className="w-32 h-32 object-cover rounded-lg border-2 border-gray-200"
-                          />
-                          <div className="flex-1">
-                            <p className="text-sm font-medium text-gray-900 mb-2">Image uploaded successfully!</p>
-                            <div className="flex space-x-2">
-                              <label className="cursor-pointer inline-flex items-center px-4 py-2 bg-valentine-red text-white rounded-lg hover:bg-valentine-darkRed transition-colors text-sm">
-                                <Edit className="w-4 h-4 mr-2" />
-                                Change Image
-                                <input
-                                  type="file"
-                                  accept="image/*"
-                                  onChange={handleImageChange}
-                                  className="hidden"
-                                />
-                              </label>
-                              <button
-                                type="button"
-                                onClick={handleRemoveImage}
-                                className="inline-flex items-center px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors text-sm"
-                              >
-                                <Trash2 className="w-4 h-4 mr-2" />
-                                Remove
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="text-center">
-                          <div className="mb-4">
-                            <svg
-                              className="mx-auto h-12 w-12 text-gray-400"
-                              stroke="currentColor"
-                              fill="none"
-                              viewBox="0 0 48 48"
-                              aria-hidden="true"
-                            >
-                              <path
-                                d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-                                strokeWidth={2}
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                          </div>
-                          <div className="flex text-sm text-gray-600 justify-center">
-                            <label className="relative cursor-pointer bg-white rounded-md font-medium text-valentine-red hover:text-valentine-darkRed focus-within:outline-none">
-                              <span>Click to upload</span>
-                              <input
-                                type="file"
-                                accept="image/*"
-                                onChange={handleImageChange}
-                                className="sr-only"
-                              />
-                            </label>
-                            <p className="pl-1">or drag and drop</p>
-                          </div>
-                          <p className="text-xs text-gray-500 mt-2">PNG, JPG, GIF up to 5MB</p>
-                        </div>
-                      )}
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="block text-sm font-medium text-gray-700">
+                        Product Images
+                        <span className="ml-2 text-xs text-gray-400 font-normal">(up to {MAX_IMAGES}, first image is the main display)</span>
+                      </label>
+                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                        imagePreviews.length >= MAX_IMAGES ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
+                      }`}>
+                        {imagePreviews.length}/{MAX_IMAGES}
+                      </span>
                     </div>
+
+                    {/* Existing + new image thumbnails */}
+                    {imagePreviews.length > 0 && (
+                      <div className="grid grid-cols-5 gap-2 mb-3">
+                        {imagePreviews.map((src, idx) => (
+                          <div key={idx} className="relative group aspect-square">
+                            <img
+                              src={src}
+                              alt={`Product image ${idx + 1}`}
+                              className={`w-full h-full object-cover rounded-lg border-2 ${
+                                idx === 0 ? 'border-valentine-red' : 'border-gray-200'
+                              }`}
+                            />
+                            {idx === 0 && (
+                              <span className="absolute bottom-0 left-0 right-0 text-center text-[9px] bg-valentine-red text-white py-0.5 rounded-b-lg font-bold">Main</span>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveImage(idx)}
+                              className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-600 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Drop zone — only show if under limit */}
+                    {imagePreviews.length < MAX_IMAGES && (
+                      <div
+                        onDragEnter={handleDragEnter}
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                        onDrop={handleDrop}
+                        className={`border-2 border-dashed rounded-lg p-5 text-center transition-all ${
+                          isDragging
+                            ? 'border-valentine-red bg-valentine-pink/10 scale-105'
+                            : 'border-gray-300 hover:border-valentine-red'
+                        }`}
+                      >
+                        <svg className="mx-auto h-8 w-8 text-gray-400 mb-2" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                          <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                        <label className="cursor-pointer">
+                          <span className="text-sm font-medium text-valentine-red hover:text-valentine-darkRed">
+                            Click to add {imagePreviews.length === 0 ? 'images' : 'more'}
+                          </span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            onChange={handleImageChange}
+                            className="sr-only"
+                          />
+                        </label>
+                        <p className="text-xs text-gray-400 mt-1">or drag & drop — PNG, JPG, GIF up to 5MB each</p>
+                        <p className="text-xs text-gray-400">You can add {MAX_IMAGES - imagePreviews.length} more image{MAX_IMAGES - imagePreviews.length !== 1 ? 's' : ''}</p>
+                      </div>
+                    )}
                   </div>
 
                   <div>

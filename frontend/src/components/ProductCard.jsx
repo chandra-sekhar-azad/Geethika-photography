@@ -1,61 +1,120 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Star, Edit3, Heart } from 'lucide-react';
+import { Star, Edit3, Heart, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useWishlist } from '../context/WishlistContext';
+
+const getImageSrc = (url, apiUrl) => {
+  if (!url) return 'https://images.unsplash.com/photo-1513885535751-8b9238bd345a?w=400&h=400&fit=crop';
+  return url.startsWith('http') ? url : `${apiUrl}${url}`;
+};
 
 const ProductCard = ({ product, showWishlist = false }) => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const { toggleWishlist, isInWishlist } = useWishlist();
+  const apiUrl = import.meta.env.VITE_API_URL;
 
-  const handleCardClick = () => {
-    navigate(`/product/${product.id}`);
-  };
+  // Build the gallery: prefer product.images[], fall back to single image_url
+  const gallery = (() => {
+    if (product.images && product.images.length > 0) {
+      return product.images.map(img => img.url || img);
+    }
+    if (product.image_url || product.image) {
+      return [product.image_url || product.image];
+    }
+    return [];
+  })();
+
+  const [activeIdx, setActiveIdx] = useState(0);
+
+  const handleCardClick = () => navigate(`/product/${product.id}`);
 
   const handleWishlist = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!isAuthenticated()) {
-      navigate('/login');
-      return;
-    }
+    if (!isAuthenticated()) { navigate('/login'); return; }
     toggleWishlist(product);
   };
 
   const handleCustomize = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!isAuthenticated()) {
-      navigate('/login');
-    } else {
-      navigate(`/product/${product.id}`);
-    }
+    if (!isAuthenticated()) { navigate('/login'); } else { navigate(`/product/${product.id}`); }
   };
 
-  // Mock rating for the design
+  const prevImage = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setActiveIdx((i) => (i - 1 + gallery.length) % gallery.length);
+  };
+
+  const nextImage = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setActiveIdx((i) => (i + 1) % gallery.length);
+  };
+
   const rating = product.rating || 5;
   const reviewCount = product.reviews_count || Math.floor(Math.random() * 50) + 10;
 
   return (
-    <div 
+    <div
       onClick={handleCardClick}
       className="group bg-white rounded-2xl p-4 transition-all duration-500 hover:shadow-2xl hover:shadow-purple-100 cursor-pointer"
     >
       {/* Image Container */}
       <div className="relative aspect-square rounded-xl overflow-hidden mb-5 bg-gray-50">
+
+        {/* Main image */}
         <img
-          src={
-            (product.image_url || product.image)?.startsWith('http')
-              ? (product.image_url || product.image)
-              : `${import.meta.env.VITE_API_URL}${product.image_url || product.image}`
-          }
-          alt={product.name}
+          src={getImageSrc(gallery[activeIdx], apiUrl)}
+          alt={`${product.name} - image ${activeIdx + 1}`}
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
           onError={(e) => {
             e.target.src = 'https://images.unsplash.com/photo-1513885535751-8b9238bd345a?w=400&h=400&fit=crop';
           }}
         />
-        
+
+        {/* Prev / Next arrows — only when multiple images */}
+        {gallery.length > 1 && (
+          <>
+            <button
+              onClick={prevImage}
+              className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-7 h-7 bg-white/80 backdrop-blur rounded-full flex items-center justify-center shadow opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white"
+              aria-label="Previous image"
+            >
+              <ChevronLeft className="w-4 h-4 text-gray-700" />
+            </button>
+            <button
+              onClick={nextImage}
+              className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-7 h-7 bg-white/80 backdrop-blur rounded-full flex items-center justify-center shadow opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white"
+              aria-label="Next image"
+            >
+              <ChevronRight className="w-4 h-4 text-gray-700" />
+            </button>
+
+            {/* Dot indicators */}
+            <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1 z-10">
+              {gallery.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); setActiveIdx(i); }}
+                  className={`w-1.5 h-1.5 rounded-full transition-all duration-200 ${
+                    i === activeIdx ? 'bg-white scale-125 shadow' : 'bg-white/50'
+                  }`}
+                  aria-label={`View image ${i + 1}`}
+                />
+              ))}
+            </div>
+
+            {/* Image counter badge */}
+            <span className="absolute top-3 right-3 bg-black/40 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full backdrop-blur-sm">
+              {activeIdx + 1}/{gallery.length}
+            </span>
+          </>
+        )}
+
         {/* Badges */}
         <div className="absolute top-3 left-3 flex flex-col gap-2">
           {product.is_trending && (
@@ -79,14 +138,14 @@ const ProductCard = ({ product, showWishlist = false }) => {
         {showWishlist && (
           <button
             onClick={handleWishlist}
-            className="absolute top-3 right-3 z-10 bg-white/80 backdrop-blur-md p-2 rounded-full shadow-sm hover:bg-white transition-all duration-300 group/wishlist"
+            className={`absolute ${gallery.length > 1 ? 'bottom-2 left-3' : 'top-3 right-3'} z-10 bg-white/80 backdrop-blur-md p-2 rounded-full shadow-sm hover:bg-white transition-all duration-300 group/wishlist`}
           >
-            <Heart 
+            <Heart
               className={`w-4 h-4 transition-all duration-300 ${
-                isInWishlist(product.id) 
-                  ? 'fill-[var(--color-primary)] text-[var(--color-primary)] scale-110' 
+                isInWishlist(product.id)
+                  ? 'fill-[var(--color-primary)] text-[var(--color-primary)] scale-110'
                   : 'text-gray-400 group-hover/wishlist:text-[var(--color-primary)]'
-              }`} 
+              }`}
             />
           </button>
         )}
@@ -107,9 +166,9 @@ const ProductCard = ({ product, showWishlist = false }) => {
         <div className="flex items-center gap-1 mb-6">
           <div className="flex items-center">
             {[...Array(5)].map((_, i) => (
-              <Star 
-                key={i} 
-                className={`w-3 h-3 ${i < rating ? 'fill-[#F7D060] text-[#F7D060]' : 'text-gray-200'}`} 
+              <Star
+                key={i}
+                className={`w-3 h-3 ${i < rating ? 'fill-[#F7D060] text-[#F7D060]' : 'text-gray-200'}`}
               />
             ))}
           </div>
@@ -130,4 +189,3 @@ const ProductCard = ({ product, showWishlist = false }) => {
 };
 
 export default ProductCard;
-
