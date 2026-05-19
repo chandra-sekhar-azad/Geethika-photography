@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Users, Mail, Plus, X } from 'lucide-react';
+import { Search, Users, Mail, Phone, Plus, X } from 'lucide-react';
 import PhoneInput from '../../components/PhoneInput';
 import api from '../../utils/api';
 
