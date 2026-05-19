@@ -213,14 +213,12 @@ const ProductManagement = () => {
         }
       });
 
-      // Append removed existing additional image public_ids so backend can clean them up
-      const keptAdditionalIds = additionalImagePreviews
-        .slice(0, additionalImagePublicIds.length)
-        .map((_, i) => additionalImagePublicIds[i]);
-      const removedIds = additionalImagePublicIds.filter(id => !keptAdditionalIds.includes(id));
-      if (removedIds.length > 0) {
-        formDataToSend.append('remove_image_ids', JSON.stringify(removedIds));
-      }
+      // Send the currently kept additional image public_ids.
+      // Backend will delete any existing additional images NOT in this list.
+      formDataToSend.append('kept_additional_ids', JSON.stringify(additionalImagePublicIds));
+
+      // Also send kept main image public_id so backend knows if main was removed
+      formDataToSend.append('kept_main_id', mainImagePublicId || '');
 
       // Append main image if a new one was selected
       if (mainImageFile) {

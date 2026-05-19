@@ -172,45 +172,69 @@ router.put('/:id', authenticate, isAdmin, uploadProductImages, async (req, res) 
     const newMainFiles = req.files?.main_image || [];
     const newAdditionalFiles = req.files?.additional_images || [];
 
-    // Replace main image if a new one was uploaded
+    // Parse what the frontend says it's keeping
+    let keptAdditionalIds = [];
+    let keptMainId = req.body.kept_main_id || '';
+    try {
+      if (req.body.kept_additional_ids) {
+        keptAdditionalIds = JSON.parse(req.body.kept_additional_ids);
+      }
+    } catch (e) {}
+
+    // ── Main image ──────────────────────────────────────────────────────────
     if (newMainFiles.length > 0) {
-      // Delete old main image from Cloudinary
+      // New main image uploaded — delete old one from Cloudinary
       if (existing.image_public_id) {
         try { await deleteFromCloudinary(existing.image_public_id); } catch (e) {}
       }
       const uploadResult = await uploadToCloudinary(newMainFiles[0], 'products');
       const newMain = { url: uploadResult.url, public_id: uploadResult.publicId };
-      // Replace first element (main image) in the images array
-      if (images.length > 0) {
-        images = [newMain, ...images.slice(1)];
-      } else {
-        images = [newMain];
-      }
+      images = [newMain, ...images.slice(1)];
       image_url = newMain.url;
       image_public_id = newMain.public_id;
+    } else if (!keptMainId && existing.image_public_id) {
+      // Main image was removed by admin (no new file, no kept id)
+      try { await deleteFromCloudinary(existing.image_public_id); } catch (e) {}
+      images = images.slice(1); // drop main from array
+      image_url = null;
+      image_public_id = null;
+    }
+    // else: main image unchanged
+
+    // ── Additional images ───────────────────────────────────────────────────
+    // Existing additional images = images[1..] (everything after main)
+    const existingAdditional = (existing.images || []).slice(1);
+
+    // Delete any existing additional images that are no longer kept
+    for (const img of existingAdditional) {
+      if (img.public_id && !keptAdditionalIds.includes(img.public_id)) {
+        try { await deleteFromCloudinary(img.public_id); } catch (e) {}
+      }
     }
 
-    // Append new additional images
-    if (newAdditionalFiles.length > 0) {
-      for (const file of newAdditionalFiles) {
-        const uploadResult = await uploadToCloudinary(file, 'products');
-        images.push({ url: uploadResult.url, public_id: uploadResult.publicId });
-      }
-      // Keep total at most 5 (1 main + 4 additional)
-      images = images.slice(0, 5);
+    // Build the kept additional images list
+    const keptAdditional = existingAdditional.filter(
+      img => img.public_id && keptAdditionalIds.includes(img.public_id)
+    );
+
+    // Upload new additional images
+    const newAdditional = [];
+    for (const file of newAdditionalFiles) {
+      const uploadResult = await uploadToCloudinary(file, 'products');
+      newAdditional.push({ url: uploadResult.url, public_id: uploadResult.publicId });
     }
 
-    // Handle deletion of specific images sent from frontend (JSON array of public_ids to remove)
-    if (req.body.remove_image_ids) {
-      let toRemove = [];
-      try { toRemove = JSON.parse(req.body.remove_image_ids); } catch (e) {}
-      for (const pub_id of toRemove) {
-        try { await deleteFromCloudinary(pub_id); } catch (e) {}
-        images = images.filter(img => img.public_id !== pub_id);
-      }
-      image_url = images[0]?.url || null;
-      image_public_id = images[0]?.public_id || null;
-    }
+    // Rebuild full images array: [main, ...keptAdditional, ...newAdditional] capped at 5
+    const mainImage = images[0] || null;
+    images = [
+      ...(mainImage ? [mainImage] : []),
+      ...keptAdditional,
+      ...newAdditional,
+    ].slice(0, 5);
+
+    // Keep image_url / image_public_id in sync with images[0]
+    image_url = images[0]?.url || null;
+    image_public_id = images[0]?.public_id || null;
 
     const toBoolean = (val, fallback) => {
       if (val === undefined || val === null || val === '') return fallback;
