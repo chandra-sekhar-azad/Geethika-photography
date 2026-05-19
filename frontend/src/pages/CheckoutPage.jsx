@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { ShoppingBag, ChevronRight, MapPin, Phone, User, Mail, MessageCircle, ShieldCheck } from 'lucide-react';
+import { ShoppingBag, ChevronRight, MapPin, User, Mail, MessageCircle, ShieldCheck } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import PhoneInput from '../components/PhoneInput';
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
@@ -86,12 +87,9 @@ const CheckoutPage = () => {
                   </div>
                   <div className="space-y-2">
                     <label className="text-[10px] font-body font-bold text-gray-400 uppercase tracking-widest ml-4">Phone Number</label>
-                    <input
-                      type="tel"
+                    <PhoneInput
                       value={formData.phone}
                       onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                      className="w-full bg-gray-50 border-none rounded-2xl p-4 font-body text-sm text-gray-700 focus:ring-2 focus:ring-purple-100 transition-all"
-                      placeholder="+91"
                     />
                   </div>
                 </div>

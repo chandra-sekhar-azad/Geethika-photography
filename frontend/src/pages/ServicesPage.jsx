@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Calendar, MapPin, Phone, User, MessageSquare, CreditCard, ArrowRight, Camera, Scissors, BookOpen, Clock, CheckCircle2 } from 'lucide-react';
+import { Calendar, MapPin, User, MessageSquare, CreditCard, ArrowRight, Camera, Scissors, BookOpen, Clock, CheckCircle2 } from 'lucide-react';
+import PhoneInput from '../components/PhoneInput';
 
 const ServicesPage = () => {
   const [services, setServices] = useState([]);
@@ -155,13 +156,9 @@ const ServicesPage = () => {
                   </div>
                   <div className="space-y-2">
                     <label className="text-[10px] font-body font-bold text-gray-400 uppercase tracking-widest ml-4">Phone Number</label>
-                    <input
-                      type="tel"
-                      required
+                    <PhoneInput
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      className="w-full bg-gray-50 border-none rounded-2xl p-4 font-body text-sm text-gray-700 focus:ring-2 focus:ring-purple-100 transition-all"
-                      placeholder="+91"
                     />
                   </div>
                 </div>

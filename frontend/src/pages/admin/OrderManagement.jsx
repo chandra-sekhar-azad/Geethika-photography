@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Search, Eye, Plus } from 'lucide-react';
 import OrderDetailsModal from '../../components/OrderDetailsModal';
+import PhoneInput from '../../components/PhoneInput';
 
 const OrderManagement = () => {
   const [orders, setOrders] = useState([]);
@@ -328,12 +329,10 @@ const OfflineOrderModal = ({ onClose, onSuccess }) => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Phone *</label>
-                <input
-                  type="tel"
+                <PhoneInput
                   required
                   value={formData.customer_phone}
                   onChange={(e) => setFormData({ ...formData, customer_phone: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-valentine-red focus:border-transparent"
                 />
               </div>
             </div>

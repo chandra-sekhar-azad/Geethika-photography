@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Trash2, Plus, Minus, ArrowLeft, MessageCircle, ShieldCheck } from 'lucide-react';
+import { Trash2, Plus, Minus, ArrowLeft, MessageCircle, ShieldCheck, AlertCircle, X } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 
@@ -7,11 +8,33 @@ const CartPage = () => {
   const navigate = useNavigate();
   const { cart, removeFromCart, updateQuantity, getCartSubtotal, getFinalTotal } = useCart();
   const { isAuthenticated } = useAuth();
+  const [missingImageItems, setMissingImageItems] = useState([]);
 
   const subtotal = getCartSubtotal();
-  const shipping = 99; // Sample shipping
+  const shipping = 99;
   const tax = Math.round(subtotal * 0.18);
   const grandTotal = subtotal + shipping + tax;
+
+  const handleProceedToCheckout = () => {
+    if (!isAuthenticated()) {
+      navigate('/login');
+      return;
+    }
+
+    // Block checkout if any customizable item is missing its photo upload
+    const itemsMissingImage = cart.filter(item =>
+      item.customization &&
+      typeof item.customization === 'object' &&
+      !item.customization.image
+    );
+
+    if (itemsMissingImage.length > 0) {
+      setMissingImageItems(itemsMissingImage);
+      return;
+    }
+
+    navigate('/checkout');
+  };
 
   if (cart.length === 0) {
     return (
@@ -150,7 +173,7 @@ const CartPage = () => {
               </div>
 
               <button 
-                onClick={() => navigate(isAuthenticated() ? '/checkout' : '/login')}
+                onClick={handleProceedToCheckout}
                 className="w-full py-6 bg-[var(--color-primary)] text-white rounded-3xl font-body font-bold text-lg hover:shadow-2xl hover:shadow-purple-200 transition-all active:scale-95"
               >
                 Proceed to Checkout
@@ -175,6 +198,68 @@ const CartPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Missing image warning modal */}
+      {missingImageItems.length > 0 && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 animate-slide-up">
+            <div className="flex items-start justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-amber-100 rounded-2xl flex items-center justify-center flex-shrink-0">
+                  <AlertCircle className="w-5 h-5 text-amber-600" />
+                </div>
+                <h3 className="text-xl font-display font-bold text-gray-900">Photo Required</h3>
+              </div>
+              <button
+                onClick={() => setMissingImageItems([])}
+                className="text-gray-300 hover:text-gray-600 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <p className="text-sm font-body text-gray-500 mb-6 leading-relaxed">
+              The following customizable product{missingImageItems.length > 1 ? 's require' : ' requires'} a photo upload before you can proceed to checkout:
+            </p>
+
+            <div className="space-y-3 mb-8">
+              {missingImageItems.map((item, i) => (
+                <div key={i} className="flex items-center gap-4 p-3 bg-amber-50 border border-amber-100 rounded-2xl">
+                  <img
+                    src={item.image}
+                    alt={item.name}
+                    className="w-12 h-12 rounded-xl object-cover flex-shrink-0"
+                    onError={e => { e.target.src = '/images/image.png'; }}
+                  />
+                  <div>
+                    <p className="text-sm font-body font-bold text-gray-900">{item.name}</p>
+                    <p className="text-xs text-amber-600 font-body mt-0.5">📸 Photo not uploaded</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setMissingImageItems([]);
+                  // Navigate to the product page of the first missing item
+                  navigate(`/product/${missingImageItems[0].id}`);
+                }}
+                className="flex-1 py-3 bg-[var(--color-primary)] text-white rounded-2xl font-body font-bold text-sm hover:bg-[#7A3B6D] transition-all"
+              >
+                Upload Photo
+              </button>
+              <button
+                onClick={() => setMissingImageItems([])}
+                className="flex-1 py-3 border border-gray-200 text-gray-600 rounded-2xl font-body font-bold text-sm hover:bg-gray-50 transition-all"
+              >
+                Go Back
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

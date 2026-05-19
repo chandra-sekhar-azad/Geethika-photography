@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Users, Mail, Phone, Plus, X } from 'lucide-react';
+import { Search, Users, Mail, Plus, X } from 'lucide-react';
+import PhoneInput from '../../components/PhoneInput';
 import api from '../../utils/api';
 
 const CustomerDatabase = () => {
@@ -195,7 +196,11 @@ const CustomerDatabase = () => {
                     ₹{parseFloat(customer.total_spent || 0).toLocaleString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(customer.created_at).toLocaleDateString()}
+                    {(() => {
+                      const d = new Date(customer.createdAt || customer.created_at);
+                      if (isNaN(d)) return '—';
+                      return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+                    })()}
                   </td>
                 </tr>
               ))}
@@ -249,12 +254,9 @@ const CustomerDatabase = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
-                    <input
-                      type="tel"
+                    <PhoneInput
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-valentine-red focus:border-transparent"
-                      placeholder="9876543210"
                     />
                   </div>
 

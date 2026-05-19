@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { ShoppingBag, ChevronRight, MapPin, Phone, User, ShieldCheck, Wallet, Landmark, CheckCircle2, ArrowRight } from 'lucide-react';
+import { ShoppingBag, ChevronRight, MapPin, User, ShieldCheck, Wallet, Landmark, CheckCircle2, ArrowRight } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL } from '../utils/api';
+import PhoneInput from '../components/PhoneInput';
 
 const PaymentPage = () => {
   const navigate = useNavigate();
@@ -21,8 +22,41 @@ const PaymentPage = () => {
     address: '',
     landmark: '',
     city: '',
+    state: '',
     pincode: '',
   });
+
+  // Pre-fill shipping details from account (signup / profile address)
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    (async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/auth/profile`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        const u = data.user;
+        if (!u) return;
+        const a = u.address || {};
+        setFormData((prev) => ({
+          ...prev,
+          name: u.name || prev.name,
+          phone: u.phone || prev.phone,
+          email: u.email ?? prev.email,
+          address: (a.line1 && String(a.line1).trim()) || prev.address,
+          landmark: (a.landmark && String(a.landmark).trim()) || prev.landmark,
+          city: (a.city && String(a.city).trim()) || prev.city,
+          state: (a.state && String(a.state).trim()) || prev.state,
+          pincode: (a.pincode && String(a.pincode).trim()) || prev.pincode,
+        }));
+      } catch (e) {
+        console.error('Failed to load profile for checkout:', e);
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     if (cart.length === 0) {
@@ -32,8 +66,8 @@ const PaymentPage = () => {
 
   const handleNextStep = (e) => {
     e.preventDefault();
-    if (!formData.name || !formData.phone || !formData.address) {
-      alert('Please complete your information first.');
+    if (!formData.name || !formData.phone || !formData.address || !formData.city || !formData.pincode || !formData.state) {
+      alert('Please complete your shipping information first.');
       return;
     }
     setStep(2);
@@ -121,7 +155,7 @@ const PaymentPage = () => {
           customer_name: formData.name,
           customer_email: formData.email,
           customer_phone: formData.phone,
-          shipping_address: `${formData.address}, ${formData.landmark ? formData.landmark + ', ' : ''}${formData.city} - ${formData.pincode}`,
+          shipping_address: `${formData.address}, ${formData.landmark ? formData.landmark + ', ' : ''}${formData.city}${formData.state ? `, ${formData.state}` : ''} - ${formData.pincode}`,
           items: cart,
           subtotal: getCartSubtotal(),
           service_charge: getServiceCharge(),
@@ -132,7 +166,7 @@ const PaymentPage = () => {
             landmark: formData.landmark,
             city: formData.city,
             pincode: formData.pincode,
-            state: 'Andhra Pradesh'
+            state: formData.state || 'Andhra Pradesh',
           }
         })
       });
@@ -200,13 +234,10 @@ const PaymentPage = () => {
                     </div>
                     <div className="space-y-3">
                       <label className="text-[10px] font-body font-bold text-gray-400 uppercase tracking-widest ml-1">Phone Number</label>
-                      <input
-                        type="tel"
-                        required
+                      <PhoneInput
                         value={formData.phone}
                         onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                        className="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl font-body text-sm text-gray-900 focus:ring-2 focus:ring-purple-100 outline-none transition-all"
-                        placeholder="+91"
+                        required
                       />
                     </div>
                   </div>
@@ -219,6 +250,17 @@ const PaymentPage = () => {
                       onChange={(e) => setFormData({...formData, address: e.target.value})}
                       className="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl font-body text-sm text-gray-900 focus:ring-2 focus:ring-purple-100 outline-none transition-all h-32 resize-none"
                       placeholder="House / Flat / Building Name & Street"
+                    />
+                  </div>
+
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-body font-bold text-gray-400 uppercase tracking-widest ml-1">Landmark <span className="font-normal normal-case text-gray-400">(optional)</span></label>
+                    <input
+                      type="text"
+                      value={formData.landmark}
+                      onChange={(e) => setFormData({ ...formData, landmark: e.target.value })}
+                      className="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl font-body text-sm text-gray-900 focus:ring-2 focus:ring-purple-100 outline-none transition-all"
+                      placeholder="Near school, temple, etc."
                     />
                   </div>
 
@@ -243,6 +285,18 @@ const PaymentPage = () => {
                         className="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl font-body text-sm text-gray-900 focus:ring-2 focus:ring-purple-100 outline-none transition-all"
                       />
                     </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-body font-bold text-gray-400 uppercase tracking-widest ml-1">State</label>
+                    <input
+                      type="text"
+                      required
+                      value={formData.state}
+                      onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+                      className="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl font-body text-sm text-gray-900 focus:ring-2 focus:ring-purple-100 outline-none transition-all"
+                      placeholder="State"
+                    />
                   </div>
 
                   <button

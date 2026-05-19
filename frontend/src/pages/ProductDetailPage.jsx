@@ -205,31 +205,55 @@ const ProductDetailPage = () => {
     }
   };
 
-  const handleAddToCart = () => {
-    if (!isAuthenticated()) {
-      navigate('/login', { state: { from: { pathname: `/product/${product.id}` } } });
-      return;
-    }
-
-    const selectedSize = product.customization_options?.sizes?.length > 0 
+  const buildCartItem = () => {
+    const selectedSize = product.customization_options?.sizes?.length > 0
       ? product.customization_options.sizes[selectedSizeIndex]
       : null;
 
-    const cartItem = {
+    return {
       id: product.id,
       name: product.name,
       image: product.image_url || product.image,
       price: selectedSize ? selectedSize.price : product.price,
       quantity,
       size: selectedSize ? selectedSize.name : null,
-      customization: product.customizable ? {
-        image: customization.image, // Use the server URL if uploaded, otherwise blob URL
-        message: customization.message,
-      } : null,
+      customization: product.customizable
+        ? {
+            image: customization.image,
+            message: customization.message,
+          }
+        : null,
     };
+  };
+
+  const handleAddToCart = () => {
+    if (!isAuthenticated()) {
+      navigate('/login', { state: { from: { pathname: `/product/${product.id}` } } });
+      return;
+    }
+
+    addToCart(buildCartItem());
+    navigate('/cart');
+  };
+
+  const handleBuyNow = () => {
+    if (!isAuthenticated()) {
+      navigate('/login', { state: { from: { pathname: `/product/${product.id}` } } });
+      return;
+    }
+
+    const cartItem = buildCartItem();
+    if (
+      cartItem.customization &&
+      typeof cartItem.customization === 'object' &&
+      !cartItem.customization.image
+    ) {
+      alert('Please upload a photo for this customizable product before checkout.');
+      return;
+    }
 
     addToCart(cartItem);
-    navigate('/cart');
+    navigate('/checkout');
   };
 
   if (loading) return (
@@ -460,10 +484,11 @@ const ProductDetailPage = () => {
                 <span>Add to Cart</span>
               </button>
               <button 
-                onClick={handleAddToCart}
+                type="button"
+                onClick={handleBuyNow}
                 className="py-4 bg-[#F7D060] text-gray-900 rounded-xl font-body font-bold text-sm flex items-center justify-center hover:bg-[#EAB308] transition-all shadow-lg active:scale-95"
               >
-                <span>Customize & Order</span>
+                <span>Buy</span>
               </button>
             </div>
 

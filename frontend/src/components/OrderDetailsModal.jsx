@@ -156,8 +156,8 @@ const OrderDetailsModal = ({ order, onClose, onUpdateStatus }) => {
             </div>
             <div className="bg-green-50 p-4 rounded-lg border border-green-200">
               <p className="text-xs text-green-600 font-semibold uppercase mb-1">Order Date</p>
-              <p className="font-bold text-lg text-gray-900">{new Date(updatedOrder.created_at).toLocaleDateString()}</p>
-              <p className="text-xs text-gray-600">{new Date(updatedOrder.created_at).toLocaleTimeString()}</p>
+              <p className="font-bold text-lg text-gray-900">{(() => { const d = new Date(updatedOrder.createdAt || updatedOrder.created_at); return isNaN(d) ? '—' : d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }); })()}</p>
+              <p className="text-xs text-gray-600">{(() => { const d = new Date(updatedOrder.createdAt || updatedOrder.created_at); return isNaN(d) ? '' : d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }); })()}</p>
             </div>
             <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
               <p className="text-xs text-purple-600 font-semibold uppercase mb-1">Payment Status</p>
@@ -167,50 +167,55 @@ const OrderDetailsModal = ({ order, onClose, onUpdateStatus }) => {
             </div>
           </div>
 
-          {/* Customer Info */}
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-200">
-            <h3 className="font-bold text-lg text-gray-900 mb-4 flex items-center gap-2">
-              <span className="w-5 h-5 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs">👤</span>
-              Customer Information
-            </h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-xs text-gray-600 font-semibold uppercase mb-1">Name</p>
-                <p className="font-semibold text-gray-900">{updatedOrder.customer_name}</p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-600 font-semibold uppercase mb-1">Phone</p>
-                <p className="font-semibold text-gray-900 flex items-center gap-2">
-                  <Phone className="w-4 h-4 text-blue-600" />
-                  {updatedOrder.customer_phone}
-                </p>
-              </div>
-              <div className="col-span-2">
-                <p className="text-xs text-gray-600 font-semibold uppercase mb-1">Email</p>
-                <p className="font-semibold text-gray-900 flex items-center gap-2">
-                  <Mail className="w-4 h-4 text-blue-600" />
-                  {updatedOrder.customer_email || 'N/A'}
-                </p>
-              </div>
-            </div>
-          </div>
+          {/* Contact Info + Shipping Address — side by side */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-          {/* Shipping Address */}
-          <div className="bg-gradient-to-r from-amber-50 to-orange-50 p-4 rounded-lg border border-amber-200">
-            <h3 className="font-bold text-lg text-gray-900 mb-4 flex items-center gap-2">
-              <MapPin className="w-5 h-5 text-orange-600" />
-              Shipping Address
-            </h3>
-            <div className="bg-white rounded p-3 border-l-4 border-orange-500">
-              <p className="text-gray-900 font-semibold mb-2">{updatedOrder.shipping_address || updatedOrder.shipping_info?.address || 'N/A'}</p>
-              {updatedOrder.shipping_info ? (
-                <div className="text-sm text-gray-700 space-y-1">
-                  <p><span className="font-semibold">City:</span> {updatedOrder.shipping_info.city}</p>
-                  <p><span className="font-semibold">State:</span> {updatedOrder.shipping_info.state}</p>
-                  <p><span className="font-semibold">Pincode:</span> {updatedOrder.shipping_info.pincode}</p>
+            {/* Customer Info */}
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-200">
+              <h3 className="font-bold text-lg text-gray-900 mb-4 flex items-center gap-2">
+                <span className="w-5 h-5 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs">👤</span>
+                Contact Info
+              </h3>
+              <div className="space-y-3">
+                <div>
+                  <p className="text-xs text-gray-600 font-semibold uppercase mb-1">Name</p>
+                  <p className="font-semibold text-gray-900">{updatedOrder.customer_name}</p>
                 </div>
-              ) : null}
+                <div>
+                  <p className="text-xs text-gray-600 font-semibold uppercase mb-1">Phone</p>
+                  <p className="font-semibold text-gray-900 flex items-center gap-2">
+                    <Phone className="w-4 h-4 text-blue-600" />
+                    {updatedOrder.customer_phone}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-600 font-semibold uppercase mb-1">Email</p>
+                  <p className="font-semibold text-gray-900 flex items-center gap-2">
+                    <Mail className="w-4 h-4 text-blue-600" />
+                    {updatedOrder.customer_email || 'N/A'}
+                  </p>
+                </div>
+              </div>
             </div>
+
+            {/* Shipping Address */}
+            <div className="bg-gradient-to-r from-amber-50 to-orange-50 p-4 rounded-lg border border-amber-200">
+              <h3 className="font-bold text-lg text-gray-900 mb-4 flex items-center gap-2">
+                <MapPin className="w-5 h-5 text-orange-600" />
+                Shipping Address
+              </h3>
+              <div className="bg-white rounded p-3 border-l-4 border-orange-500 space-y-1">
+                <p className="text-gray-900 font-semibold">{updatedOrder.shipping_address || updatedOrder.shipping_info?.address || 'N/A'}</p>
+                {updatedOrder.shipping_info && (
+                  <div className="text-sm text-gray-700 space-y-1">
+                    <p><span className="font-semibold">City:</span> {updatedOrder.shipping_info.city}</p>
+                    <p><span className="font-semibold">State:</span> {updatedOrder.shipping_info.state}</p>
+                    <p><span className="font-semibold">Pincode:</span> {updatedOrder.shipping_info.pincode}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
           </div>
 
           {/* Order Items with Customization */}

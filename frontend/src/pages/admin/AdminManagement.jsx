@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Search, X, Shield, User } from 'lucide-react';
 import { getAuthHeaders, isAuthenticated } from '../../utils/api';
+import PhoneInput from '../../components/PhoneInput';
 
 const AdminManagement = () => {
   const [admins, setAdmins] = useState([]);
@@ -320,11 +321,9 @@ const AdminManagement = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
-                    <input
-                      type="tel"
+                    <PhoneInput
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-valentine-red focus:border-transparent"
                     />
                   </div>
 

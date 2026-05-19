@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { User, Mail, Phone, Lock, Save, ArrowLeft, Camera, ShieldCheck, ShoppingBag, Heart, Package, Trash2, Plus, Minus, MessageCircle, ChevronRight, Clock, CheckCircle, XCircle, Eye, LogOut } from 'lucide-react';
+import { User, Mail, Lock, Save, ArrowLeft, Camera, ShieldCheck, ShoppingBag, Heart, Package, Trash2, Plus, Minus, MessageCircle, ChevronRight, Clock, CheckCircle, XCircle, Eye, LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { API_BASE_URL } from '../utils/api';
+import PhoneInput from '../components/PhoneInput';
 
 const ProfilePage = () => {
   const navigate = useNavigate();
@@ -219,7 +220,7 @@ const ProfilePage = () => {
                     </div>
                     <div>
                       <label className="block text-[10px] font-body font-bold text-gray-400 uppercase tracking-widest mb-3">Phone Number</label>
-                      <input type="tel" name="phone" value={formData.phone} onChange={handleChange} className="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl text-gray-900 font-body text-sm focus:ring-2 focus:ring-purple-100 transition-all outline-none" />
+                      <PhoneInput name="phone" value={formData.phone} onChange={handleChange} />
                     </div>
                   </div>
                   <button type="submit" disabled={loading} className="w-full py-5 bg-gray-900 text-white rounded-2xl font-body font-bold text-sm uppercase tracking-widest hover:bg-[var(--color-primary)] transition-all active:scale-95">

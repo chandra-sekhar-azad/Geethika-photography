@@ -204,6 +204,15 @@
   .pt-12 {
     padding-top: 1.2rem !important;
   }
+  .pt-16 {
+    padding-top: 2rem !important;
+  }
+  .pb-8 {
+    padding-bottom: 1rem !important;
+  }
+  .gap-8 {
+    gap: 1rem !important;
+  }
   .animate-float {
     animation: float 6s ease-in-out infinite;
   }
