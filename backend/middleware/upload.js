@@ -36,3 +36,9 @@ export const upload = multer({
 // Convenience wrappers
 export const uploadSingle = (field) => upload.single(field);
 export const uploadMultiple = (field, maxCount = 5) => upload.array(field, maxCount);
+
+// Upload main image + additional images as separate fields
+export const uploadProductImages = upload.fields([
+  { name: 'main_image', maxCount: 1 },
+  { name: 'additional_images', maxCount: 4 },
+]);

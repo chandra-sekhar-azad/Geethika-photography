@@ -2,7 +2,7 @@ import express from 'express';
 import { body, validationResult } from 'express-validator';
 import Product from '../models/Product.js';
 import { authenticate, isAdmin } from '../middleware/auth.js';
-import { upload } from '../middleware/upload.js';
+import { uploadProductImages } from '../middleware/upload.js';
 import { uploadToCloudinary, deleteFromCloudinary } from '../config/cloudinary.js';
 import { logAdminAction, getChanges } from '../middleware/auditLog.js';
 import { cacheMiddleware, invalidateCache } from '../middleware/cache.js';
@@ -87,8 +87,8 @@ router.get('/:id', cacheMiddleware(60), async (req, res) => {
   }
 });
 
-// Create product (admin only) — accepts up to 5 images via field "images"
-router.post('/', authenticate, isAdmin, upload.array('images', 5),
+// Create product (admin only) — accepts main_image (1) and additional_images (up to 4) separately
+router.post('/', authenticate, isAdmin, uploadProductImages,
   [
     body('name').trim().notEmpty(),
     body('price').isFloat({ min: 0 }),
@@ -101,16 +101,23 @@ router.post('/', authenticate, isAdmin, upload.array('images', 5),
       const {
         name, slug, description, category_id, price,
         discount = 0, customizable = false, customization_options,
-        valentine_special = false, special_offer = false, stock_quantity = 0
+        valentine_special = false, special_offer = false, stock_quantity = 0,
+        material, sizes
       } = req.body;
 
       // Upload all images to Cloudinary
       let images = [];
-      if (req.files && req.files.length > 0) {
-        for (const file of req.files) {
-          const uploadResult = await uploadToCloudinary(file, 'products');
-          images.push({ url: uploadResult.url, public_id: uploadResult.publicId });
-        }
+      const mainFiles = req.files?.main_image || [];
+      const additionalFiles = req.files?.additional_images || [];
+
+      if (mainFiles.length > 0) {
+        const uploadResult = await uploadToCloudinary(mainFiles[0], 'products');
+        images.push({ url: uploadResult.url, public_id: uploadResult.publicId });
+      }
+
+      for (const file of additionalFiles) {
+        const uploadResult = await uploadToCloudinary(file, 'products');
+        images.push({ url: uploadResult.url, public_id: uploadResult.publicId });
       }
 
       // Primary image kept for backward compatibility
@@ -133,6 +140,8 @@ router.post('/', authenticate, isAdmin, upload.array('images', 5),
         customization_options: customization_options
           ? (typeof customization_options === 'string' ? JSON.parse(customization_options) : customization_options)
           : null,
+        material: material || null,
+        sizes: sizes ? (typeof sizes === 'string' ? JSON.parse(sizes) : sizes) : [],
         valentine_special: toBoolean(valentine_special),
         special_offer: toBoolean(special_offer),
         stock_quantity,
@@ -149,8 +158,8 @@ router.post('/', authenticate, isAdmin, upload.array('images', 5),
   }
 );
 
-// Update product (admin only) — accepts up to 5 images via field "images"
-router.put('/:id', authenticate, isAdmin, upload.array('images', 5), async (req, res) => {
+// Update product (admin only) — accepts main_image (1) and additional_images (up to 4) separately
+router.put('/:id', authenticate, isAdmin, uploadProductImages, async (req, res) => {
   try {
     const { id } = req.params;
     const existing = await Product.findById(id);
@@ -160,28 +169,35 @@ router.put('/:id', authenticate, isAdmin, upload.array('images', 5), async (req,
     let image_url = existing.image_url;
     let image_public_id = existing.image_public_id;
 
-    // If new images are uploaded, replace ALL existing images
-    if (req.files && req.files.length > 0) {
-      // Delete old images from Cloudinary
-      for (const img of existing.images || []) {
-        if (img.public_id) {
-          try { await deleteFromCloudinary(img.public_id); } catch (e) {}
-        }
-      }
-      // Also delete legacy single image if not in images array
-      if (existing.image_public_id && !(existing.images || []).some(i => i.public_id === existing.image_public_id)) {
+    const newMainFiles = req.files?.main_image || [];
+    const newAdditionalFiles = req.files?.additional_images || [];
+
+    // Replace main image if a new one was uploaded
+    if (newMainFiles.length > 0) {
+      // Delete old main image from Cloudinary
+      if (existing.image_public_id) {
         try { await deleteFromCloudinary(existing.image_public_id); } catch (e) {}
       }
+      const uploadResult = await uploadToCloudinary(newMainFiles[0], 'products');
+      const newMain = { url: uploadResult.url, public_id: uploadResult.publicId };
+      // Replace first element (main image) in the images array
+      if (images.length > 0) {
+        images = [newMain, ...images.slice(1)];
+      } else {
+        images = [newMain];
+      }
+      image_url = newMain.url;
+      image_public_id = newMain.public_id;
+    }
 
-      // Upload new images
-      images = [];
-      for (const file of req.files) {
+    // Append new additional images
+    if (newAdditionalFiles.length > 0) {
+      for (const file of newAdditionalFiles) {
         const uploadResult = await uploadToCloudinary(file, 'products');
         images.push({ url: uploadResult.url, public_id: uploadResult.publicId });
       }
-
-      image_url = images[0]?.url || null;
-      image_public_id = images[0]?.public_id || null;
+      // Keep total at most 5 (1 main + 4 additional)
+      images = images.slice(0, 5);
     }
 
     // Handle deletion of specific images sent from frontend (JSON array of public_ids to remove)
@@ -210,7 +226,7 @@ router.put('/:id', authenticate, isAdmin, upload.array('images', 5), async (req,
     const {
       name, description, category_id, price, discount,
       customizable, customization_options, valentine_special,
-      special_offer, stock_quantity, is_active
+      special_offer, stock_quantity, is_active, material, sizes
     } = req.body;
 
     let parsedCustomizationOptions = existing.customization_options;
@@ -220,6 +236,13 @@ router.put('/:id', authenticate, isAdmin, upload.array('images', 5), async (req,
           ? JSON.parse(customization_options)
           : customization_options;
       } catch { parsedCustomizationOptions = null; }
+    }
+
+    let parsedSizes = existing.sizes;
+    if (sizes !== undefined && sizes !== null && sizes !== '') {
+      try {
+        parsedSizes = typeof sizes === 'string' ? JSON.parse(sizes) : sizes;
+      } catch { parsedSizes = []; }
     }
 
     const updates = {
@@ -233,6 +256,8 @@ router.put('/:id', authenticate, isAdmin, upload.array('images', 5), async (req,
       images,
       ...(customizable !== undefined && customizable !== '' && { customizable: toBoolean(customizable, existing.customizable) }),
       customization_options: parsedCustomizationOptions,
+      ...(material !== undefined && { material: material || null }),
+      sizes: parsedSizes,
       ...(valentine_special !== undefined && valentine_special !== '' && { valentine_special: toBoolean(valentine_special, existing.valentine_special) }),
       ...(special_offer !== undefined && special_offer !== '' && { special_offer: toBoolean(special_offer, existing.special_offer) }),
       ...(toNumber(stock_quantity) !== null && { stock_quantity: toNumber(stock_quantity) }),

@@ -37,6 +37,29 @@ router.patch('/mark-read', authenticate, async (req, res) => {
   }
 });
 
+// Delete selected notifications (by array of ids) or all
+router.delete('/', authenticate, async (req, res) => {
+  try {
+    const userId = req.user.id || req.user._id;
+    const { ids, deleteAll } = req.body;
+
+    if (deleteAll) {
+      await Notification.deleteMany({ user_id: userId });
+      return res.json({ success: true, message: 'All notifications deleted' });
+    }
+
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ error: 'No notification IDs provided' });
+    }
+
+    await Notification.deleteMany({ _id: { $in: ids }, user_id: userId });
+    res.json({ success: true, message: `${ids.length} notification(s) deleted` });
+  } catch (error) {
+    console.error('Error deleting notifications:', error);
+    res.status(500).json({ error: 'Failed to delete notifications' });
+  }
+});
+
 // Send notification to all users or specific users (Admin Only)
 router.post('/send', authenticate, isAdmin, async (req, res) => {
   try {

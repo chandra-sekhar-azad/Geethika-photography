@@ -29,6 +29,7 @@ import galleryRoutes from './routes/gallery.js';
 import homepageRoutes from './routes/homepage.js';
 import designRoutes from './routes/designs.js';
 import notificationRoutes from './routes/notifications.js';
+import reviewRoutes from './routes/reviews.js';
 
 // Import middleware
 import { errorHandler, notFound } from './middleware/errorHandler.js';
@@ -135,6 +136,7 @@ app.use('/api/gallery', galleryRoutes);
 app.use('/api/homepage', homepageRoutes);
 app.use('/api/designs', designRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/products/:productId/reviews', reviewRoutes);
 
 // Root endpoint
 app.get('/', (req, res) => {

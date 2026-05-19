@@ -242,7 +242,17 @@ router.get('/my-orders', authenticate, async (req, res) => {
       .limit(rawLimit)
       .lean();
 
-    res.json({ orders: orders.map(o => ({ ...o, id: o._id })), count: orders.length });
+    // Ensure product_id in items is always a plain string for frontend use
+    const formatted = orders.map(o => ({
+      ...o,
+      id: o._id.toString(),
+      items: (o.items || []).map(item => ({
+        ...item,
+        product_id: item.product_id ? item.product_id.toString() : null,
+      })),
+    }));
+
+    res.json({ orders: formatted, count: formatted.length });
   } catch (error) {
     console.error('Get user orders error:', error);
     res.status(500).json({ error: 'Failed to fetch orders' });

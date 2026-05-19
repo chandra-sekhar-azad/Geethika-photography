@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Heart, ShoppingCart, Menu, X, User, LogOut, Package, ChevronDown, ChevronRight, Bell } from 'lucide-react';
+import { Heart, ShoppingCart, Menu, X, User, LogOut, Package, ChevronDown, ChevronRight, Bell, Trash2 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { useAuth } from '../context/AuthContext';
@@ -19,6 +19,8 @@ const Navbar = () => {
   
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [selectedIds, setSelectedIds] = useState(new Set());
+  const [selectMode, setSelectMode] = useState(false);
 
   const fetchNotifications = async () => {
     if (!isAuthenticated()) return;
@@ -53,6 +55,60 @@ const Navbar = () => {
       setNotifications(notifications.map(n => ({ ...n, read: true })));
     } catch (error) {
       console.error('Failed to mark read:', error);
+    }
+  };
+
+  const handleDeleteSelected = async () => {
+    if (selectedIds.size === 0) return;
+    try {
+      const token = localStorage.getItem('token');
+      await fetch(`${import.meta.env.VITE_API_URL}/api/notifications`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ ids: Array.from(selectedIds) }),
+      });
+      setNotifications(prev => prev.filter(n => !selectedIds.has(n._id)));
+      setUnreadCount(prev => Math.max(0, prev - [...selectedIds].filter(id => {
+        const n = notifications.find(n => n._id === id);
+        return n && !n.read;
+      }).length));
+      setSelectedIds(new Set());
+      setSelectMode(false);
+    } catch (error) {
+      console.error('Failed to delete notifications:', error);
+    }
+  };
+
+  const handleDeleteAll = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      await fetch(`${import.meta.env.VITE_API_URL}/api/notifications`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ deleteAll: true }),
+      });
+      setNotifications([]);
+      setUnreadCount(0);
+      setSelectedIds(new Set());
+      setSelectMode(false);
+    } catch (error) {
+      console.error('Failed to delete all notifications:', error);
+    }
+  };
+
+  const toggleSelect = (id) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === notifications.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(notifications.map(n => n._id)));
     }
   };
 
@@ -209,6 +265,10 @@ const Navbar = () => {
                 <button 
                   onClick={() => {
                     setIsNotificationsOpen(!isNotificationsOpen);
+                    if (!isNotificationsOpen) {
+                      setSelectMode(false);
+                      setSelectedIds(new Set());
+                    }
                     if (unreadCount > 0 && !isNotificationsOpen) handleMarkAllRead();
                   }}
                   className={`p-2 text-gray-600 hover:text-[var(--color-primary)] relative transition-all rounded-full ${isNotificationsOpen ? 'bg-purple-50 text-[var(--color-primary)]' : ''}`}
@@ -223,31 +283,118 @@ const Navbar = () => {
                 </button>
 
                 {isNotificationsOpen && (
-                  <div className="absolute right-0 mt-4 w-72 bg-white rounded-3xl shadow-2xl border border-gray-100 p-2 animate-slide-up z-[60]">
-                    <div className="px-4 py-3 border-b border-gray-50 flex justify-between items-center">
-                      <p className="text-xs font-body font-bold text-gray-900">Notifications</p>
-                      {unreadCount > 0 && (
-                        <button onClick={handleMarkAllRead} className="text-[10px] text-[var(--color-primary)] font-bold hover:underline">Mark all read</button>
+                  <div className="absolute right-0 mt-4 w-80 bg-white rounded-3xl shadow-2xl border border-gray-100 p-2 animate-slide-up z-[60]">
+                    {/* Header */}
+                    <div className="px-4 py-3 border-b border-gray-50">
+                      <div className="flex justify-between items-center">
+                        <p className="text-xs font-body font-bold text-gray-900">
+                          Notifications
+                          {notifications.length > 0 && (
+                            <span className="ml-1.5 text-gray-400 font-normal">({notifications.length})</span>
+                          )}
+                        </p>
+                        <div className="flex items-center gap-2">
+                          {unreadCount > 0 && !selectMode && (
+                            <button onClick={handleMarkAllRead} className="text-[10px] text-[var(--color-primary)] font-bold hover:underline">
+                              Mark all read
+                            </button>
+                          )}
+                          {notifications.length > 0 && (
+                            <button
+                              onClick={() => { setSelectMode(s => !s); setSelectedIds(new Set()); }}
+                              className={`text-[10px] font-bold px-2 py-0.5 rounded-full transition-colors ${selectMode ? 'bg-gray-100 text-gray-700' : 'text-gray-400 hover:text-gray-700'}`}
+                            >
+                              {selectMode ? 'Cancel' : 'Select'}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Select-mode toolbar */}
+                      {selectMode && notifications.length > 0 && (
+                        <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-50">
+                          <label className="flex items-center gap-1.5 text-[10px] text-gray-500 font-bold cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={selectedIds.size === notifications.length}
+                              onChange={toggleSelectAll}
+                              className="w-3 h-3 accent-[var(--color-primary)]"
+                            />
+                            {selectedIds.size === notifications.length ? 'Deselect all' : 'Select all'}
+                          </label>
+                          <div className="flex items-center gap-2">
+                            {selectedIds.size > 0 && (
+                              <button
+                                onClick={handleDeleteSelected}
+                                className="flex items-center gap-1 text-[10px] font-bold text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 px-2 py-0.5 rounded-full transition-colors"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                                Delete ({selectedIds.size})
+                              </button>
+                            )}
+                            <button
+                              onClick={handleDeleteAll}
+                              className="text-[10px] font-bold text-red-400 hover:text-red-600 hover:underline"
+                            >
+                              Delete all
+                            </button>
+                          </div>
+                        </div>
                       )}
                     </div>
-                    <div className="max-h-64 overflow-y-auto custom-scrollbar">
+
+                    {/* List */}
+                    <div className="max-h-72 overflow-y-auto custom-scrollbar">
                       {notifications.length === 0 ? (
                         <div className="p-6 text-center text-gray-400 text-xs">
                           No notifications yet.
                         </div>
                       ) : (
                         notifications.map((notif) => (
-                          <div 
-                            key={notif._id} 
+                          <div
+                            key={notif._id}
                             onClick={() => {
+                              if (selectMode) { toggleSelect(notif._id); return; }
                               setIsNotificationsOpen(false);
                               if (notif.link) navigate(notif.link);
                             }}
-                            className={`p-4 border-b border-gray-50 hover:bg-gray-50 transition-colors cursor-pointer ${!notif.read ? 'bg-purple-50/30' : ''}`}
+                            className={`flex items-start gap-2 p-3 border-b border-gray-50 transition-colors cursor-pointer
+                              ${selectMode ? 'hover:bg-gray-50' : 'hover:bg-gray-50'}
+                              ${!notif.read && !selectMode ? 'bg-purple-50/30' : ''}
+                              ${selectedIds.has(notif._id) ? 'bg-red-50/40' : ''}
+                            `}
                           >
-                            <p className={`text-xs font-bold ${!notif.read ? 'text-[var(--color-primary)]' : 'text-gray-900'}`}>{notif.title}</p>
-                            <p className="text-[10px] text-gray-500 mt-1">{notif.message}</p>
-                            <p className="text-[8px] text-gray-400 mt-2">{new Date(notif.createdAt).toLocaleDateString()}</p>
+                            {/* Checkbox in select mode */}
+                            {selectMode && (
+                              <input
+                                type="checkbox"
+                                checked={selectedIds.has(notif._id)}
+                                onChange={() => toggleSelect(notif._id)}
+                                onClick={e => e.stopPropagation()}
+                                className="mt-0.5 w-3.5 h-3.5 flex-shrink-0 accent-[var(--color-primary)]"
+                              />
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <p className={`text-xs font-bold truncate ${!notif.read ? 'text-[var(--color-primary)]' : 'text-gray-900'}`}>
+                                {notif.title}
+                              </p>
+                              <p className="text-[10px] text-gray-500 mt-0.5 line-clamp-2">{notif.message}</p>
+                              <p className="text-[8px] text-gray-400 mt-1">
+                                {new Date(notif.createdAt).toLocaleString('en-IN', {
+                                  day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true
+                                })}
+                              </p>
+                            </div>
+                            {/* Quick delete button (non-select mode) */}
+                            {!selectMode && (
+                              <button
+                                onClick={e => { e.stopPropagation(); setSelectedIds(new Set([notif._id])); handleDeleteSelected(); }}
+                                className="flex-shrink-0 p-1 text-gray-300 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+                                title="Delete"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </button>
+                            )}
                           </div>
                         ))
                       )}

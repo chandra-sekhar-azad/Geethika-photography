@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, Search, X } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, X } from 'lucide-react';
 import { getAuthHeaders, isAuthenticated, isAdmin } from '../../utils/api';
 
 const ProductManagement = () => {
@@ -23,6 +23,8 @@ const ProductManagement = () => {
     special_offer: false,
     customizable: false,
     is_active: true,
+    material: '',
+    sizes: [],
     customization_options: {
       imageUpload: false,
       textInput: [],
@@ -30,11 +32,19 @@ const ProductManagement = () => {
     }
   });
 
-  const [imageFiles, setImageFiles] = useState([]);       // new File objects to upload
-  const [imagePreviews, setImagePreviews] = useState([]);   // preview URLs (dataURL or existing URL)
-  const [imagePublicIds, setImagePublicIds] = useState([]); // public_ids for existing saved images
-  const [isDragging, setIsDragging] = useState(false);
-  const MAX_IMAGES = 5;
+  // Main image state
+  const [mainImageFile, setMainImageFile] = useState(null);       // new File to upload as main
+  const [mainImagePreview, setMainImagePreview] = useState(null); // preview URL
+  const [mainImagePublicId, setMainImagePublicId] = useState(''); // existing public_id
+
+  // Additional images state (up to 4)
+  const [additionalImageFiles, setAdditionalImageFiles] = useState([]);
+  const [additionalImagePreviews, setAdditionalImagePreviews] = useState([]);
+  const [additionalImagePublicIds, setAdditionalImagePublicIds] = useState([]);
+
+  const [isDraggingMain, setIsDraggingMain] = useState(false);
+  const [isDraggingAdditional, setIsDraggingAdditional] = useState(false);
+  const MAX_ADDITIONAL = 4;
 
   useEffect(() => {
     // Check authentication on mount
@@ -76,22 +86,46 @@ const ProductManagement = () => {
     }
   };
 
-  const handleImageChange = (e) => {
-    const files = Array.from(e.target.files || []);
-    processImageFiles(files);
-    e.target.value = ''; // reset input so same file can be re-added
+  const handleMainImageChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) processMainImageFile(file);
+    e.target.value = '';
   };
 
-  const processImageFiles = (files) => {
-    const remaining = MAX_IMAGES - imagePreviews.length;
+  const processMainImageFile = (file) => {
+    if (!file.type.startsWith('image/')) {
+      alert(`"${file.name}" is not an image file.`);
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      alert(`"${file.name}" exceeds 5MB.`);
+      return;
+    }
+    setMainImageFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => setMainImagePreview(reader.result);
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveMainImage = () => {
+    setMainImageFile(null);
+    setMainImagePreview(null);
+    setMainImagePublicId('');
+  };
+
+  const handleAdditionalImageChange = (e) => {
+    const files = Array.from(e.target.files || []);
+    processAdditionalImageFiles(files);
+    e.target.value = '';
+  };
+
+  const processAdditionalImageFiles = (files) => {
+    const remaining = MAX_ADDITIONAL - additionalImagePreviews.length;
     if (remaining <= 0) {
-      alert(`You can only upload up to ${MAX_IMAGES} images.`);
+      alert(`You can only upload up to ${MAX_ADDITIONAL} additional images.`);
       return;
     }
     const toAdd = files.slice(0, remaining);
-    const newFiles = [];
-    const newPreviews = [];
-
     toAdd.forEach((file) => {
       if (!file.type.startsWith('image/')) {
         alert(`"${file.name}" is not an image file and was skipped.`);
@@ -101,51 +135,44 @@ const ProductManagement = () => {
         alert(`"${file.name}" exceeds 5MB and was skipped.`);
         return;
       }
-      newFiles.push(file);
+      setAdditionalImageFiles((prev) => [...prev, file]);
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImagePreviews((prev) => [...prev, reader.result]);
+        setAdditionalImagePreviews((prev) => [...prev, reader.result]);
       };
       reader.readAsDataURL(file);
     });
-    setImageFiles((prev) => [...prev, ...newFiles]);
   };
 
-  const handleDragEnter = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-  };
-
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-    const files = Array.from(e.dataTransfer.files || []);
-    if (files.length > 0) processImageFiles(files);
-  };
-
-  // Remove a preview by index; also removes the corresponding File if it's a new upload
-  const handleRemoveImage = (index) => {
-    const isExisting = index < imagePublicIds.length;
-    setImagePreviews((prev) => prev.filter((_, i) => i !== index));
+  const handleRemoveAdditionalImage = (index) => {
+    const isExisting = index < additionalImagePublicIds.length;
+    setAdditionalImagePreviews((prev) => prev.filter((_, i) => i !== index));
     if (isExisting) {
-      setImagePublicIds((prev) => prev.filter((_, i) => i !== index));
+      setAdditionalImagePublicIds((prev) => prev.filter((_, i) => i !== index));
     } else {
-      const fileIndex = index - imagePublicIds.length;
-      setImageFiles((prev) => prev.filter((_, i) => i !== fileIndex));
+      const fileIndex = index - additionalImagePublicIds.length;
+      setAdditionalImageFiles((prev) => prev.filter((_, i) => i !== fileIndex));
     }
+  };
+
+  // Drag handlers for main image
+  const handleDragEnterMain = (e) => { e.preventDefault(); e.stopPropagation(); setIsDraggingMain(true); };
+  const handleDragLeaveMain = (e) => { e.preventDefault(); e.stopPropagation(); setIsDraggingMain(false); };
+  const handleDragOverMain = (e) => { e.preventDefault(); e.stopPropagation(); };
+  const handleDropMain = (e) => {
+    e.preventDefault(); e.stopPropagation(); setIsDraggingMain(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) processMainImageFile(file);
+  };
+
+  // Drag handlers for additional images
+  const handleDragEnterAdditional = (e) => { e.preventDefault(); e.stopPropagation(); setIsDraggingAdditional(true); };
+  const handleDragLeaveAdditional = (e) => { e.preventDefault(); e.stopPropagation(); setIsDraggingAdditional(false); };
+  const handleDragOverAdditional = (e) => { e.preventDefault(); e.stopPropagation(); };
+  const handleDropAdditional = (e) => {
+    e.preventDefault(); e.stopPropagation(); setIsDraggingAdditional(false);
+    const files = Array.from(e.dataTransfer.files || []);
+    if (files.length > 0) processAdditionalImageFiles(files);
   };
 
   const handleSubmit = async (e) => {
@@ -178,24 +205,31 @@ const ProductManagement = () => {
       // Append all form fields
       Object.keys(formData).forEach(key => {
         if (key === 'customization_options') {
-          // Send customization_options as JSON string
+          formDataToSend.append(key, JSON.stringify(formData[key]));
+        } else if (key === 'sizes') {
           formDataToSend.append(key, JSON.stringify(formData[key]));
         } else {
           formDataToSend.append(key, formData[key]);
         }
       });
 
-      // Append removed existing image public_ids so backend can clean them up
-      const existingPublicIds = imagePublicIds;
-      const keptPublicIds = imagePreviews.slice(0, existingPublicIds.length).map((_, i) => existingPublicIds[i]);
-      const removedIds = existingPublicIds.filter(id => !keptPublicIds.includes(id));
+      // Append removed existing additional image public_ids so backend can clean them up
+      const keptAdditionalIds = additionalImagePreviews
+        .slice(0, additionalImagePublicIds.length)
+        .map((_, i) => additionalImagePublicIds[i]);
+      const removedIds = additionalImagePublicIds.filter(id => !keptAdditionalIds.includes(id));
       if (removedIds.length > 0) {
         formDataToSend.append('remove_image_ids', JSON.stringify(removedIds));
       }
 
-      // Append new image files
-      imageFiles.forEach((file) => {
-        formDataToSend.append('images', file);
+      // Append main image if a new one was selected
+      if (mainImageFile) {
+        formDataToSend.append('main_image', mainImageFile);
+      }
+
+      // Append new additional image files
+      additionalImageFiles.forEach((file) => {
+        formDataToSend.append('additional_images', file);
       });
 
       console.log('Making request to:', url);
@@ -299,28 +333,46 @@ const ProductManagement = () => {
       special_offer: product.special_offer ?? false,
       customizable: product.customizable || false,
       is_active: product.is_active ?? true,
+      material: product.material || '',
+      sizes: product.sizes || [],
       customization_options: product.customization_options || {
         imageUpload: false,
         textInput: [],
         sizes: []
       }
     });
-    // Load existing images into previews
+    // Load existing images into split state
     const existingImages = product.images && product.images.length > 0
       ? product.images
       : (product.image_url ? [{ url: product.image_url, public_id: product.image_public_id }] : []);
-    setImagePreviews(existingImages.map(img => img.url));
-    setImagePublicIds(existingImages.map(img => img.public_id || ''));
-    setImageFiles([]);
+
+    // First image is the main image
+    if (existingImages.length > 0) {
+      setMainImagePreview(existingImages[0].url);
+      setMainImagePublicId(existingImages[0].public_id || '');
+    } else {
+      setMainImagePreview(null);
+      setMainImagePublicId('');
+    }
+    setMainImageFile(null);
+
+    // Remaining images are additional
+    const additional = existingImages.slice(1);
+    setAdditionalImagePreviews(additional.map(img => img.url));
+    setAdditionalImagePublicIds(additional.map(img => img.public_id || ''));
+    setAdditionalImageFiles([]);
     setShowModal(true);
   };
 
   const handleCloseModal = () => {
     setShowModal(false);
     setEditingProduct(null);
-    setImageFiles([]);
-    setImagePreviews([]);
-    setImagePublicIds([]);
+    setMainImageFile(null);
+    setMainImagePreview(null);
+    setMainImagePublicId('');
+    setAdditionalImageFiles([]);
+    setAdditionalImagePreviews([]);
+    setAdditionalImagePublicIds([]);
     setFormData({
       name: '',
       description: '',
@@ -332,6 +384,8 @@ const ProductManagement = () => {
       special_offer: false,
       customizable: false,
       is_active: true,
+      material: '',
+      sizes: [],
       customization_options: {
         imageUpload: false,
         textInput: [],
@@ -565,7 +619,7 @@ const ProductManagement = () => {
                       onClick={() => handleEdit(product)}
                       className="text-blue-600 hover:text-blue-900 mr-4"
                     >
-                      <Edit className="w-5 h-5" />
+                      <Pencil className="w-5 h-5" />
                     </button>
                     <button
                       onClick={() => handleDelete(product.id)}
@@ -595,79 +649,129 @@ const ProductManagement = () => {
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
-                  {/* Multi-Image Upload (up to 5) */}
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <label className="block text-sm font-medium text-gray-700">
-                        Product Images
-                        <span className="ml-2 text-xs text-gray-400 font-normal">(up to {MAX_IMAGES}, first image is the main display)</span>
+                  {/* Image Upload — Main Image + Additional Images */}
+                  <div className="space-y-4">
+                    {/* Main Image */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Main Image
+                        <span className="ml-2 text-xs text-gray-400 font-normal">(displayed as the primary product image)</span>
                       </label>
-                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-                        imagePreviews.length >= MAX_IMAGES ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
-                      }`}>
-                        {imagePreviews.length}/{MAX_IMAGES}
-                      </span>
+
+                      {mainImagePreview ? (
+                        <div className="relative inline-block">
+                          <img
+                            src={mainImagePreview}
+                            alt="Main product image"
+                            className="w-32 h-32 object-cover rounded-lg border-2 border-valentine-red"
+                          />
+                          <span className="absolute bottom-0 left-0 right-0 text-center text-[9px] bg-valentine-red text-white py-0.5 rounded-b-lg font-bold">Main</span>
+                          <button
+                            type="button"
+                            onClick={handleRemoveMainImage}
+                            className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-600 text-white rounded-full flex items-center justify-center shadow-md hover:bg-red-700"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div
+                          onDragEnter={handleDragEnterMain}
+                          onDragOver={handleDragOverMain}
+                          onDragLeave={handleDragLeaveMain}
+                          onDrop={handleDropMain}
+                          className={`border-2 border-dashed rounded-lg p-5 text-center transition-all ${
+                            isDraggingMain
+                              ? 'border-valentine-red bg-valentine-pink/10 scale-105'
+                              : 'border-gray-300 hover:border-valentine-red'
+                          }`}
+                        >
+                          <svg className="mx-auto h-8 w-8 text-gray-400 mb-2" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                          <label className="cursor-pointer">
+                            <span className="text-sm font-medium text-valentine-red hover:text-valentine-darkRed">
+                              Click to upload main image
+                            </span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleMainImageChange}
+                              className="sr-only"
+                            />
+                          </label>
+                          <p className="text-xs text-gray-400 mt-1">or drag & drop — PNG, JPG, GIF up to 5MB</p>
+                        </div>
+                      )}
                     </div>
 
-                    {/* Existing + new image thumbnails */}
-                    {imagePreviews.length > 0 && (
-                      <div className="grid grid-cols-5 gap-2 mb-3">
-                        {imagePreviews.map((src, idx) => (
-                          <div key={idx} className="relative group aspect-square">
-                            <img
-                              src={src}
-                              alt={`Product image ${idx + 1}`}
-                              className={`w-full h-full object-cover rounded-lg border-2 ${
-                                idx === 0 ? 'border-valentine-red' : 'border-gray-200'
-                              }`}
-                            />
-                            {idx === 0 && (
-                              <span className="absolute bottom-0 left-0 right-0 text-center text-[9px] bg-valentine-red text-white py-0.5 rounded-b-lg font-bold">Main</span>
-                            )}
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveImage(idx)}
-                              className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-600 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
-                            >
-                              <X className="w-3 h-3" />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Drop zone — only show if under limit */}
-                    {imagePreviews.length < MAX_IMAGES && (
-                      <div
-                        onDragEnter={handleDragEnter}
-                        onDragOver={handleDragOver}
-                        onDragLeave={handleDragLeave}
-                        onDrop={handleDrop}
-                        className={`border-2 border-dashed rounded-lg p-5 text-center transition-all ${
-                          isDragging
-                            ? 'border-valentine-red bg-valentine-pink/10 scale-105'
-                            : 'border-gray-300 hover:border-valentine-red'
-                        }`}
-                      >
-                        <svg className="mx-auto h-8 w-8 text-gray-400 mb-2" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-                          <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                        <label className="cursor-pointer">
-                          <span className="text-sm font-medium text-valentine-red hover:text-valentine-darkRed">
-                            Click to add {imagePreviews.length === 0 ? 'images' : 'more'}
-                          </span>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            multiple
-                            onChange={handleImageChange}
-                            className="sr-only"
-                          />
+                    {/* Additional Images */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="block text-sm font-medium text-gray-700">
+                          Additional Images
+                          <span className="ml-2 text-xs text-gray-400 font-normal">(up to {MAX_ADDITIONAL} extra images)</span>
                         </label>
-                        <p className="text-xs text-gray-400 mt-1">or drag & drop — PNG, JPG, GIF up to 5MB each</p>
-                        <p className="text-xs text-gray-400">You can add {MAX_IMAGES - imagePreviews.length} more image{MAX_IMAGES - imagePreviews.length !== 1 ? 's' : ''}</p>
+                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                          additionalImagePreviews.length >= MAX_ADDITIONAL ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
+                        }`}>
+                          {additionalImagePreviews.length}/{MAX_ADDITIONAL}
+                        </span>
                       </div>
-                    )}
+
+                      {additionalImagePreviews.length > 0 && (
+                        <div className="grid grid-cols-4 gap-2 mb-3">
+                          {additionalImagePreviews.map((src, idx) => (
+                            <div key={idx} className="relative group aspect-square">
+                              <img
+                                src={src}
+                                alt={`Additional image ${idx + 1}`}
+                                className="w-full h-full object-cover rounded-lg border-2 border-gray-200"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveAdditionalImage(idx)}
+                                className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-600 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {additionalImagePreviews.length < MAX_ADDITIONAL && (
+                        <div
+                          onDragEnter={handleDragEnterAdditional}
+                          onDragOver={handleDragOverAdditional}
+                          onDragLeave={handleDragLeaveAdditional}
+                          onDrop={handleDropAdditional}
+                          className={`border-2 border-dashed rounded-lg p-5 text-center transition-all ${
+                            isDraggingAdditional
+                              ? 'border-valentine-red bg-valentine-pink/10 scale-105'
+                              : 'border-gray-300 hover:border-valentine-red'
+                          }`}
+                        >
+                          <svg className="mx-auto h-8 w-8 text-gray-400 mb-2" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                          <label className="cursor-pointer">
+                            <span className="text-sm font-medium text-valentine-red hover:text-valentine-darkRed">
+                              Click to add {additionalImagePreviews.length === 0 ? 'additional images' : 'more'}
+                            </span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              multiple
+                              onChange={handleAdditionalImageChange}
+                              className="sr-only"
+                            />
+                          </label>
+                          <p className="text-xs text-gray-400 mt-1">or drag & drop — PNG, JPG, GIF up to 5MB each</p>
+                          <p className="text-xs text-gray-400">You can add {MAX_ADDITIONAL - additionalImagePreviews.length} more image{MAX_ADDITIONAL - additionalImagePreviews.length !== 1 ? 's' : ''}</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   <div>
@@ -689,6 +793,57 @@ const ProductManagement = () => {
                       rows="3"
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-valentine-red focus:border-transparent"
                     />
+                  </div>
+
+                  {/* Material & Sizes */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Material</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Ceramic, Cotton, Wood"
+                        value={formData.material}
+                        onChange={(e) => setFormData({ ...formData, material: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-valentine-red focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Available Sizes
+                        <span className="ml-1 text-xs text-gray-400 font-normal">(press Enter to add)</span>
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Small, Medium, Large"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            const val = e.target.value.trim();
+                            if (val && !formData.sizes.includes(val)) {
+                              setFormData({ ...formData, sizes: [...formData.sizes, val] });
+                            }
+                            e.target.value = '';
+                          }
+                        }}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-valentine-red focus:border-transparent"
+                      />
+                      {formData.sizes.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 mt-2">
+                          {formData.sizes.map((s, i) => (
+                            <span key={i} className="inline-flex items-center gap-1 bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full">
+                              {s}
+                              <button
+                                type="button"
+                                onClick={() => setFormData({ ...formData, sizes: formData.sizes.filter((_, idx) => idx !== i) })}
+                                className="text-gray-400 hover:text-red-500"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
