@@ -76,7 +76,7 @@ const Testimonials = () => {
     <section className="py-4 bg-[#F9FAFB]">
       <div className="container-custom overflow-hidden">
         {/* Section Header */}
-        <div className="mb-16">
+        <div className="mb-8 md:mb-10">
           <div className="text-left">
             <h2 className="section-title !text-left mb-2">Voices of Joy</h2>
             <p className="section-subtitle !text-left !ml-0 uppercase tracking-widest text-xs font-bold text-gray-400">WHAT OUR WONDERFUL CUSTOMERS HAVE TO SAY.</p>

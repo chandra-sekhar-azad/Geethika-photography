@@ -9,7 +9,8 @@ import {
   DollarSign,
   Image as ImageIcon,
   Shield,
-  MessageCircle
+  MessageCircle,
+  Globe
 } from 'lucide-react';
 import api from '../../utils/api';
 
@@ -135,6 +136,13 @@ const AdminDashboard = () => {
       icon: TrendingUp,
       link: '/admin/analytics',
       color: 'from-orange-500 to-orange-600'
+    },
+    {
+      title: 'View Website',
+      description: 'Open the public homepage',
+      icon: Globe,
+      link: '/view-website',
+      color: 'from-slate-700 to-slate-900'
     },
   ];
 

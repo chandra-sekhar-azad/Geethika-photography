@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Calendar, MapPin, User, MessageSquare, CreditCard, ArrowRight, Camera, Scissors, BookOpen, Clock, CheckCircle2 } from 'lucide-react';
 import PhoneInput from '../components/PhoneInput';
+import './ServicesPage.css';
 
 const ServicesPage = () => {
   const [services, setServices] = useState([]);
@@ -53,7 +54,7 @@ const ServicesPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="services-page min-h-screen bg-white">
       {/* Header */}
       <div className="py-4 bg-white">
         <div className="container-custom">

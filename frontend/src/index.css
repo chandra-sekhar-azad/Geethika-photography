@@ -15,8 +15,17 @@
   100% { transform: translateX(-50%); }
 }
 
+@keyframes scroll-mobile {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-33.3333%); }
+}
+
 .infinite-scroll {
   animation: scroll-right 40s linear infinite;
+}
+
+.mobile-infinite-scroll {
+  animation: scroll-mobile 28s linear infinite;
 }
 
 .scroll-container {
@@ -184,7 +193,7 @@
     @apply text-5xl md:text-6xl font-display font-bold text-center mb-6 text-gray-900 tracking-tight;
   }
   .section-subtitle {
-    @apply text-gray-400 text-center mb-16 max-w-2xl mx-auto font-body text-lg;
+    @apply text-gray-400 text-center mb-[-1rem] max-w-2xl mx-auto font-body text-lg;
   }
 
   /* ── Utilities ── */
@@ -210,8 +219,14 @@
   .pb-8 {
     padding-bottom: 1rem !important;
   }
+  .mb-6 {
+    margin-bottom: 0.1rem !important;
+  }
   .gap-8 {
     gap: 1rem !important;
+  }
+  .mt-32 {
+    margin-top: -2rem !important;
   }
   .animate-float {
     animation: float 6s ease-in-out infinite;

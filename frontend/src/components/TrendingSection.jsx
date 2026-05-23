@@ -107,7 +107,7 @@ const TrendingSection = () => {
                   {products.map((product, index) => (
                     <div
                       key={product.id}
-                      className="animate-slide-up motion-reduce:animate-none"
+                      className={`animate-slide-up motion-reduce:animate-none ${products.length === 1 ? 'col-span-2 md:col-span-1' : ''}`}
                       style={{ animationDelay: `${index * 0.05}s` }}
                     >
                       <SimpleProductCard

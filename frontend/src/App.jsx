@@ -112,6 +112,7 @@ function App() {
                         <Route path="/shop" element={<ShopPage />} />
                         <Route path="/shop/:category" element={<ShopPage />} />
                         <Route path="/product/:id" element={<ProductDetailPage />} />
+                        <Route path="/view-website" element={<HomePage />} />
                         <Route path="/services" element={<ServicesPage />} />
                         <Route path="/gallery" element={<GalleryPage />} />
                         <Route path="/cart" element={<Navigate to="/profile?tab=cart" replace />} />

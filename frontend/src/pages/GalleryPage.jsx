@@ -36,6 +36,8 @@ const GalleryPage = () => {
     ? images
     : images.filter(img => img.category === selectedCategory);
 
+  const mobileImages = [...filteredImages, ...filteredImages, ...filteredImages];
+
   return (
     <div className="min-h-screen bg-white">
       {/* Page Header */}
@@ -71,9 +73,37 @@ const GalleryPage = () => {
         <div className="w-full bg-black relative overflow-hidden flex items-center justify-center rounded-[40px] my-12">
           {/* Background gradient */}
           <div className="absolute inset-0 bg-gradient-to-b from-black via-black/90 to-black z-0" />
-          
-          {/* Scrolling images container */}
-          <div className="relative z-10 w-full flex items-center justify-center py-16">
+
+          {/* Mobile auto-scrolling row */}
+          <div className="relative z-10 w-full px-4 py-8 md:hidden">
+            {loading ? (
+              <div className="flex justify-center py-16">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
+              </div>
+            ) : (
+              <div className="scroll-container w-full overflow-hidden">
+                <div className="mobile-infinite-scroll flex gap-3 w-max pb-4">
+                  {mobileImages.map((image, index) => (
+                  <div
+                    key={`${image.id}-${index}`}
+                    onClick={() => setSelectedImage(image)}
+                    className="image-item aspect-square rounded-xl overflow-hidden shadow-2xl cursor-pointer flex-shrink-0 w-[75vw] max-w-xs"
+                  >
+                    <img
+                      src={image.image_url?.startsWith('http') ? image.image_url : `${import.meta.env.VITE_API_URL}${image.image_url}`}
+                      alt={image.title}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  </div>
+                ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Desktop marquee */}
+          <div className="relative z-10 w-full items-center justify-center py-16 hidden md:flex">
             <div className="scroll-container w-full">
               <div className="infinite-scroll flex gap-6 w-max">
                 {loading ? (
@@ -97,30 +127,30 @@ const GalleryPage = () => {
               </div>
             </div>
           </div>
-          
+
           {/* Bottom gradient overlay */}
           <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black to-transparent z-20" />
         </div>
 
         {/* CTA Section */}
-        <div className="mt-32 relative bg-[#FCE4EC] rounded-[40px] overflow-hidden flex flex-col lg:flex-row items-center">
-          <div className="flex-1 p-12 lg:p-20 z-10">
-            <h2 className="text-4xl md:text-5xl font-display font-bold text-gray-900 mb-8 leading-tight">
+        <div className="mt-32 relative bg-[#FCE4EC] rounded-[32px] overflow-hidden flex flex-col lg:flex-row items-center">
+          <div className="flex-1 p-8 sm:p-10 lg:p-16 z-10">
+            <h2 className="text-3xl md:text-4xl font-display font-bold text-gray-900 mb-5 leading-tight">
               Ready to create your own masterpiece?
             </h2>
-            <p className="text-gray-600 font-body text-lg mb-12 max-w-md">
+            <p className="text-gray-600 font-body text-sm md:text-base mb-8 max-w-md">
               Whether it's a personalized gift or a professional studio session, we bring your vision to life with artisanal care.
             </p>
-            <div className="flex flex-wrap gap-4">
-              <Link to="/services" className="px-10 py-5 bg-[var(--color-primary)] text-white rounded-2xl font-body font-bold text-sm uppercase tracking-widest hover:shadow-xl transition-all active:scale-95">
+            <div className="flex flex-wrap gap-3">
+              <Link to="/services" className="px-7 py-4 bg-[var(--color-primary)] text-white rounded-2xl font-body font-bold text-xs uppercase tracking-widest hover:shadow-xl transition-all active:scale-95">
                 Start Your Project
               </Link>
-              <Link to="/services" className="px-10 py-5 bg-white/50 backdrop-blur-md text-gray-900 rounded-2xl font-body font-bold text-sm uppercase tracking-widest hover:bg-white transition-all active:scale-95">
+              <Link to="/services" className="px-7 py-4 bg-white/50 backdrop-blur-md text-gray-900 rounded-2xl font-body font-bold text-xs uppercase tracking-widest hover:bg-white transition-all active:scale-95">
                 View Pricing
               </Link>
             </div>
           </div>
-          <div className="lg:w-1/2 h-full min-h-[400px] relative">
+          <div className="hidden lg:block lg:w-1/2 h-full min-h-[320px] relative">
             <img 
               src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1000&auto=format&fit=crop" 
               className="absolute inset-0 w-full h-full object-cover lg:rounded-l-[100px] grayscale hover:grayscale-0 transition-all duration-1000"

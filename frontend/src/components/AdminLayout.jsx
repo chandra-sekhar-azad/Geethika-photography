@@ -1,7 +1,7 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Package, ShoppingCart, Users, Tag,
-  TrendingUp, LogOut, Menu, X, Shield, FileText, MessageSquare, Send, Image, Bell
+  TrendingUp, LogOut, Menu, X, Shield, FileText, MessageSquare, Send, Image, Bell, Globe, ArrowUpRight
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
@@ -28,6 +28,7 @@ const AdminLayout = ({ children }) => {
     { path: '/admin/gallery', icon: Image, label: 'Gallery' },
     { path: '/admin/homepage', icon: Image, label: 'Homepage' },
     { path: '/admin/sales-report', icon: TrendingUp, label: 'Sales Report' },
+    { path: '/view-website', icon: Globe, label: 'View Website' },
     { path: '/admin/whatsapp-templates', icon: MessageSquare, label: 'WhatsApp Templates' },
     { path: '/admin/whatsapp-campaigns', icon: Send, label: 'WhatsApp Campaigns' },
     { path: '/admin/send-notifications', icon: Bell, label: 'Send Notifications' }
@@ -113,6 +114,13 @@ const AdminLayout = ({ children }) => {
                 <div className="text-sm text-gray-600">
                   Logged in as: <span className="font-semibold text-orange-primary">{user?.name || user?.email || 'Admin'}</span>
                 </div>
+                <Link
+                  to="/view-website"
+                  className="inline-flex items-center gap-2 rounded-full border border-orange-200 bg-orange-50 px-4 py-2 text-sm font-semibold text-orange-primary hover:bg-orange-100 transition-colors"
+                >
+                  <ArrowUpRight className="w-4 h-4" />
+                  <span className="hidden sm:inline">View Website</span>
+                </Link>
               </div>
             </div>
           </div>

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { MapPin, Phone, Mail, Send, Instagram, Facebook, Twitter, Youtube } from 'lucide-react';
+import './ContactPage.css';
 
 const ContactPage = () => {
   const [formData, setFormData] = useState({
@@ -17,7 +18,7 @@ const ContactPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="contact-page min-h-screen bg-white">
       {/* Header */}
       <div className="py-4">
         <div className="container-custom">
