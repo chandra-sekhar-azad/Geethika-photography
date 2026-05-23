@@ -58,7 +58,7 @@ const ServicesPage = () => {
       {/* Header */}
       <div className="py-4 bg-white">
         <div className="container-custom">
-          <div className="max-w-3xl">
+          <div className="max-w-3xl mx-auto text-center">
             <span className="bg-[#FCE4EC] text-[#9D4E8D] text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest mb-4 inline-block">
               Experiences
             </span>
