@@ -62,7 +62,7 @@ const ShopByOccasionSection = () => {
         </div>
 
         {/* Circular Category Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 justify-items-center gap-5 sm:gap-8 md:gap-16">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 justify-items-center gap-4 sm:gap-6 md:gap-8 lg:gap-12">
           {categories.map((category, index) => (
             <button
               key={category.id}
