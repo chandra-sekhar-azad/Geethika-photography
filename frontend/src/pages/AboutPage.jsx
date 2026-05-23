@@ -143,20 +143,20 @@ const AboutPage = () => {
       {/* CTA Section */}
       <div className="py-4">
         <div className="container-custom">
-          <div className="bg-[#A15891] rounded-[50px] p-16 md:p-24 flex flex-col md:flex-row items-center gap-20 overflow-hidden relative">
-            <div className="absolute top-0 right-0 w-1/2 h-full opacity-10 bg-white rotate-12 translate-x-20" />
-            <div className="relative z-10 flex-1">
-              <h2 className="text-5xl md:text-7xl font-display font-bold text-white mb-8 leading-tight">
+          <div className="bg-[#A15891] rounded-[28px] p-4 md:p-6 flex flex-col md:flex-row items-start gap-4 overflow-hidden relative w-full max-w-[420px] h-auto md:h-[300px] mx-auto">
+            <div className="absolute top-0 right-0 w-1/4 h-full opacity-10 bg-white rotate-12 translate-x-4 hidden sm:block" />
+            <div className="relative z-10 w-full md:w-2/3 pr-0 md:pr-3">
+              <h2 className="text-2xl md:text-3xl font-display font-bold text-white mb-3 leading-snug">
                 Ready to<br />Capture Your<br />Next Chapter?
               </h2>
-              <p className="text-white/80 font-body text-lg mb-12 max-w-md">
+              <p className="text-white/80 font-body text-sm mb-6 max-w-[220px]">
                 Let's create something extraordinary together. Our booking sessions fill up fast—reserve your date with us today.
               </p>
-              <Link to="/contact" className="bg-[#F7D060] text-gray-900 px-12 py-5 rounded-2xl font-body font-bold text-sm uppercase tracking-widest hover:bg-[#EAB308] transition-all shadow-2xl active:scale-95 inline-block">
+              <Link to="/contact" className="bg-[#F7D060] text-gray-900 px-5 py-2 rounded-2xl font-body font-bold text-sm uppercase tracking-widest hover:bg-[#EAB308] transition-all shadow-2xl active:scale-95 inline-block">
                 Book a Shoot
               </Link>
             </div>
-            <div className="relative flex-1 w-full max-w-md aspect-square rounded-[40px] overflow-hidden shadow-2xl rotate-3 group">
+            <div className="relative w-32 h-32 rounded-[20px] overflow-hidden shadow-2xl rotate-3 flex-shrink-0 ml-auto mt-4 md:mt-0 group">
               <img 
                 src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=800&h=800&fit=crop" 
                 className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" 

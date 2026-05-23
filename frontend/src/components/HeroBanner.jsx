@@ -36,13 +36,13 @@ const HeroBanner = () => {
       {/* === DESKTOP: side-by-side layout === */}
       <div className="hidden lg:flex absolute inset-0">
         {/* Left spacer for text (handled by content below) */}
-        <div className="w-[50%] bg-white" />
+        <div className="w-[60%] bg-white" />
         {/* Right image */}
-        <div className="relative w-[50%]">
+        <div className="relative w-[40%]">
           <img 
             src={bgImage} 
             alt="Hero Background"
-            className="w-full h-full object-cover object-center"
+            className="w-full h-full object-cover object-[center_25%]"
           />
           {/* Soft left-edge blend */}
           <div className="absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-white to-transparent" />

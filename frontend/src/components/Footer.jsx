@@ -11,8 +11,7 @@ const Footer = () => {
   return (
     <footer className="bg-white pt-16 pb-8">
       <div className="container-custom">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-16 mb-12">
-          
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-2 lg:gap-4 mb-12 items-start">
           {/* Brand */}
           <div className="space-y-3">
             <Link to="/" className="flex flex-col gap-2 group">
@@ -23,7 +22,7 @@ const Footer = () => {
                 PRESERVING YOUR MOMENTS
               </p>
             </Link>
-            <p className="font-body text-gray-400 text-sm leading-relaxed max-w-xs italic">
+            <p className="font-body text-gray-400 text-sm leading-relaxed italic">
               Preserving your most cherished moments through digital artistry and premium craftsmanship.
             </p>
           </div>
@@ -33,7 +32,7 @@ const Footer = () => {
             <h4 className="text-[10px] font-body font-bold text-gray-900 uppercase tracking-[0.3em]">
               CURATED STUDIO
             </h4>
-            <ul className="space-y-2">
+            <ul className="space-y-0">
               <li><Link to="/services" className="text-xs font-body font-bold text-gray-400 uppercase tracking-widest hover:text-[var(--color-primary)] transition-colors">Services</Link></li>
               <li><Link to="/gallery" className="text-xs font-body font-bold text-gray-400 uppercase tracking-widest hover:text-[var(--color-primary)] transition-colors">Gallery</Link></li>
               <li><Link to="/shop" className="text-xs font-body font-bold text-gray-400 uppercase tracking-widest hover:text-[var(--color-primary)] transition-colors">Shop</Link></li>
@@ -45,22 +44,30 @@ const Footer = () => {
             <h4 className="text-[10px] font-body font-bold text-gray-900 uppercase tracking-[0.3em]">
               SUPPORT
             </h4>
-            <ul className="space-y-2">
+            <ul className="space-y-0">
               <li><Link to="/shipping-info" className="text-xs font-body font-bold text-gray-400 uppercase tracking-widest hover:text-[var(--color-primary)] transition-colors">Shipping Info</Link></li>
               <li><Link to="/contact" className="text-xs font-body font-bold text-gray-400 uppercase tracking-widest hover:text-[var(--color-primary)] transition-colors">Contact Us</Link></li>
               <li><Link to="/privacy-policy" className="text-xs font-body font-bold text-gray-400 uppercase tracking-widest hover:text-[var(--color-primary)] transition-colors">Privacy Policy</Link></li>
             </ul>
           </div>
 
-          {/* Newsletter */}
-          <div className="space-y-3">
-            <h4 className="text-[10px] font-body font-bold text-gray-900 uppercase tracking-[0.3em]">
-            </h4>
-            <div className="relative group max-w-xs">
+          {/* Map */}
+          <div className="flex items-start justify-center lg:justify-end">
+            <div className="rounded-[8px] overflow-hidden border border-gray-100 shadow-sm mr-0 lg:mr-4" style={{ width: 306, height: 172 }}>
+              <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d952.4117781428866!2d81.52284926957388!3d16.544234814703773!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a37d30a6f6646ab%3A0x349161fbbf6c561d!2sGeethika%20digital%20world!5e0!3m2!1sen!2sin!4v1747568400000!5m2!1sen!2sin"
+                width="306"
+                height="172"
+                style={{ border: 0, display: 'block' }}
+                allowFullScreen=""
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              ></iframe>
             </div>
           </div>
-
         </div>
+
+        
 
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-gray-50 flex flex-col md:flex-row justify-between items-center gap-8">

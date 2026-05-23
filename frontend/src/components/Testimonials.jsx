@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Star, Quote, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Star, Quote } from 'lucide-react';
 
 const Testimonials = () => {
   const testimonials = [
@@ -76,25 +76,10 @@ const Testimonials = () => {
     <section className="py-4 bg-[#F9FAFB]">
       <div className="container-custom overflow-hidden">
         {/* Section Header */}
-        <div className="flex justify-between items-end mb-16">
+        <div className="mb-16">
           <div className="text-left">
             <h2 className="section-title !text-left mb-2">Voices of Joy</h2>
             <p className="section-subtitle !text-left !ml-0 uppercase tracking-widest text-xs font-bold text-gray-400">WHAT OUR WONDERFUL CUSTOMERS HAVE TO SAY.</p>
-          </div>
-          
-          <div className="flex gap-2">
-            <button 
-              onClick={handlePrev}
-              className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] transition-all bg-white shadow-sm"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <button 
-              onClick={handleNext}
-              className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] transition-all bg-white shadow-sm"
-            >
-              <ChevronRight className="w-5 h-5" />
-            </button>
           </div>
         </div>
 

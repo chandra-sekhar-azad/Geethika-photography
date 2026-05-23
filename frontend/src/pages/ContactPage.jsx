@@ -167,27 +167,7 @@ const ContactPage = () => {
             </div>
           </div>
 
-          {/* Map Section */}
-          <div className="relative rounded-[40px] overflow-hidden shadow-2xl h-[400px] lg:h-[500px] border border-gray-100">
-            <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d952.4117781428866!2d81.52284926957388!3d16.544234814703773!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a37d30a6f6646ab%3A0x349161fbbf6c561d!2sGeethika%20digital%20world!5e0!3m2!1sen!2sin!4v1747568400000!5m2!1sen!2sin"
-              width="100%"
-              height="100%"
-              style={{ border: 0 }}
-              allowFullScreen=""
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-            ></iframe>
-            <div className="absolute bottom-6 right-6 bg-white/90 backdrop-blur-md px-6 py-3 rounded-2xl shadow-xl flex items-center gap-3 border border-white/20">
-              <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center text-white shrink-0">
-                <MapPin className="w-4 h-4" />
-              </div>
-              <div>
-                <p className="text-[10px] font-body font-bold text-gray-900 leading-none mb-1">Geethika Digital World</p>
-                <p className="text-[9px] text-gray-500 leading-none">Studio Open Today</p>
-              </div>
-            </div>
-          </div>
+          {/* Map removed from contact page - moved to footer */}
         </div>
       </div>
     </div>
