@@ -166,7 +166,7 @@ router.post('/campaigns', authenticate, isAdmin, async (req, res) => {
     campaign.failed_count = errors.length;
     campaign.status = errors.length > 0 && results.length === 0 ? 'failed' : 'completed';
     campaign.results = results;
-    campaign.errors = errors;
+    campaign.failure_details = errors;
     campaign.sent_at = new Date();
     await campaign.save();
 

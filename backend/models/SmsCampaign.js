@@ -26,7 +26,7 @@ const smsCampaignSchema = new mongoose.Schema(
       ],
       default: [],
     },
-    errors: {
+    failure_details: {
       type: [
         {
           phone: { type: String, default: '' },
