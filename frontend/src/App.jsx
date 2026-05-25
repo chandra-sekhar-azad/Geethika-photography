@@ -40,6 +40,7 @@ import AdminManagement from './pages/admin/AdminManagement';
 import AuditLog from './pages/admin/AuditLog';
 import WhatsAppTemplates from './pages/admin/WhatsAppTemplates';
 import WhatsAppCampaigns from './pages/admin/WhatsAppCampaigns';
+import SMSCampaigns from './pages/admin/SMSCampaigns';
 import WhatsAppMessaging from './pages/admin/WhatsAppMessaging';
 import GalleryManagement from './pages/admin/GalleryManagement';
 import Analytics from './pages/admin/Analytics';
@@ -88,6 +89,7 @@ function App() {
                         <Route path="audit-log" element={<AuditLog />} />
                         <Route path="whatsapp-templates" element={<WhatsAppTemplates />} />
                         <Route path="whatsapp-campaigns" element={<WhatsAppCampaigns />} />
+                        <Route path="sms-campaigns" element={<SMSCampaigns />} />
                         <Route path="whatsapp" element={<WhatsAppMessaging />} />
                         <Route path="gallery" element={<GalleryManagement />} />
                         <Route path="homepage" element={<HomePageManagement />} />

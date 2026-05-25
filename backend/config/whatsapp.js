@@ -3,16 +3,16 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const WHATSAPP_API_URL = 'https://graph.facebook.com/v18.0';
-const ACCESS_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN;
-const PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
+const CHATMITRA_API_URL = process.env.CHATMITRA_API_URL || 'https://api.chatmitra.com';
+const CHATMITRA_API_KEY = process.env.CHATMITRA_API_KEY;
+const CHATMITRA_WHATSAPP_ID = process.env.CHATMITRA_WHATSAPP_ID;
 
 const formatPhoneNumber = (phone) => {
   return phone.replace(/\D/g, '');
 };
 
 /**
- * Send a WhatsApp message using Facebook Graph API
+ * Send a WhatsApp message using ChatMitra
  * @param {string} to - Recipient phone number (with country code, no + sign)
  * @param {string} message - Message text
  * @returns {Promise} API response
@@ -20,19 +20,23 @@ const formatPhoneNumber = (phone) => {
 export const sendWhatsAppMessage = async (to, message) => {
   try {
     const formattedTo = formatPhoneNumber(to);
+    if (!CHATMITRA_API_KEY || !CHATMITRA_WHATSAPP_ID) {
+      return {
+        success: false,
+        error: 'ChatMitra credentials are not configured',
+      };
+    }
+
     const response = await axios.post(
-      `${WHATSAPP_API_URL}/${PHONE_NUMBER_ID}/messages`,
+      `${CHATMITRA_API_URL.replace(/\/$/, '')}/whatsapp/messages`,
       {
-        messaging_product: 'whatsapp',
+        whatsapp_id: CHATMITRA_WHATSAPP_ID,
         to: formattedTo,
-        type: 'text',
-        text: {
-          body: message
-        }
+        message,
       },
       {
         headers: {
-          'Authorization': `Bearer ${ACCESS_TOKEN}`,
+          'Authorization': `Bearer ${CHATMITRA_API_KEY}`,
           'Content-Type': 'application/json'
         }
       }
@@ -50,7 +54,7 @@ export const sendWhatsAppMessage = async (to, message) => {
 };
 
 /**
- * Send a WhatsApp template message
+ * Send a WhatsApp template message via ChatMitra
  * @param {string} to - Recipient phone number
  * @param {string} templateName - Template name from WhatsApp Business Manager
  * @param {string} languageCode - Language code (e.g., 'en', 'en_US')
@@ -59,23 +63,25 @@ export const sendWhatsAppMessage = async (to, message) => {
  */
 export const sendWhatsAppTemplate = async (to, templateName, languageCode = 'en', components = []) => {
   try {
+    if (!CHATMITRA_API_KEY || !CHATMITRA_WHATSAPP_ID) {
+      return {
+        success: false,
+        error: 'ChatMitra credentials are not configured',
+      };
+    }
+
     const response = await axios.post(
-      `${WHATSAPP_API_URL}/${PHONE_NUMBER_ID}/messages`,
+      `${CHATMITRA_API_URL.replace(/\/$/, '')}/whatsapp/templates`,
       {
-        messaging_product: 'whatsapp',
-        to: to,
-        type: 'template',
-        template: {
-          name: templateName,
-          language: {
-            code: languageCode
-          },
-          components: components
-        }
+        whatsapp_id: CHATMITRA_WHATSAPP_ID,
+        to,
+        template_name: templateName,
+        language_code: languageCode,
+        components,
       },
       {
         headers: {
-          'Authorization': `Bearer ${ACCESS_TOKEN}`,
+          'Authorization': `Bearer ${CHATMITRA_API_KEY}`,
           'Content-Type': 'application/json'
         }
       }
@@ -93,7 +99,7 @@ export const sendWhatsAppTemplate = async (to, templateName, languageCode = 'en'
 };
 
 /**
- * Send WhatsApp message with media (image, video, document)
+ * Send WhatsApp message with media (image, video, document) via ChatMitra
  * @param {string} to - Recipient phone number
  * @param {string} mediaType - Type: 'image', 'video', 'document'
  * @param {string} mediaUrl - URL of the media file
@@ -102,6 +108,13 @@ export const sendWhatsAppTemplate = async (to, templateName, languageCode = 'en'
  */
 export const sendWhatsAppMedia = async (to, mediaType, mediaUrl, caption = '') => {
   try {
+    if (!CHATMITRA_API_KEY || !CHATMITRA_WHATSAPP_ID) {
+      return {
+        success: false,
+        error: 'ChatMitra credentials are not configured',
+      };
+    }
+
     const mediaObject = {
       link: mediaUrl
     };
@@ -111,16 +124,16 @@ export const sendWhatsAppMedia = async (to, mediaType, mediaUrl, caption = '') =
     }
 
     const response = await axios.post(
-      `${WHATSAPP_API_URL}/${PHONE_NUMBER_ID}/messages`,
+      `${CHATMITRA_API_URL.replace(/\/$/, '')}/whatsapp/media`,
       {
-        messaging_product: 'whatsapp',
-        to: to,
-        type: mediaType,
-        [mediaType]: mediaObject
+        whatsapp_id: CHATMITRA_WHATSAPP_ID,
+        to,
+        media_type: mediaType,
+        media: mediaObject,
       },
       {
         headers: {
-          'Authorization': `Bearer ${ACCESS_TOKEN}`,
+          'Authorization': `Bearer ${CHATMITRA_API_KEY}`,
           'Content-Type': 'application/json'
         }
       }

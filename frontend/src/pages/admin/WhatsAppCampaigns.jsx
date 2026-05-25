@@ -128,7 +128,7 @@ const WhatsAppCampaigns = () => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">WhatsApp Campaigns</h1>
-          <p className="text-gray-600 mt-2">Send bulk messages to customers using templates</p>
+          <p className="text-gray-600 mt-2">Send bulk messages to customers using ChatMitra templates</p>
         </div>
         <button
           onClick={() => setShowModal(true)}
@@ -332,8 +332,8 @@ const WhatsAppCampaigns = () => {
                 
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                   <p className="text-sm text-yellow-800">
-                    <strong>Note:</strong> This is a demo. In production, messages would be sent via WhatsApp Business API.
-                    Make sure you have proper permissions and comply with WhatsApp's policies.
+                        <strong>Note:</strong> Campaign delivery is routed through ChatMitra in production.
+                          Make sure your ChatMitra account, WhatsApp sender, and approved templates are configured.
                   </p>
                 </div>
                 
