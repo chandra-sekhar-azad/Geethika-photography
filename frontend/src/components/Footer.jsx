@@ -71,9 +71,9 @@ const Footer = () => {
 
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-gray-50 flex flex-col md:flex-row justify-between items-center gap-8">
-          <pre className="text-[10px] text-gray-400 font-body font-bold tracking-[0.2em] uppercase">
-        .                                                                                                     © {new Date().getFullYear()} Geethika Digital World. Crafted with sentiment.
-          </pre>
+          <p className="text-[10px] text-gray-400 font-body font-bold tracking-[0.2em] uppercase">
+            © {new Date().getFullYear()} Geethika Digital World. Crafted with sentiment.
+          </p>
           
           <div className="flex items-center gap-8">
             <a href="#" className="text-gray-300 hover:text-gray-900 transition-colors">
