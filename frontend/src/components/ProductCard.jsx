@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Star, Edit3, Heart } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useWishlist } from '../context/WishlistContext';
@@ -10,6 +10,7 @@ const getImageSrc = (url, apiUrl) => {
 
 const ProductCard = ({ product, showWishlist = false }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { isAuthenticated } = useAuth();
   const { toggleWishlist, isInWishlist } = useWishlist();
   const apiUrl = import.meta.env.VITE_API_URL;
@@ -25,14 +26,21 @@ const ProductCard = ({ product, showWishlist = false }) => {
   const handleWishlist = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!isAuthenticated()) { navigate('/login'); return; }
+    if (!isAuthenticated()) {
+      navigate('/login', { state: { from: { pathname: `/product/${product.id}`, search: location.search } } });
+      return;
+    }
     toggleWishlist(product);
   };
 
   const handleCustomize = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!isAuthenticated()) { navigate('/login'); } else { navigate(`/product/${product.id}`); }
+    if (!isAuthenticated()) {
+      navigate('/login', { state: { from: { pathname: `/product/${product.id}`, search: location.search } } });
+      return;
+    }
+    navigate(`/product/${product.id}`);
   };
 
   const rating = product.rating || 5;

@@ -98,6 +98,16 @@ const OrderDetailsModal = ({ order, onClose, onUpdateStatus }) => {
     return [];
   };
 
+  const getCustomizationText = (item) => {
+    const customization = item.customization || {};
+    if (customization.text) return customization.text;
+    if (customization.message) return customization.message;
+    const textInputValues = customization.textInputs && typeof customization.textInputs === 'object'
+      ? Object.values(customization.textInputs).filter(Boolean)
+      : [];
+    return textInputValues[0] || '';
+  };
+
   const handleStatusUpdate = async (newStatus) => {
     if (newStatus === updatedOrder.order_status) return;
 
@@ -258,10 +268,10 @@ const OrderDetailsModal = ({ order, onClose, onUpdateStatus }) => {
 
                     {/* Customization Details */}
                     <div className="p-4 bg-white">
-                      {item.customization?.text && (
+                      {getCustomizationText(item) && (
                         <div className="mb-3 p-3 bg-blue-50 rounded border border-blue-200">
                           <p className="text-xs text-blue-600 font-semibold uppercase mb-1">Custom Text</p>
-                          <p className="text-gray-900">{item.customization.text}</p>
+                          <p className="text-gray-900">{getCustomizationText(item)}</p>
                         </div>
                       )}
 
@@ -439,7 +449,7 @@ const OrderDetailsModal = ({ order, onClose, onUpdateStatus }) => {
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between items-center">
                   <span className="text-gray-700">Current Status:</span>
-                  <span className="font-semibold text-gray-900 px-2 py-1 bg-blue-200 text-blue-800 rounded-full">
+                  <span className="font-semibold px-2 py-1 bg-blue-200 text-blue-800 rounded-full">
                     {(updatedOrder.order_status || 'pending').toUpperCase()}
                   </span>
                 </div>

@@ -1,12 +1,22 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import rateLimit from 'express-rate-limit';
 import { body, validationResult } from 'express-validator';
 import User from '../models/User.js';
 import OTP from '../models/OTP.js';
 import { sendOTPEmail, sendWelcomeEmail, isEmailConfigured } from '../config/email.js';
 
 const router = express.Router();
+
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skipSuccessfulRequests: true,
+  message: { error: 'Too many login attempts. Please try again later.' },
+});
 
 // Generate 6-digit OTP
 const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
@@ -85,6 +95,7 @@ router.post('/register',
 
 // Login
 router.post('/login',
+  loginLimiter,
   [
     body('password').notEmpty()
   ],

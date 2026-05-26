@@ -117,15 +117,15 @@ function App() {
                         <Route path="/view-website" element={<HomePage />} />
                         <Route path="/services" element={<ServicesPage />} />
                         <Route path="/gallery" element={<GalleryPage />} />
-                        <Route path="/cart" element={<Navigate to="/profile?tab=cart" replace />} />
+                        <Route path="/cart" element={<ProtectedRoute><CartPage /></ProtectedRoute>} />
                         <Route path="/wishlist" element={<Navigate to="/profile?tab=wishlist" replace />} />
-                        <Route path="/checkout" element={<PaymentPage />} />
-                        <Route path="/payment" element={<PaymentPage />} />
+                        <Route path="/checkout" element={<ProtectedRoute><PaymentPage /></ProtectedRoute>} />
+                        <Route path="/payment" element={<ProtectedRoute><PaymentPage /></ProtectedRoute>} />
                         <Route path="/login" element={<LoginPage />} />
                         <Route path="/signup" element={<SignUpPage />} />
                         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                         <Route path="/reset-password" element={<ResetPasswordPage />} />
-                        <Route path="/my-orders" element={<Navigate to="/profile?tab=orders" replace />} />
+                        <Route path="/my-orders" element={<ProtectedRoute><MyOrdersPage /></ProtectedRoute>} />
                         <Route path="/order/:id" element={<ProtectedRoute><OrderDetailPage /></ProtectedRoute>} />
                         <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
                         <Route path="/about" element={<AboutPage />} />

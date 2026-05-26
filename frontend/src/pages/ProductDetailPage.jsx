@@ -221,6 +221,8 @@ const ProductDetailPage = () => {
         ? {
             image: customization.image,
             message: customization.message,
+            text: customization.message,
+            textInputs: customization.message ? { Message: customization.message } : {},
           }
         : null,
     };

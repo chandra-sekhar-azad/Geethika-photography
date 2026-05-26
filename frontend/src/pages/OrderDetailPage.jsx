@@ -124,6 +124,16 @@ const OrderDetailPage = () => {
   const [feedbackText, setFeedbackText] = useState({});
   const [submittingAction, setSubmittingAction] = useState(null);
 
+  const getCustomizationText = (item) => {
+    const customization = item.customization || {};
+    if (customization.text) return customization.text;
+    if (customization.message) return customization.message;
+    const textInputValues = customization.textInputs && typeof customization.textInputs === 'object'
+      ? Object.values(customization.textInputs).filter(Boolean)
+      : [];
+    return textInputValues[0] || '';
+  };
+
   const handleApproveDesign = async (itemId) => {
     try {
       setSubmittingAction(itemId);
@@ -366,6 +376,9 @@ const OrderDetailPage = () => {
                           <p className="font-semibold text-valentine-red">✨ Customized</p>
                           {item.customization.size && (
                             <p>Size: {item.customization.size}</p>
+                          )}
+                          {getCustomizationText(item) && (
+                            <p>Text: {getCustomizationText(item)}</p>
                           )}
                           {Object.entries(item.customization.textInputs || {}).map(([key, value]) => (
                             <p key={key}>{key}: {value}</p>

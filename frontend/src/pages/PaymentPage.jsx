@@ -127,7 +127,7 @@ const PaymentPage = () => {
       const testData = await testResponse.json();
       if (testResponse.ok && testData.success) {
         clearCart();
-        navigate('/profile?tab=orders');
+        navigate('/my-orders', { replace: true });
       } else {
         alert('Test payment failed: ' + testData.error);
         setLoading(false);

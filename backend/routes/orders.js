@@ -133,18 +133,18 @@ router.post('/paytm-callback', async (req, res) => {
 
     if (isValidChecksum && TXNSTATUS === 'TXN_SUCCESS') {
       // Update order payment status
-      await Order.findByIdAndUpdate(
-        ORDERID,
+      await Order.findOneAndUpdate(
+        { order_number: ORDERID },
         { payment_status: 'paid', paytm_order_id: ORDERID },
         { new: true }
       );
-      res.json({ success: true, message: 'Payment processed successfully' });
+      return res.redirect(302, `${process.env.FRONTEND_URL || 'http://localhost:5174'}/my-orders?payment=success`);
     } else {
-      res.status(400).json({ success: false, error: 'Invalid payment' });
+      return res.redirect(302, `${process.env.FRONTEND_URL || 'http://localhost:5174'}/payment?payment=failed`);
     }
   } catch (error) {
     console.error('Paytm callback error:', error);
-    res.status(500).json({ error: 'Callback processing failed' });
+    return res.redirect(302, `${process.env.FRONTEND_URL || 'http://localhost:5174'}/payment?payment=failed`);
   }
 });
 

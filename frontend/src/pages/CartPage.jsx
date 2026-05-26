@@ -15,9 +15,19 @@ const CartPage = () => {
   const tax = Math.round(subtotal * 0.18);
   const grandTotal = subtotal + shipping + tax;
 
+  const getCustomizationText = (item) => {
+    const customization = item.customization || {};
+    if (customization.text) return customization.text;
+    if (customization.message) return customization.message;
+    const textInputValues = customization.textInputs && typeof customization.textInputs === 'object'
+      ? Object.values(customization.textInputs).filter(Boolean)
+      : [];
+    return textInputValues[0] || '';
+  };
+
   const handleProceedToCheckout = () => {
     if (!isAuthenticated()) {
-      navigate('/login');
+      navigate('/login', { state: { from: { pathname: '/checkout' } } });
       return;
     }
 
@@ -86,6 +96,11 @@ const CartPage = () => {
                         {item.customization?.image && (
                           <span className="px-3 py-1 bg-purple-50 text-[10px] font-body font-bold text-purple-600 uppercase tracking-widest rounded-full">
                             PHOTO: UPLOADED
+                          </span>
+                        )}
+                        {getCustomizationText(item) && (
+                          <span className="px-3 py-1 bg-blue-50 text-[10px] font-body font-bold text-blue-600 uppercase tracking-widest rounded-full">
+                            TEXT: ADDED
                           </span>
                         )}
                         {Object.entries(item.customization?.textInputs || {}).map(([key, value]) => (

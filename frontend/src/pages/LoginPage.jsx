@@ -12,6 +12,9 @@ const LoginPage = () => {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const successMessage = location.state?.message;
+  const redirectTarget = location.state?.from
+    ? `${location.state.from.pathname || ''}${location.state.from.search || ''}` || '/'
+    : '/';
 
   const validateForm = () => {
     const newErrors = {};
@@ -54,7 +57,7 @@ const LoginPage = () => {
       if (data.user.role === 'admin') {
         navigate('/admin/dashboard', { replace: true });
       } else {
-        navigate(location.state?.from?.pathname || '/', { replace: true });
+        navigate(redirectTarget, { replace: true });
       }
     } catch (error) {
       setErrors({ submit: error.message || 'Invalid credentials' });
