@@ -1,6 +1,7 @@
 import { Gift, Camera, Heart, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { fullUrl } from '../lib/utils';
 
 const SpecialOffers = () => {
   const navigate = useNavigate();
@@ -56,7 +57,7 @@ const SpecialOffers = () => {
               title: offer.title,
               description: offer.description,
               image: offer.image_url
-                ? (offer.image_url.startsWith('http') ? offer.image_url : `${import.meta.env.VITE_API_URL}${offer.image_url}`)
+                ? (offer.image_url.startsWith('http') ? offer.image_url : fullUrl(offer.image_url))
                 : defaultOffers[index % 4].image,
               action: () => navigate(offer.link_url || '/shop')
             };

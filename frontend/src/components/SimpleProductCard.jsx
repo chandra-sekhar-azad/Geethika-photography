@@ -1,11 +1,12 @@
 import { useNavigate } from 'react-router-dom';
+import { fullUrl } from '../lib/utils';
 
 const SimpleProductCard = ({ product, onClick }) => {
   const navigate = useNavigate();
 
   const imageUrl = product.image_url?.startsWith('http')
     ? product.image_url
-    : `${import.meta.env.VITE_API_URL}${product.image_url}`;
+    : fullUrl(product.image_url);
 
   return (
     <div 

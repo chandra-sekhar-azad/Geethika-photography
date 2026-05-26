@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Package, Upload, Save, X, Trash2, Edit } from 'lucide-react';
+import { fullUrl } from '../../lib/utils';
 
 const CategoryManagement = () => {
     const [categories, setCategories] = useState([]);
@@ -45,7 +46,7 @@ const CategoryManagement = () => {
             occasion_order: category.occasion_order || 0
         });
         setPreviewImage(category.image_url
-            ? (category.image_url.startsWith('http') ? category.image_url : `${import.meta.env.VITE_API_URL}${category.image_url}`)
+            ? (category.image_url.startsWith('http') ? category.image_url : fullUrl(category.image_url))
             : null);
         setShowModal(true);
     };
@@ -173,7 +174,7 @@ const CategoryManagement = () => {
                         <div className="relative h-48 bg-gray-100">
                             {category.image_url ? (
                                 <img
-                                    src={category.image_url.startsWith('http') ? category.image_url : `${import.meta.env.VITE_API_URL}${category.image_url}`}
+                                    src={category.image_url.startsWith('http') ? category.image_url : fullUrl(category.image_url)}
                                     alt={category.name}
                                     className="w-full h-full object-cover"
                                 />

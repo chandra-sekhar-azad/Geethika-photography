@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Upload, Image as ImageIcon, Edit2, Trash2, X, Plus } from 'lucide-react';
 import api from '../../utils/api';
+import { fullUrl } from '../../lib/utils';
 
 const GalleryManagement = () => {
   const [images, setImages] = useState([]);
@@ -107,7 +108,7 @@ const GalleryManagement = () => {
       category: image.category,
       image: null
     });
-    setPreviewUrl(image.image_url?.startsWith('http') ? image.image_url : `${import.meta.env.VITE_API_URL}${image.image_url}`);
+    setPreviewUrl(image.image_url?.startsWith('http') ? image.image_url : fullUrl(image.image_url));
     setShowModal(true);
   };
 
@@ -196,7 +197,7 @@ const GalleryManagement = () => {
             <div key={image.id} className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow overflow-hidden">
               <div className="aspect-square relative">
                 <img
-                  src={image.image_url?.startsWith('http') ? image.image_url : `${import.meta.env.VITE_API_URL}${image.image_url}`}
+                  src={image.image_url?.startsWith('http') ? image.image_url : fullUrl(image.image_url)}
                   alt={image.title}
                   className="w-full h-full object-cover"
                 />

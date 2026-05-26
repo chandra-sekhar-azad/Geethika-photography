@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { fullUrl } from '../lib/utils';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Package, MapPin, CreditCard, Clock, CheckCircle, Star } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -362,7 +363,7 @@ const OrderDetailPage = () => {
                         item.product_image?.startsWith('http')
                           ? item.product_image
                           : (item.product_image || item.product_image_url || item.image_url 
-                              ? `${import.meta.env.VITE_API_URL}${item.product_image || item.product_image_url || item.image_url}` 
+                              ? fullUrl(item.product_image || item.product_image_url || item.image_url)
                               : '/images/image.png')
                       }
                       alt={item.product_name}
@@ -394,7 +395,7 @@ const OrderDetailPage = () => {
                             src={
                               designs[item._id || item.id].admin_designed_image.startsWith('http') 
                                 ? designs[item._id || item.id].admin_designed_image 
-                                : `${import.meta.env.VITE_API_URL}${designs[item._id || item.id].admin_designed_image}`
+                                : fullUrl(designs[item._id || item.id].admin_designed_image)
                             } 
                             alt="Admin Design"
                             className="w-full max-w-sm rounded-lg shadow-sm border border-gray-200"

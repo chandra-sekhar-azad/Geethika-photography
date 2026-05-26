@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { fullUrl } from '../lib/utils';
 
 const HeroBanner = () => {
   const navigate = useNavigate();
@@ -12,7 +13,7 @@ const HeroBanner = () => {
         const data = await response.json();
         if (data.success && data.content?.hero_banner?.image_url) {
           const imgUrl = data.content.hero_banner.image_url;
-          setBgImage(imgUrl.startsWith('http') ? imgUrl : `${import.meta.env.VITE_API_URL}${imgUrl}`);
+          setBgImage(imgUrl.startsWith('http') ? imgUrl : fullUrl(imgUrl));
         }
       } catch (error) {
         console.error('Failed to fetch hero banner:', error);

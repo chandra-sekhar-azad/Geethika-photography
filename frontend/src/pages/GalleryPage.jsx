@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { X, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { fullUrl } from '../lib/utils';
 
 const GalleryPage = () => {
   const [images, setImages] = useState([]);
@@ -90,7 +91,7 @@ const GalleryPage = () => {
                     className="image-item aspect-square rounded-xl overflow-hidden shadow-2xl cursor-pointer flex-shrink-0 w-[75vw] max-w-xs"
                   >
                     <img
-                      src={image.image_url?.startsWith('http') ? image.image_url : `${import.meta.env.VITE_API_URL}${image.image_url}`}
+                      src={fullUrl(image.image_url)}
                       alt={image.title}
                       className="w-full h-full object-cover"
                       loading="lazy"
@@ -117,7 +118,7 @@ const GalleryPage = () => {
                     className="image-item flex-shrink-0 w-64 h-64 md:w-80 md:h-80 lg:w-96 lg:h-96 rounded-xl overflow-hidden shadow-2xl cursor-pointer"
                   >
                     <img
-                      src={image.image_url?.startsWith('http') ? image.image_url : `${import.meta.env.VITE_API_URL}${image.image_url}`}
+                      src={fullUrl(image.image_url)}
                       alt={image.title}
                       className="w-full h-full object-cover"
                       loading="lazy"
@@ -175,7 +176,7 @@ const GalleryPage = () => {
 
           <div className="max-w-6xl w-full flex flex-col md:flex-row gap-12" onClick={(e) => e.stopPropagation()}>
             <img
-              src={selectedImage.image_url?.startsWith('http') ? selectedImage.image_url : `${import.meta.env.VITE_API_URL}${selectedImage.image_url}`}
+              src={fullUrl(selectedImage.image_url)}
               alt={selectedImage.title}
               className="flex-1 max-h-[80vh] object-contain rounded-[40px] shadow-2xl"
             />

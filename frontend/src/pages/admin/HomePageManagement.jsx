@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { fullUrl } from '../../lib/utils';
 import { Image, Upload, Save, X, Eye, EyeOff, Plus, Trash2 } from 'lucide-react';
 
 const HomePageManagement = () => {
@@ -53,7 +54,7 @@ const HomePageManagement = () => {
       is_active: item.is_active
     });
     setPreviewImage(item.image_url
-      ? (item.image_url.startsWith('http') ? item.image_url : `${import.meta.env.VITE_API_URL}${item.image_url}`)
+      ? (item.image_url.startsWith('http') ? item.image_url : fullUrl(item.image_url))
       : null);
     setShowModal(true);
   };
@@ -386,7 +387,7 @@ const ContentCard = ({ item, onEdit, onToggleActive, onDelete }) => {
       <div className="flex gap-4">
         {item.image_url && (
           <img
-            src={item.image_url?.startsWith('http') ? item.image_url : `${import.meta.env.VITE_API_URL}${item.image_url}`}
+            src={item.image_url?.startsWith('http') ? item.image_url : fullUrl(item.image_url)}
             alt={item.title}
             className="w-24 h-24 object-cover rounded-lg"
           />

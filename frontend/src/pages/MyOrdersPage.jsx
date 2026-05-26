@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { fullUrl } from '../lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { Package, Clock, CheckCircle, XCircle, Eye, ShoppingBag, Star } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -375,7 +376,7 @@ const MyOrdersPage = () => {
                                 item.product_image?.startsWith('http')
                                   ? item.product_image
                                   : (item.product_image || item.product_image_url || item.image_url
-                                      ? `${import.meta.env.VITE_API_URL}${item.product_image || item.product_image_url || item.image_url}`
+                                      ? fullUrl(item.product_image || item.product_image_url || item.image_url)
                                       : '/images/image.png')
                               }
                               alt={item.product_name}

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { fullUrl } from '../lib/utils';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { User, Mail, Lock, Save, ArrowLeft, Camera, ShieldCheck, ShoppingBag, Heart, Package, Trash2, Plus, Minus, MessageCircle, ChevronRight, Clock, CheckCircle, XCircle, Eye, LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -292,10 +293,10 @@ const ProfilePage = () => {
                           {order.items?.slice(0, 4).map((item, i) => {
                             const designImg = designs[item._id || item.id]?.admin_designed_image;
                             const imageSrc = designImg 
-                              ? (designImg.startsWith('http') ? designImg : `${import.meta.env.VITE_API_URL}${designImg}`)
+                              ? (designImg.startsWith('http') ? designImg : fullUrl(designImg))
                               : (item.product_image?.startsWith('http') 
                                   ? item.product_image 
-                                  : (item.product_image ? `${import.meta.env.VITE_API_URL}${item.product_image}` : '/images/image.png'));
+                                  : (item.product_image ? fullUrl(item.product_image) : '/images/image.png'));
 
                             return (
                               <img 

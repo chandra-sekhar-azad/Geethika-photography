@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { fullUrl } from '../lib/utils';
 
 const ShopByOccasionSection = () => {
   const navigate = useNavigate();
@@ -75,7 +76,7 @@ const ShopByOccasionSection = () => {
                 <img
                   src={
                     category.image_url
-                      ? (category.image_url.startsWith('http') ? category.image_url : `${import.meta.env.VITE_API_URL}${category.image_url}`)
+                      ? (category.image_url.startsWith('http') ? category.image_url : fullUrl(category.image_url))
                       : (category.image || `https://via.placeholder.com/200`)
                   }
                   alt={category.name}

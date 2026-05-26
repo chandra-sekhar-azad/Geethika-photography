@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import CategoryCard from './CategoryCard';
+import { fullUrl } from '../lib/utils';
 
 const CategoriesSection = () => {
   const navigate = useNavigate();
@@ -73,7 +74,7 @@ const CategoriesSection = () => {
                 <CategoryCard
                   image={
                     category.image_url
-                      ? (category.image_url.startsWith('http') ? category.image_url : `${import.meta.env.VITE_API_URL}${category.image_url}`)
+                      ? (category.image_url.startsWith('http') ? category.image_url : fullUrl(category.image_url))
                       : (category.image || `/images/image.png`)
                   }
                   title={category.name}

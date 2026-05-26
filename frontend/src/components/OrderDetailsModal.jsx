@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Download, Upload, X, Image as ImageIcon, CheckCircle, XCircle, MapPin, Phone, Mail, DollarSign, AlertCircle } from 'lucide-react';
+import { fullUrl } from '../lib/utils';
 
 const OrderDetailsModal = ({ order, onClose, onUpdateStatus }) => {
   const [designs, setDesigns] = useState({});
@@ -69,8 +70,8 @@ const OrderDetailsModal = ({ order, onClose, onUpdateStatus }) => {
 
   const downloadImage = async (url, filename) => {
     try {
-      const fullUrl = url.startsWith('http') ? url : `${import.meta.env.VITE_API_URL}${url}`;
-      const response = await fetch(fullUrl);
+      const resolved = url && url.startsWith('http') ? url : fullUrl(url);
+      const response = await fetch(resolved);
       const blob = await response.blob();
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
@@ -246,10 +247,7 @@ const OrderDetailsModal = ({ order, onClose, onUpdateStatus }) => {
                       <div className="flex items-start space-x-4">
                         {item.product_image && (
                           <img 
-                            src={item.product_image?.startsWith('http') 
-                              ? item.product_image 
-                              : `${import.meta.env.VITE_API_URL}${item.product_image}`
-                            } 
+                            src={item.product_image?.startsWith('http') ? item.product_image : fullUrl(item.product_image)}
                             alt={item.product_name} 
                             className="w-20 h-20 object-cover rounded border" 
                           />
@@ -289,7 +287,7 @@ const OrderDetailsModal = ({ order, onClose, onUpdateStatus }) => {
                               <div key={imgIndex} className="relative group">
                                 <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden border-2 border-gray-300">
                                   <img
-                                    src={img.startsWith('http') ? img : `${import.meta.env.VITE_API_URL}${img}`}
+                                    src={img && img.startsWith('http') ? img : fullUrl(img)}
                                     alt={`Customer upload ${imgIndex + 1}`}
                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                                   />
@@ -337,9 +335,9 @@ const OrderDetailsModal = ({ order, onClose, onUpdateStatus }) => {
                                 <div className="aspect-square bg-white rounded-lg overflow-hidden border">
                                   <img
                                     src={
-                                      designs[item._id || item.id].admin_designed_image.startsWith('http')
+                                      designs[item._id || item.id].admin_designed_image && designs[item._id || item.id].admin_designed_image.startsWith('http')
                                         ? designs[item._id || item.id].admin_designed_image
-                                        : `${import.meta.env.VITE_API_URL}${designs[item._id || item.id].admin_designed_image}`
+                                        : fullUrl(designs[item._id || item.id].admin_designed_image)
                                     }
                                     alt="Admin designed upload"
                                     className="w-full h-full object-cover"
