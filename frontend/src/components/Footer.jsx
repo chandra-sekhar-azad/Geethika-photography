@@ -52,7 +52,7 @@ const Footer = () => {
           </div>
 
           {/* Map */}
-          <div className="flex items-start justify-center lg:justify-end">
+          <div className="flex items-start justify-start lg:justify-end">
             <div className="rounded-[8px] overflow-hidden border border-gray-100 shadow-sm mr-0 lg:mr-4" style={{ width: 306, height: 172 }}>
               <iframe
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d952.4117781428866!2d81.52284926957388!3d16.544234814703773!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a37d30a6f6646ab%3A0x349161fbbf6c561d!2sGeethika%20digital%20world!5e0!3m2!1sen!2sin!4v1747568400000!5m2!1sen!2sin"
