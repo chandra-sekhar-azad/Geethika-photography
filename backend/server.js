@@ -107,8 +107,24 @@ app.use(compression());
 if (process.env.NODE_ENV === 'development') app.use(morgan('dev'));
 else if (process.env.NODE_ENV === 'production') app.use(morgan('combined'));
 
-// Static files
+// Static files — uploads
 app.use('/uploads', express.static(uploadsDir));
+
+// ─── Frontend path ────────────────────────────────────────────────────────────
+// Set FRONTEND_PATH in your .env to the absolute path of public_html.
+// e.g. FRONTEND_PATH=/home/u123456/public_html
+// Falls back to ../public_html relative to this file (works on most Hostinger setups).
+const frontendPath = process.env.FRONTEND_PATH
+  ? path.resolve(process.env.FRONTEND_PATH)
+  : path.resolve(__dirname, '../public_html');
+
+const frontendExists = fs.existsSync(frontendPath);
+if (frontendExists) {
+  console.log(`[frontend] Serving static files from: ${frontendPath}`);
+  app.use(express.static(frontendPath));
+} else {
+  console.warn(`[frontend] No static files found at: ${frontendPath}`);
+}
 
 // Health check
 app.get('/health', async (req, res) => {
@@ -123,7 +139,7 @@ app.get('/health', async (req, res) => {
   });
 });
 
-// API routes
+// API routes — must come before the React catch-all
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/categories', categoryRoutes);
@@ -140,25 +156,22 @@ app.use('/api/designs', designRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/products/:productId/reviews', reviewRoutes);
 
-// Root endpoint
-app.get('/', (req, res) => {
-  res.json({
-    message: 'Geethika Digital World API',
-    version: '2.0.0',
-    database: 'MongoDB',
-    endpoints: {
-      health: '/health',
-      auth: '/api/auth',
-      products: '/api/products',
-      categories: '/api/categories',
-      orders: '/api/orders',
-      services: '/api/services',
-    },
-  });
+// React catch-all — serves index.html for every non-API route so React Router works
+app.get('*', (req, res) => {
+  const indexPath = path.join(frontendPath, 'index.html');
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    // Frontend not deployed yet — return a helpful API info response
+    res.json({
+      message: 'Geethika Digital World API',
+      version: '2.0.0',
+      note: 'Frontend not found. Set FRONTEND_PATH in .env to point to public_html.',
+    });
+  }
 });
 
-// Error handling
-app.use(notFound);
+// Error handling (notFound removed — catch-all above handles unknown routes)
 app.use(errorHandler);
 
 // Start server
