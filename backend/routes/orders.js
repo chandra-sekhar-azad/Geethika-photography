@@ -2,12 +2,13 @@ import express from 'express';
 import { body, validationResult } from 'express-validator';
 import Order from '../models/Order.js';
 import Product from '../models/Product.js';
-import { paytmConfig, generateChecksum, verifyChecksum } from '../config/paytm.js';
 import { authenticate, isAdmin } from '../middleware/auth.js';
 import { logAdminAction, getChanges } from '../middleware/auditLog.js';
 import Notification from '../models/Notification.js';
 import User from '../models/User.js';
 import { sendWhatsAppMessage } from '../config/whatsapp.js';
+import razorpay from '../config/razorpay.js';
+import crypto from 'crypto';
 
 const router = express.Router();
 
@@ -17,58 +18,89 @@ const generateOrderNumber = () => {
   return `ORD-${timestamp}-${random}`.toUpperCase();
 };
 
-// Create Paytm Order
-router.post('/create-paytm-order', async (req, res) => {
+// Create Razorpay Order
+router.post('/create-razorpay-order', async (req, res) => {
   try {
-    const { amount, orderId, orderNumber } = req.body;
+    if (!razorpay) {
+      return res.status(503).json({ error: 'Razorpay is not configured on the server.' });
+    }
 
-    // Use order_number as ORDER_ID (Paytm requirement)
-    const paymentOrderId = orderNumber || orderId;
+    const { amount, orderId } = req.body;
 
-    const params = {
-      MID: paytmConfig.MID,
-      WEBSITE: paytmConfig.WEBSITE,
-      CHANNEL_ID: paytmConfig.CHANNEL_ID_WEB,
-      INDUSTRY_TYPE_ID: paytmConfig.INDUSTRY_TYPE_ID,
-      ORDER_ID: paymentOrderId,
-      CUST_ID: paymentOrderId,
-      TXN_AMOUNT: amount.toString(),
-      EMAIL: 'customer@geethikadigitalworld.com',
-      MOBILE_NO: '9999999999',
-      CALLBACK_URL: `${process.env.BACKEND_URL || 'http://localhost:3000'}/api/orders/paytm-callback`,
+    const options = {
+      amount: Math.round(amount * 100), // paise
+      currency: 'INR',
+      receipt: orderId,
     };
 
-    console.log('Creating Paytm order with params:', params);
-
-    // Generate checksum
-    const checksum = generateChecksum(params, paytmConfig.MERCHANT_KEY);
-    params.CHECKSUMHASH = checksum;
+    const razorpayOrder = await razorpay.orders.create(options);
 
     res.json({
       success: true,
-      paytmParams: params,
-      paytmGatewayUrl: paytmConfig.PAYTM_GATEWAY_URL,
+      razorpayOrderId: razorpayOrder.id,
+      amount: razorpayOrder.amount,
+      currency: razorpayOrder.currency,
+      keyId: process.env.RAZORPAY_KEY_ID,
     });
   } catch (error) {
-    console.error('Paytm order creation error:', error);
-    res.status(500).json({ error: 'Failed to create Paytm payment order' });
+    console.error('Razorpay order creation error:', error);
+    res.status(500).json({ error: 'Failed to create Razorpay order' });
   }
 });
 
-// Test Mode: Bypass Paytm and mark order as paid (for development/testing)
+// Verify Razorpay Payment
+router.post('/verify-razorpay-payment', async (req, res) => {
+  try {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, orderId } = req.body;
+
+    const body = razorpay_order_id + '|' + razorpay_payment_id;
+    const expectedSignature = crypto
+      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+      .update(body)
+      .digest('hex');
+
+    if (expectedSignature !== razorpay_signature) {
+      return res.status(400).json({ error: 'Payment verification failed. Invalid signature.' });
+    }
+
+    // Update order as paid
+    const order = await Order.findByIdAndUpdate(
+      orderId,
+      {
+        payment_status: 'paid',
+        order_status: 'confirmed',
+        razorpay_payment_id,
+        razorpay_order_id,
+        razorpay_signature,
+      },
+      { new: true }
+    );
+
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    console.log('✅ Razorpay payment verified for order:', order.order_number);
+    res.json({ success: true, message: 'Payment verified successfully', order });
+  } catch (error) {
+    console.error('Razorpay verification error:', error);
+    res.status(500).json({ error: 'Payment verification failed' });
+  }
+});
+
+// Test Mode: Bypass payment and mark order as paid (for development/testing)
 router.post('/test-payment/:orderId', async (req, res) => {
   try {
-    // Only allow in development mode or if test flag is enabled
     if (process.env.NODE_ENV !== 'development' && !process.env.ENABLE_TEST_PAYMENTS) {
       return res.status(403).json({ error: 'Test payments not enabled' });
     }
 
     const order = await Order.findByIdAndUpdate(
       req.params.orderId,
-      { 
+      {
         payment_status: 'paid',
         order_status: 'confirmed',
-        paytm_transaction_status: 'TEST_MODE_SUCCESS'
+        razorpay_payment_id: 'TEST_MODE_SUCCESS',
       },
       { new: true }
     );
@@ -84,70 +116,6 @@ router.post('/test-payment/:orderId', async (req, res) => {
     res.status(500).json({ error: 'Test payment failed' });
   }
 });
-
-// Verify Paytm Payment
-router.post('/verify-paytm-payment', async (req, res) => {
-  try {
-    const { ORDERID, TXNID, TXNAMOUNT, TXNSTATUS } = req.body;
-    let checksumhash = req.body.CHECKSUMHASH;
-
-    const verifyParams = {
-      MID: paytmConfig.MID,
-      ORDERID,
-      TXNID,
-      TXNAMOUNT,
-      TXNSTATUS,
-    };
-
-    const isValidChecksum = verifyChecksum(verifyParams, paytmConfig.MERCHANT_KEY, checksumhash);
-
-    if (!isValidChecksum) {
-      return res.status(400).json({ success: false, error: 'Invalid checksum' });
-    }
-
-    if (TXNSTATUS === 'TXN_SUCCESS') {
-      res.json({ success: true, message: 'Payment verified successfully' });
-    } else {
-      res.status(400).json({ success: false, error: 'Transaction failed', status: TXNSTATUS });
-    }
-  } catch (error) {
-    console.error('Paytm verification error:', error);
-    res.status(500).json({ error: 'Payment verification failed' });
-  }
-});
-
-// Paytm Callback Handler
-router.post('/paytm-callback', async (req, res) => {
-  try {
-    const { ORDERID, TXNSTATUS, TXNAMOUNT } = req.body;
-    let checksumhash = req.body.CHECKSUMHASH;
-
-    const verifyParams = {
-      MID: paytmConfig.MID,
-      ORDERID,
-      TXNSTATUS,
-      TXNAMOUNT,
-    };
-
-    const isValidChecksum = verifyChecksum(verifyParams, paytmConfig.MERCHANT_KEY, checksumhash);
-
-    if (isValidChecksum && TXNSTATUS === 'TXN_SUCCESS') {
-      // Update order payment status
-      await Order.findOneAndUpdate(
-        { order_number: ORDERID },
-        { payment_status: 'paid', paytm_order_id: ORDERID },
-        { new: true }
-      );
-      return res.redirect(302, `${process.env.FRONTEND_URL || 'http://localhost:5174'}/my-orders?payment=success`);
-    } else {
-      return res.redirect(302, `${process.env.FRONTEND_URL || 'http://localhost:5174'}/payment?payment=failed`);
-    }
-  } catch (error) {
-    console.error('Paytm callback error:', error);
-    return res.redirect(302, `${process.env.FRONTEND_URL || 'http://localhost:5174'}/payment?payment=failed`);
-  }
-});
-
 // Create order
 router.post('/',
   [
@@ -205,7 +173,7 @@ router.post('/',
         shipping_cost,
         service_charge,
         total,
-        payment_method: payment_method || 'paytm',
+        payment_method: payment_method || 'razorpay',
         payment_status: 'pending',
         order_status: 'pending',
       });

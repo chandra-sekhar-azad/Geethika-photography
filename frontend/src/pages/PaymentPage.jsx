@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { ShoppingBag, ChevronRight, MapPin, User, ShieldCheck, Wallet, Landmark, CheckCircle2, ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { ShoppingBag, ShieldCheck, CheckCircle2, ArrowRight, CreditCard } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL } from '../utils/api';
@@ -10,7 +10,7 @@ const PaymentPage = () => {
   const navigate = useNavigate();
   const { cart, getCartSubtotal, getServiceCharge, getFinalTotal, clearCart } = useCart();
   const { user } = useAuth();
-  
+
   const [step, setStep] = useState(1); // 1: Details, 2: Payment
   const [loading, setLoading] = useState(false);
   const [useTestMode, setUseTestMode] = useState(false);
@@ -26,11 +26,10 @@ const PaymentPage = () => {
     pincode: '',
   });
 
-  // Pre-fill shipping details from account (signup / profile address)
+  // Pre-fill shipping details from profile
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) return;
-
     (async () => {
       try {
         const res = await fetch(`${API_BASE_URL}/api/auth/profile`, {
@@ -59,9 +58,7 @@ const PaymentPage = () => {
   }, []);
 
   useEffect(() => {
-    if (cart.length === 0) {
-      navigate('/profile?tab=cart');
-    }
+    if (cart.length === 0) navigate('/profile?tab=cart');
   }, [cart, navigate]);
 
   const handleNextStep = (e) => {
@@ -74,56 +71,12 @@ const PaymentPage = () => {
     window.scrollTo(0, 0);
   };
 
-  const handlePaytmPayment = async (createdOrder) => {
-    try {
-      // Get Paytm parameters
-      const paytmResponse = await fetch(`${API_BASE_URL}/api/orders/create-paytm-order`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          amount: getFinalTotal(),
-          orderId: createdOrder.id,
-          orderNumber: createdOrder.order_number, // Use order_number instead of MongoDB ID
-        })
-      });
-
-      const paytmData = await paytmResponse.json();
-      if (!paytmResponse.ok) throw new Error('Failed to create Paytm order');
-
-      console.log('Paytm params:', paytmData.paytmParams);
-
-      // Create and submit Paytm form
-      const form = document.createElement('form');
-      form.method = 'POST';
-      form.action = paytmData.paytmGatewayUrl;
-      form.style.display = 'none';
-
-      // Add all parameters to form
-      Object.keys(paytmData.paytmParams).forEach(key => {
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = key;
-        input.value = paytmData.paytmParams[key];
-        form.appendChild(input);
-      });
-
-      document.body.appendChild(form);
-      form.submit();
-      document.body.removeChild(form);
-    } catch (error) {
-      console.error('Paytm payment error:', error);
-      alert('Failed to initialize Paytm payment');
-      setLoading(false);
-    }
-  };
-
   const handleTestPayment = async (createdOrder) => {
     try {
       const testResponse = await fetch(`${API_BASE_URL}/api/orders/test-payment/${createdOrder.id}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       });
-
       const testData = await testResponse.json();
       if (testResponse.ok && testData.success) {
         clearCart();
@@ -139,17 +92,110 @@ const PaymentPage = () => {
     }
   };
 
+  const handleRazorpayPayment = async (createdOrder) => {
+    try {
+      const token = localStorage.getItem('token');
+
+      // 1. Create Razorpay order on backend
+      const rzpResponse = await fetch(`${API_BASE_URL}/api/orders/create-razorpay-order`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          amount: getFinalTotal(),
+          orderId: createdOrder.id,
+        }),
+      });
+
+      const rzpData = await rzpResponse.json();
+      if (!rzpResponse.ok) throw new Error(rzpData.error || 'Failed to create Razorpay order');
+
+      // 2. Open Razorpay checkout
+      const options = {
+        key: rzpData.keyId,
+        amount: rzpData.amount,
+        currency: rzpData.currency,
+        name: 'Geethika Digital World',
+        description: `Order #${createdOrder.order_number}`,
+        image: '/logo.png',
+        order_id: rzpData.razorpayOrderId,
+        handler: async (response) => {
+          try {
+            // 3. Verify payment on backend
+            const verifyResponse = await fetch(`${API_BASE_URL}/api/orders/verify-razorpay-payment`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                orderId: createdOrder.id,
+              }),
+            });
+
+            const verifyData = await verifyResponse.json();
+            if (verifyResponse.ok && verifyData.success) {
+              clearCart();
+              navigate('/my-orders', { replace: true });
+            } else {
+              alert('Payment verification failed. Please contact support.');
+              setLoading(false);
+            }
+          } catch (err) {
+            console.error('Verification error:', err);
+            alert('Payment verification error. Please contact support.');
+            setLoading(false);
+          }
+        },
+        prefill: {
+          name: formData.name,
+          email: formData.email,
+          contact: formData.phone,
+        },
+        notes: {
+          order_number: createdOrder.order_number,
+          address: formData.address,
+        },
+        theme: {
+          color: '#9D4E8D',
+        },
+        modal: {
+          ondismiss: () => {
+            setLoading(false);
+          },
+        },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.on('payment.failed', (response) => {
+        console.error('Razorpay payment failed:', response.error);
+        alert(`Payment failed: ${response.error.description}`);
+        setLoading(false);
+      });
+      rzp.open();
+    } catch (error) {
+      console.error('Razorpay initialization error:', error);
+      alert(error.message);
+      setLoading(false);
+    }
+  };
+
   const handleProcessPayment = async () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      
-      // 1. Create order in our backend
+
+      // 1. Create order in backend
       const orderResponse = await fetch(`${API_BASE_URL}/api/orders`, {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}` 
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           customer_name: formData.name,
@@ -160,15 +206,15 @@ const PaymentPage = () => {
           subtotal: getCartSubtotal(),
           service_charge: getServiceCharge(),
           total: getFinalTotal(),
-          payment_method: 'paytm',
+          payment_method: 'razorpay',
           shipping_info: {
             address: formData.address,
             landmark: formData.landmark,
             city: formData.city,
             pincode: formData.pincode,
             state: formData.state || 'Andhra Pradesh',
-          }
-        })
+          },
+        }),
       });
 
       const orderData = await orderResponse.json();
@@ -180,7 +226,7 @@ const PaymentPage = () => {
       if (useTestMode) {
         await handleTestPayment(createdOrder);
       } else {
-        await handlePaytmPayment(createdOrder);
+        await handleRazorpayPayment(createdOrder);
       }
     } catch (error) {
       console.error('Payment initialization failed:', error);
@@ -202,7 +248,7 @@ const PaymentPage = () => {
             <div className="w-12 h-px bg-gray-100" />
             <div className={`flex items-center gap-3 transition-colors ${step >= 2 ? 'text-[var(--color-primary)]' : 'text-gray-300'}`}>
               <div className={`w-8 h-8 rounded-full flex items-center justify-center font-body font-bold text-xs ${step >= 2 ? 'bg-[var(--color-primary)] text-white' : 'bg-gray-100'}`}>2</div>
-              <span className="text-[10px] font-body font-bold uppercase tracking-widest hidden sm:inline">Payment Selection</span>
+              <span className="text-[10px] font-body font-bold uppercase tracking-widest hidden sm:inline">Payment</span>
             </div>
           </div>
         </div>
@@ -218,46 +264,40 @@ const PaymentPage = () => {
                   <h2 className="text-4xl font-display font-bold text-gray-900 mb-4 tracking-tight">Shipping Details</h2>
                   <p className="text-gray-400 font-body">Where should we deliver your curated masterpiece?</p>
                 </div>
-                
+
                 <form onSubmit={handleNextStep} className="space-y-8">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="space-y-3">
                       <label className="text-[10px] font-body font-bold text-gray-400 uppercase tracking-widest ml-1">Full Name</label>
                       <input
-                        type="text"
-                        required
-                        value={formData.name}
-                        onChange={(e) => setFormData({...formData, name: e.target.value})}
+                        type="text" required value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                         className="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl font-body text-sm text-gray-900 focus:ring-2 focus:ring-purple-100 outline-none transition-all"
                         placeholder="John Doe"
                       />
                     </div>
                     <div className="space-y-3">
                       <label className="text-[10px] font-body font-bold text-gray-400 uppercase tracking-widest ml-1">Phone Number</label>
-                      <PhoneInput
-                        value={formData.phone}
-                        onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                        required
-                      />
+                      <PhoneInput value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} required />
                     </div>
                   </div>
 
                   <div className="space-y-3">
                     <label className="text-[10px] font-body font-bold text-gray-400 uppercase tracking-widest ml-1">Street Address</label>
                     <textarea
-                      required
-                      value={formData.address}
-                      onChange={(e) => setFormData({...formData, address: e.target.value})}
+                      required value={formData.address}
+                      onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                       className="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl font-body text-sm text-gray-900 focus:ring-2 focus:ring-purple-100 outline-none transition-all h-32 resize-none"
                       placeholder="House / Flat / Building Name & Street"
                     />
                   </div>
 
                   <div className="space-y-3">
-                    <label className="text-[10px] font-body font-bold text-gray-400 uppercase tracking-widest ml-1">Landmark <span className="font-normal normal-case text-gray-400">(optional)</span></label>
+                    <label className="text-[10px] font-body font-bold text-gray-400 uppercase tracking-widest ml-1">
+                      Landmark <span className="font-normal normal-case text-gray-400">(optional)</span>
+                    </label>
                     <input
-                      type="text"
-                      value={formData.landmark}
+                      type="text" value={formData.landmark}
                       onChange={(e) => setFormData({ ...formData, landmark: e.target.value })}
                       className="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl font-body text-sm text-gray-900 focus:ring-2 focus:ring-purple-100 outline-none transition-all"
                       placeholder="Near school, temple, etc."
@@ -268,20 +308,16 @@ const PaymentPage = () => {
                     <div className="space-y-3">
                       <label className="text-[10px] font-body font-bold text-gray-400 uppercase tracking-widest ml-1">City</label>
                       <input
-                        type="text"
-                        required
-                        value={formData.city}
-                        onChange={(e) => setFormData({...formData, city: e.target.value})}
+                        type="text" required value={formData.city}
+                        onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                         className="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl font-body text-sm text-gray-900 focus:ring-2 focus:ring-purple-100 outline-none transition-all"
                       />
                     </div>
                     <div className="space-y-3">
                       <label className="text-[10px] font-body font-bold text-gray-400 uppercase tracking-widest ml-1">Pincode</label>
                       <input
-                        type="text"
-                        required
-                        value={formData.pincode}
-                        onChange={(e) => setFormData({...formData, pincode: e.target.value})}
+                        type="text" required value={formData.pincode}
+                        onChange={(e) => setFormData({ ...formData, pincode: e.target.value })}
                         className="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl font-body text-sm text-gray-900 focus:ring-2 focus:ring-purple-100 outline-none transition-all"
                       />
                     </div>
@@ -290,19 +326,14 @@ const PaymentPage = () => {
                   <div className="space-y-3">
                     <label className="text-[10px] font-body font-bold text-gray-400 uppercase tracking-widest ml-1">State</label>
                     <input
-                      type="text"
-                      required
-                      value={formData.state}
+                      type="text" required value={formData.state}
                       onChange={(e) => setFormData({ ...formData, state: e.target.value })}
                       className="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl font-body text-sm text-gray-900 focus:ring-2 focus:ring-purple-100 outline-none transition-all"
                       placeholder="State"
                     />
                   </div>
 
-                  <button
-                    type="submit"
-                    className="w-full py-5 bg-gray-900 text-white rounded-2xl font-body font-bold text-sm uppercase tracking-widest hover:bg-[var(--color-primary)] transition-all flex items-center justify-center gap-3 group"
-                  >
+                  <button type="submit" className="w-full py-5 bg-gray-900 text-white rounded-2xl font-body font-bold text-sm uppercase tracking-widest hover:bg-[var(--color-primary)] transition-all flex items-center justify-center gap-3 group">
                     <span>Continue to Payment</span>
                     <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-2" />
                   </button>
@@ -312,35 +343,32 @@ const PaymentPage = () => {
               <div className="bg-white rounded-[40px] shadow-sm border border-gray-100 p-8 md:p-12 animate-fade-in">
                 <div className="mb-12 flex items-center justify-between">
                   <div>
-                    <h2 className="text-4xl font-display font-bold text-gray-900 mb-4 tracking-tight">Paytm Payment</h2>
-                    <p className="text-gray-400 font-body">Complete your purchase securely via Paytm.</p>
+                    <h2 className="text-4xl font-display font-bold text-gray-900 mb-4 tracking-tight">Secure Payment</h2>
+                    <p className="text-gray-400 font-body">Complete your purchase securely via Razorpay.</p>
                   </div>
-                  <button onClick={() => setStep(1)} className="text-[10px] font-body font-bold text-[var(--color-primary)] uppercase tracking-widest hover:underline underline-offset-4">Back to info</button>
+                  <button onClick={() => setStep(1)} className="text-[10px] font-body font-bold text-[var(--color-primary)] uppercase tracking-widest hover:underline underline-offset-4">
+                    Back to info
+                  </button>
                 </div>
 
-                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-8 rounded-[30px] border-2 border-blue-100 mb-12">
+                <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-8 rounded-[30px] border-2 border-purple-100 mb-12">
                   <div className="flex items-center gap-6">
                     <div className="w-16 h-16 rounded-2xl bg-[var(--color-primary)] flex items-center justify-center">
-                      <Wallet className="w-8 h-8 text-white" />
+                      <CreditCard className="w-8 h-8 text-white" />
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-display font-bold text-lg text-gray-900">Paytm Secure Checkout</h4>
-                      <p className="text-xs font-body text-gray-600 uppercase tracking-widest">UPI, Wallet, NetBanking, Cards & More</p>
+                      <h4 className="font-display font-bold text-lg text-gray-900">Razorpay Secure Checkout</h4>
+                      <p className="text-xs font-body text-gray-600 uppercase tracking-widest">UPI · Cards · Net Banking · Wallets</p>
                     </div>
                   </div>
                 </div>
 
-                {(import.meta.env.MODE === 'development' || process.env.NODE_ENV === 'development') && (
+                {import.meta.env.DEV && (
                   <div className="mb-8 p-4 bg-yellow-50 border-2 border-yellow-200 rounded-2xl">
                     <label className="flex items-center gap-3 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={useTestMode}
-                        onChange={(e) => setUseTestMode(e.target.checked)}
-                        className="w-5 h-5 rounded"
-                      />
+                      <input type="checkbox" checked={useTestMode} onChange={(e) => setUseTestMode(e.target.checked)} className="w-5 h-5 rounded" />
                       <span className="text-xs font-body font-bold text-yellow-700 uppercase tracking-widest">
-                        🧪 Test Mode - Skip Payment Gateway
+                        🧪 Test Mode — Skip Payment Gateway
                       </span>
                     </label>
                     <p className="text-xs text-yellow-600 mt-2 ml-8">Order will be marked as paid immediately for testing purposes</p>
@@ -357,7 +385,7 @@ const PaymentPage = () => {
                   ) : (
                     <>
                       <CheckCircle2 className="w-6 h-6" />
-                      <span>Pay Securely with Paytm</span>
+                      <span>Pay ₹{getFinalTotal()} Securely</span>
                     </>
                   )}
                 </button>
@@ -385,7 +413,7 @@ const PaymentPage = () => {
                 Your Selection
               </h3>
 
-              <div className="space-y-6 mb-10 max-h-72 overflow-y-auto pr-2 custom-scrollbar">
+              <div className="space-y-6 mb-10 max-h-72 overflow-y-auto pr-2">
                 {cart.map((item) => (
                   <div key={item.id} className="flex gap-4 group">
                     <div className="w-16 h-16 rounded-2xl overflow-hidden bg-gray-50 flex-shrink-0">
@@ -395,9 +423,7 @@ const PaymentPage = () => {
                       <h4 className="text-sm font-body font-bold text-gray-900 truncate max-w-[150px]">{item.name}</h4>
                       <p className="text-[10px] font-body text-gray-400 uppercase tracking-widest">Qty: {item.quantity}{item.size ? ` • Size: ${item.size}` : ''}</p>
                     </div>
-                    <div className="flex items-center font-display font-bold text-gray-900">
-                      ₹{item.price * item.quantity}
-                    </div>
+                    <div className="flex items-center font-display font-bold text-gray-900">₹{item.price * item.quantity}</div>
                   </div>
                 ))}
               </div>

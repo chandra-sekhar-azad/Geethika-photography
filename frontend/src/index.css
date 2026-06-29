@@ -210,42 +210,11 @@
   .text-gradient {
     @apply bg-clip-text text-transparent bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-light)];
   }
-  .pt-12 {
-    padding-top: 1.2rem !important;
-  }
-  .pt-16 {
-    padding-top: 1rem !important;
-  }
-  .pb-8 {
-    padding-bottom: 1rem !important;
-  }
-  .mb-6 {
-    margin-bottom: 0.1rem !important;
-  }
-  .gap-8 {
-    gap: 1rem !important;
-  }
-  .mt-32 {
-    margin-top: -2rem !important;
-  }
   .animate-float {
     animation: float 6s ease-in-out infinite;
   }
   .animate-marquee {
     animation: marquee 40s linear infinite;
-  }
-}
-
-/* Override: force .lg:px-20 to zero horizontal padding at desktop
-   and set container-custom padding at desktop to 1rem */
-@media (min-width: 1024px) {
-  .lg\:px-20 {
-    padding-left: 0rem !important;
-    padding-right: 0rem !important;
-  }
-  .container-custom {
-    padding-left: 1rem !important;
-    padding-right: 1rem !important;
   }
 }
 
