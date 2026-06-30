@@ -4,7 +4,6 @@ import { useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import WhatsAppFloat from './components/WhatsAppFloat';
-import BackendWakeup from './components/BackendWakeup';
 import PageTransition from './components/PageTransition';
 import AdminLayout from './components/AdminLayout';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -68,7 +67,6 @@ function App() {
       <CartProvider>
         <WishlistProvider>
           <Router>
-            <BackendWakeup />
             <Routes>
               {/* Admin Login Route (no layout) */}
               <Route path="/admin/login" element={<AdminLogin />} />

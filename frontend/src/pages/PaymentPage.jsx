@@ -13,7 +13,7 @@ const PaymentPage = () => {
 
   const [step, setStep] = useState(1); // 1: Details, 2: Payment
   const [loading, setLoading] = useState(false);
-  const [useTestMode, setUseTestMode] = useState(false);
+  const [useTestMode, setUseTestMode] = useState(true);
 
   const [formData, setFormData] = useState({
     name: user?.name || '',
@@ -363,7 +363,7 @@ const PaymentPage = () => {
                   </div>
                 </div>
 
-                {import.meta.env.DEV && (
+                {(import.meta.env.DEV || true) && (
                   <div className="mb-8 p-4 bg-yellow-50 border-2 border-yellow-200 rounded-2xl">
                     <label className="flex items-center gap-3 cursor-pointer">
                       <input type="checkbox" checked={useTestMode} onChange={(e) => setUseTestMode(e.target.checked)} className="w-5 h-5 rounded" />
