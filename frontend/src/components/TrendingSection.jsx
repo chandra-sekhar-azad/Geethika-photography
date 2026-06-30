@@ -6,62 +6,67 @@ const FADE_MS = 200;
 
 const TrendingSection = () => {
   const navigate = useNavigate();
-  const [products, setProducts] = useState([]);
+  const [allTrending, setAllTrending] = useState([]); // all trending products (valentine=true)
+  const [products, setProducts] = useState([]);        // displayed products
+  const [categories, setCategories] = useState([]);    // tabs: ['All', ...only cats with products]
   const [initialLoading, setInitialLoading] = useState(true);
   const [gridVisible, setGridVisible] = useState(true);
   const hasLoadedOnce = useRef(false);
   const [activeTab, setActiveTab] = useState('All');
 
-  const categories = ['All', 'Mugs', 'T-Shirts', 'Frames', 'Gifts'];
-
+  // On mount: fetch all trending products once, then derive category tabs from them
   useEffect(() => {
-    let cancelled = false;
     const controller = new AbortController();
 
-    const run = async () => {
-      const isTabChange = hasLoadedOnce.current;
-
-      if (isTabChange) {
-        setGridVisible(false);
-        await new Promise((r) => setTimeout(r, FADE_MS));
-        if (cancelled) return;
-      } else {
-        setInitialLoading(true);
-      }
-
-      try {
-        let url = `${import.meta.env.VITE_API_URL}/api/products?limit=8`;
-        if (activeTab !== 'All') {
-          let categorySlug = activeTab.toLowerCase();
-          if (activeTab === 'Frames') categorySlug = 'photo-frames';
-          if (activeTab === 'Gifts') categorySlug = 'personalised-gifts';
-          url += `&category=${categorySlug}`;
-        }
-
-        const response = await fetch(url, { signal: controller.signal });
-        const data = await response.json();
-        if (cancelled) return;
-        setProducts(data.products || []);
-      } catch (error) {
-        if (error.name === 'AbortError') return;
-        console.error('Failed to fetch products:', error);
-        if (!cancelled) setProducts([]);
-      } finally {
-        if (cancelled) return;
+    fetch(`${import.meta.env.VITE_API_URL}/api/products?limit=100&valentine=true`, {
+      signal: controller.signal,
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        const trending = data.products || [];
+        setAllTrending(trending);
+        setProducts(trending.slice(0, 8));
         setInitialLoading(false);
         hasLoadedOnce.current = true;
-        requestAnimationFrame(() => {
-          if (!cancelled) setGridVisible(true);
-        });
-      }
-    };
 
-    run();
-    return () => {
-      cancelled = true;
-      controller.abort();
-    };
-  }, [activeTab]);
+        // Derive unique categories that have at least one trending product
+        const seen = new Set();
+        const cats = ['All'];
+        trending.forEach((p) => {
+          const name = p.category_name;
+          if (name && !seen.has(name)) {
+            seen.add(name);
+            cats.push(name);
+          }
+        });
+        setCategories(cats);
+      })
+      .catch((err) => {
+        if (err.name !== 'AbortError') {
+          console.error('Failed to fetch trending products:', err);
+          setInitialLoading(false);
+        }
+      });
+
+    return () => controller.abort();
+  }, []);
+
+  // When tab changes, filter from already-fetched allTrending
+  useEffect(() => {
+    if (!hasLoadedOnce.current) return;
+
+    setGridVisible(false);
+    setTimeout(() => {
+      if (activeTab === 'All') {
+        setProducts(allTrending.slice(0, 8));
+      } else {
+        setProducts(
+          allTrending.filter((p) => p.category_name === activeTab).slice(0, 8)
+        );
+      }
+      setGridVisible(true);
+    }, FADE_MS);
+  }, [activeTab, allTrending]);
 
   return (
     <section className="py-4 bg-[#F9F9F9]">
@@ -69,16 +74,16 @@ const TrendingSection = () => {
         {/* Section Header */}
         <div className="text-center mb-8 md:mb-12 lg:mb-16">
           <h2 className="section-title">Curated for Your Special Moments</h2>
-          
-          {/* Tabs */}
+
+          {/* Tabs — only show categories that have trending products */}
           <div className="flex flex-wrap justify-center gap-3 mt-4 md:mt-6 lg:mt-8">
             {categories.map((cat) => (
               <button
                 key={cat}
                 onClick={() => setActiveTab(cat)}
                 className={`px-6 py-2 rounded-full font-body text-sm font-medium transition-all duration-300 ${
-                  activeTab === cat 
-                    ? 'bg-[var(--color-primary)] text-white shadow-lg shadow-purple-200' 
+                  activeTab === cat
+                    ? 'bg-[var(--color-primary)] text-white shadow-lg shadow-purple-200'
                     : 'bg-white text-gray-500 border border-gray-100 hover:border-purple-200 hover:text-[var(--color-primary)]'
                 }`}
               >
@@ -107,7 +112,9 @@ const TrendingSection = () => {
                   {products.map((product, index) => (
                     <div
                       key={product.id}
-                      className={`animate-slide-up motion-reduce:animate-none ${products.length === 1 ? 'col-span-2 md:col-span-1' : ''}`}
+                      className={`animate-slide-up motion-reduce:animate-none ${
+                        products.length === 1 ? 'col-span-2 md:col-span-1' : ''
+                      }`}
                       style={{ animationDelay: `${index * 0.05}s` }}
                     >
                       <SimpleProductCard
@@ -128,10 +135,7 @@ const TrendingSection = () => {
 
         {/* View All */}
         <div className="text-center mt-8 md:mt-12 lg:mt-16">
-          <button
-            onClick={() => navigate('/shop')}
-            className="btn-outline"
-          >
+          <button onClick={() => navigate('/shop')} className="btn-outline">
             Explore All Products
           </button>
         </div>

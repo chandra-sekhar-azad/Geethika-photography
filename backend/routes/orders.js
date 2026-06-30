@@ -357,4 +357,31 @@ router.patch('/:id/status', authenticate, isAdmin, async (req, res) => {
   }
 });
 
+// Delete a single order (admin only)
+router.delete('/:id', authenticate, isAdmin, async (req, res) => {
+  try {
+    const order = await Order.findByIdAndDelete(req.params.id);
+    if (!order) return res.status(404).json({ error: 'Order not found' });
+    res.json({ message: 'Order deleted successfully' });
+  } catch (error) {
+    console.error('Delete order error:', error);
+    res.status(500).json({ error: 'Failed to delete order' });
+  }
+});
+
+// Delete multiple orders (admin only) — for bulk test cleanup
+router.delete('/', authenticate, isAdmin, async (req, res) => {
+  try {
+    const { ids } = req.body;
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ error: 'Provide an array of order ids to delete' });
+    }
+    const result = await Order.deleteMany({ _id: { $in: ids } });
+    res.json({ message: `Deleted ${result.deletedCount} order(s)` });
+  } catch (error) {
+    console.error('Bulk delete orders error:', error);
+    res.status(500).json({ error: 'Failed to delete orders' });
+  }
+});
+
 export default router;
