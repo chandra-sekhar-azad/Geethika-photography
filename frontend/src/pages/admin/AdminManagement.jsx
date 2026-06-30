@@ -34,7 +34,7 @@ const AdminManagement = () => {
         }
       } catch (error) {
         console.error('Token parse error:', error);
-        window.location.href = '/admin/login';
+        window.location.href = '/login';
         return;
       }
     }
@@ -68,7 +68,7 @@ const AdminManagement = () => {
     
     if (!isAuthenticated()) {
       alert('Your session has expired. Please login again.');
-      window.location.href = '/admin/login';
+      window.location.href = '/login';
       return;
     }
 

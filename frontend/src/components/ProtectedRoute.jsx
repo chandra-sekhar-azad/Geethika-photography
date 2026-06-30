@@ -56,9 +56,9 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
   if (!user) {
     return (
       <Navigate
-        to={requireAdmin ? "/admin/login" : "/login"}
+        to="/login"
         replace
-        state={requireAdmin ? undefined : { from: { pathname: location.pathname, search: location.search } }}
+        state={{ from: { pathname: location.pathname, search: location.search } }}
       />
     );
   }
@@ -69,7 +69,7 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
         <div className="bg-white p-8 rounded-lg shadow-lg max-w-md text-center">
           <h2 className="text-2xl font-bold text-red-600 mb-4">Access Denied</h2>
           <p className="text-gray-600 mb-6">You don't have permission to access this page.</p>
-          <a href="/admin/login" className="text-valentine-red hover:underline">Go to Admin Login</a>
+          <a href="/login" className="text-valentine-red hover:underline">Go to Login</a>
         </div>
       </div>
     );

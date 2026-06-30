@@ -50,7 +50,7 @@ const ProductManagement = () => {
     // Check authentication on mount
     if (!isAuthenticated() || !isAdmin()) {
       alert('Please login as admin to access this page');
-      window.location.href = '/admin/login';
+      window.location.href = '/login';
       return;
     }
     
@@ -181,7 +181,7 @@ const ProductManagement = () => {
     // Check authentication before submitting
     if (!isAuthenticated() || !isAdmin()) {
       alert('Your session has expired. Please login again.');
-      window.location.href = '/admin/login';
+      window.location.href = '/login';
       return;
     }
 
@@ -189,7 +189,7 @@ const ProductManagement = () => {
     
     if (!token) {
       alert('No authentication token found. Please login again.');
-      window.location.href = '/admin/login';
+      window.location.href = '/login';
       return;
     }
 
@@ -246,7 +246,7 @@ const ProductManagement = () => {
       if (response.status === 401) {
         alert('Authentication failed. Please login again.');
         localStorage.clear();
-        window.location.href = '/admin/login';
+        window.location.href = '/login';
         return;
       }
 
@@ -271,7 +271,7 @@ const ProductManagement = () => {
     // Check authentication
     if (!isAuthenticated() || !isAdmin()) {
       alert('Your session has expired. Please login again.');
-      window.location.href = '/admin/login';
+      window.location.href = '/login';
       return;
     }
 
@@ -290,7 +290,7 @@ const ProductManagement = () => {
       if (response.status === 401) {
         alert('Authentication failed. Please login again.');
         localStorage.clear();
-        window.location.href = '/admin/login';
+        window.location.href = '/login';
         return;
       }
 

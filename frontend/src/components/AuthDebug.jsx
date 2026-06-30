@@ -129,7 +129,7 @@ const AuthDebug = () => {
           <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs">
             <p className="text-yellow-800 font-semibold mb-1">Action Required:</p>
             <p className="text-yellow-700">
-              Go to <a href="/admin/login" className="underline">/admin/login</a> and login with admin credentials.
+              Go to <a href="/login" className="underline">/admin/login</a> and login with admin credentials.
             </p>
           </div>
         ) : null}
@@ -139,7 +139,7 @@ const AuthDebug = () => {
         <button
           onClick={() => {
             localStorage.clear();
-            window.location.href = '/admin/login';
+            window.location.href = '/login';
           }}
           className="w-full text-xs bg-red-50 text-red-700 px-3 py-2 rounded hover:bg-red-100 transition-colors"
         >

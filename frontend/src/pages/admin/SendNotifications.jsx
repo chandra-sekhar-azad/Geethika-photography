@@ -91,7 +91,7 @@ const SendNotifications = () => {
       console.error('Failed to load notification assets:', error);
       if (error.message.includes('Authentication')) {
         alert('Your session has expired. Please log in again.');
-        navigate('/admin/login');
+        navigate('/login');
       } else {
         setErrorMsg('Could not fetch user registry or notification history.');
       }
@@ -189,7 +189,7 @@ const SendNotifications = () => {
       console.error('Submission failed:', error);
       if (error.message.includes('Authentication')) {
         alert('Your session has expired. Please log in again.');
-        navigate('/admin/login');
+        navigate('/login');
       } else {
         setErrorMsg(error.message || 'Failed to dispatch notifications. Verify server details.');
       }

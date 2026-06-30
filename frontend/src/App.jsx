@@ -28,7 +28,6 @@ import TermsConditionsPage from './pages/TermsConditionsPage';
 import RefundPolicyPage from './pages/RefundPolicyPage';
 import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
-import AdminLogin from './pages/admin/AdminLogin';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import ProductManagement from './pages/admin/ProductManagement';
 import ServiceManagement from './pages/admin/ServiceManagement';
@@ -68,8 +67,8 @@ function App() {
         <WishlistProvider>
           <Router>
             <Routes>
-              {/* Admin Login Route (no layout) */}
-              <Route path="/admin/login" element={<AdminLogin />} />
+              {/* Admin Login — redirects to main login */}
+              <Route path="/admin/login" element={<Navigate to="/login" replace />} />
 
               {/* Admin Routes */}
               <Route path="/admin/*" element={

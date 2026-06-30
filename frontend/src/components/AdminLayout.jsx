@@ -9,13 +9,12 @@ import { useAuth } from '../context/AuthContext';
 const AdminLayout = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    window.location.href = '/admin/login';
+    logout();
+    navigate('/login', { replace: true });
   };
 
   const menuItems = [

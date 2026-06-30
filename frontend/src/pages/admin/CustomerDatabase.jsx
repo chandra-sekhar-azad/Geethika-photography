@@ -35,7 +35,7 @@ const CustomerDatabase = () => {
       console.error('Failed to fetch customers:', error);
       if (error.message.includes('Authentication')) {
         alert('Your session has expired. Please log in again.');
-        navigate('/admin/login');
+        navigate('/login');
       } else {
         alert(`Error loading customers: ${error.message}. Make sure the backend server is running.`);
       }
@@ -58,7 +58,7 @@ const CustomerDatabase = () => {
       console.error('Failed to create customer:', error);
       if (error.message.includes('Authentication')) {
         alert('Your session has expired. Please log in again.');
-        navigate('/admin/login');
+        navigate('/login');
       } else {
         alert(error.message || 'Failed to create customer');
       }
