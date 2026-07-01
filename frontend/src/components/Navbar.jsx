@@ -213,12 +213,9 @@ const Navbar = () => {
                 e.target.src = "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=100&h=100&fit=crop";
               }}
             />
-            <div className="flex flex-col">
-              <span className="text-[28px] font-display font-bold tracking-tight text-gray-900 leading-none">
-                Geethika
-              </span>
-              <span className="text-[15px] font-body font-bold text-[var(--color-primary)] uppercase tracking-[0.2em] leading-none mt-1">
-                Digital World
+            <div className="flex items-center">
+              <span className="text-[20px] font-display font-bold tracking-tight text-gray-900 leading-none whitespace-nowrap">
+                Geethika <span className="text-[var(--color-primary)]">Digital World</span>
               </span>
             </div>
           </Link>
