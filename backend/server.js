@@ -111,12 +111,10 @@ else if (process.env.NODE_ENV === 'production') app.use(morgan('combined'));
 app.use('/uploads', express.static(uploadsDir));
 
 // ─── Frontend path ────────────────────────────────────────────────────────────
-// Set FRONTEND_PATH in your .env to the absolute path of public_html.
-// e.g. FRONTEND_PATH=/home/u123456/public_html
-// Falls back to ../public_html relative to this file (works on most Hostinger setups).
+// Hardcoded as primary, env var as override for flexibility
 const frontendPath = process.env.FRONTEND_PATH
   ? path.resolve(process.env.FRONTEND_PATH)
-  : path.resolve(__dirname, '../public_html');
+  : path.resolve('/home/u327292494/domains/geethikadigitalworld.com/public_html');
 
 const frontendExists = fs.existsSync(frontendPath);
 if (frontendExists) {
