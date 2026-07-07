@@ -35,39 +35,34 @@ jobs:
           VITE_BUSINESS_PHONE: "919492686421"
           VITE_WHATSAPP_NUMBER: "919492686421"
 
-      - name: Setup SSH key
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
+      - name: Install sshpass
+        run: sudo apt-get install -y sshpass
 
-      - name: Deploy frontend via rsync
+      - name: Deploy frontend via sshpass + rsync
         run: |
-          rsync -avz --delete \
-            -e "ssh -i ~/.ssh/deploy_key -p ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no -o ConnectTimeout=30" \
+          sshpass -p "${{ secrets.SSH_PASSWORD }}" rsync -avz --delete \
+            -e "ssh -p ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no -o ConnectTimeout=30" \
             frontend/dist/ \
             ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:${{ secrets.SSH_TARGET_PATH }}/
-        continue-on-error: false
 
-      - name: Deploy backend files via rsync
+      - name: Deploy backend files via sshpass + rsync
         run: |
-          rsync -avz \
-            -e "ssh -i ~/.ssh/deploy_key -p ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no -o ConnectTimeout=30" \
+          sshpass -p "${{ secrets.SSH_PASSWORD }}" rsync -avz \
+            -e "ssh -p ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no -o ConnectTimeout=30" \
             backend/server.js \
             backend/config/whatsapp.js \
             backend/routes/orders.js \
             ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:/home/u327292494/domains/geethikadigitalworld.com/nodejs/
         continue-on-error: true
 
-      - name: Write .env and restart Node app via SSH
+      - name: Write .env and restart Node app
         run: |
-          ssh -i ~/.ssh/deploy_key \
+          sshpass -p "${{ secrets.SSH_PASSWORD }}" ssh \
             -p ${{ secrets.SSH_PORT }} \
             -o StrictHostKeyChecking=no \
             -o ConnectTimeout=30 \
-            ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} << 'SSHEOF'
-          cat > ~/domains/geethikadigitalworld.com/nodejs/.env << ENVEOF
+            ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} \
+            "cat > ~/domains/geethikadigitalworld.com/nodejs/.env << 'ENVEOF'
           PORT=5000
           NODE_ENV=production
           MONGODB_URI=${{ secrets.MONGODB_URI }}
@@ -92,7 +87,5 @@ jobs:
           ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }}
           ENABLE_TEST_PAYMENTS=true
           ENVEOF
-          touch ~/domains/geethikadigitalworld.com/nodejs/tmp/restart.txt
-          echo "Done"
-          SSHEOF
+          touch ~/domains/geethikadigitalworld.com/nodejs/tmp/restart.txt && echo Done"
         continue-on-error: true
