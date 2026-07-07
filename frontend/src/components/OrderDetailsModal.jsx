@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Download, Upload, X, Image as ImageIcon, CheckCircle, XCircle, MapPin, Phone, Mail, DollarSign, AlertCircle } from 'lucide-react';
+import { Download, Upload, X, Image as ImageIcon, CheckCircle, XCircle, MapPin, Phone, Mail, DollarSign, AlertCircle, FileText } from 'lucide-react';
 import { fullUrl } from '../lib/utils';
 
 const OrderDetailsModal = ({ order, onClose, onUpdateStatus }) => {
@@ -148,14 +148,76 @@ const OrderDetailsModal = ({ order, onClose, onUpdateStatus }) => {
     }
   };
 
+  const downloadInvoice = () => {
+    const o = updatedOrder;
+    const date = new Date(o.createdAt || o.created_at);
+    const dateStr = isNaN(date) ? '—' : date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    const itemsRows = (o.items || []).map((item, i) => `
+      <tr style="border-bottom:1px solid #f0f0f0;">
+        <td style="padding:10px 8px;">${i + 1}</td>
+        <td style="padding:10px 8px;">${item.product_name || '—'}</td>
+        <td style="padding:10px 8px;text-align:center;">${item.quantity}</td>
+        <td style="padding:10px 8px;text-align:right;">₹${parseFloat(item.price).toLocaleString('en-IN')}</td>
+        <td style="padding:10px 8px;text-align:right;">₹${parseFloat(item.price * item.quantity).toLocaleString('en-IN')}</td>
+      </tr>`).join('');
+    const address = [o.shipping_address || o.shipping_info?.address, o.shipping_info?.city, o.shipping_info?.state, o.shipping_info?.pincode].filter(Boolean).join(', ');
+    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>Invoice - ${o.order_number}</title>
+    <style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;color:#222;background:#fff;}
+    .page{max-width:720px;margin:0 auto;padding:40px 32px;}.header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #9D4E8D;padding-bottom:20px;margin-bottom:28px;}
+    .brand-name{font-size:22px;font-weight:800;color:#9D4E8D;}.brand-sub{font-size:11px;color:#888;margin-top:2px;}.brand-contact{font-size:11px;color:#555;margin-top:6px;line-height:1.6;}
+    .invoice-title{font-size:28px;font-weight:800;color:#222;text-align:right;}.invoice-meta{font-size:11px;color:#888;text-align:right;margin-top:4px;}.invoice-num{font-size:13px;font-weight:700;color:#9D4E8D;text-align:right;margin-top:2px;}
+    .section{display:flex;gap:24px;margin-bottom:24px;}.box{flex:1;background:#f9f6fb;border-radius:8px;padding:14px 16px;}.box-title{font-size:10px;font-weight:700;text-transform:uppercase;color:#9D4E8D;letter-spacing:1px;margin-bottom:8px;}.box p{font-size:12px;color:#333;line-height:1.7;}
+    table{width:100%;border-collapse:collapse;margin-bottom:20px;}thead tr{background:#9D4E8D;color:#fff;}thead th{padding:10px 8px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;}
+    tbody tr:nth-child(even){background:#fdf7ff;}.totals{margin-left:auto;width:260px;}.totals-row{display:flex;justify-content:space-between;padding:6px 0;font-size:13px;border-bottom:1px solid #f0f0f0;}
+    .totals-row.grand{border-top:2px solid #9D4E8D;border-bottom:none;margin-top:4px;padding-top:10px;font-weight:800;font-size:16px;color:#9D4E8D;}
+    .footer{margin-top:40px;text-align:center;font-size:11px;color:#aaa;border-top:1px solid #eee;padding-top:16px;}.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:#d4edda;color:#155724;}
+    @media print{body{-webkit-print-color-adjust:exact;}}</style></head><body>
+    <div class="page">
+      <div class="header">
+        <div><div class="brand-name">Geethika Digital World</div><div class="brand-sub">Customised Gifts &amp; Photography</div>
+        <div class="brand-contact">🌐 geethikadigitalworld.com<br>📞 +91 94926 86421<br>📧 geethikaphotoplanet9@gmail.com<br>📍 Eluru, Andhra Pradesh, India</div></div>
+        <div><div class="invoice-title">INVOICE</div><div class="invoice-num">${o.order_number}</div><div class="invoice-meta">Date: ${dateStr}</div>
+        <div class="invoice-meta" style="margin-top:6px;">Payment: <span class="badge">${(o.payment_status||'').toUpperCase()}</span></div></div>
+      </div>
+      <div class="section">
+        <div class="box"><div class="box-title">Bill To</div><p><strong>${o.customer_name}</strong></p><p>📞 ${o.customer_phone||'—'}</p><p>✉️ ${o.customer_email||'—'}</p></div>
+        <div class="box"><div class="box-title">Delivery Address</div><p>${address||'—'}</p></div>
+        <div class="box"><div class="box-title">Order Info</div><p><strong>Status:</strong> ${(o.order_status||'').toUpperCase()}</p><p><strong>Payment:</strong> ${(o.payment_method||'').toUpperCase()}</p>${o.razorpay_payment_id?`<p><strong>Txn ID:</strong> ${o.razorpay_payment_id}</p>`:''}</div>
+      </div>
+      <table><thead><tr><th>#</th><th>Item</th><th style="text-align:center;">Qty</th><th style="text-align:right;">Unit Price</th><th style="text-align:right;">Amount</th></tr></thead>
+      <tbody>${itemsRows||'<tr><td colspan="5" style="padding:12px;text-align:center;color:#aaa;">No items</td></tr>'}</tbody></table>
+      <div class="totals">
+        ${parseFloat(o.subtotal||0)>0?`<div class="totals-row"><span>Subtotal</span><span>₹${parseFloat(o.subtotal).toLocaleString('en-IN')}</span></div>`:''}
+        ${parseFloat(o.service_charge||0)>0?`<div class="totals-row"><span>Service Charge</span><span>₹${parseFloat(o.service_charge).toLocaleString('en-IN')}</span></div>`:''}
+        ${parseFloat(o.shipping_cost||0)>0?`<div class="totals-row"><span>Shipping</span><span>₹${parseFloat(o.shipping_cost).toLocaleString('en-IN')}</span></div>`:''}
+        ${parseFloat(o.discount||0)>0?`<div class="totals-row"><span>Discount</span><span>-₹${parseFloat(o.discount).toLocaleString('en-IN')}</span></div>`:''}
+        <div class="totals-row grand"><span>Total</span><span>₹${parseFloat(o.total).toLocaleString('en-IN')}</span></div>
+      </div>
+      <div class="footer">Thank you for shopping with Geethika Digital World! 💜 &nbsp;|&nbsp; geethikadigitalworld.com &nbsp;|&nbsp; +91 94926 86421</div>
+    </div>
+    <script>window.onload=()=>{window.print();}</script></body></html>`;
+    const win = window.open('', '_blank');
+    win.document.write(html);
+    win.document.close();
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg max-w-5xl w-full max-h-[95vh] overflow-y-auto">
         <div className="sticky top-0 bg-white border-b z-10 p-6 flex justify-between items-center">
           <h2 className="text-2xl font-bold text-gray-900">Order Details</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-            <X className="w-6 h-6" />
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={downloadInvoice}
+              className="flex items-center gap-2 px-4 py-2 bg-[#9D4E8D] text-white rounded-lg hover:bg-[#7d3a6d] transition-colors text-sm font-semibold"
+            >
+              <FileText className="w-4 h-4" />
+              Download Invoice
+            </button>
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+              <X className="w-6 h-6" />
+            </button>
+          </div>
         </div>
 
         <div className="p-6 space-y-6">
