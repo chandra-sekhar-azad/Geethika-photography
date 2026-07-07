@@ -175,7 +175,7 @@ const OrderDetailsModal = ({ order, onClose, onUpdateStatus }) => {
     <div class="page">
       <div class="header">
         <div><div class="brand-name">Geethika Digital World</div><div class="brand-sub">Customised Gifts &amp; Photography</div>
-        <div class="brand-contact">🌐 geethikadigitalworld.com<br>📞 +91 94926 86421<br>📧 geethikaphotoplanet9@gmail.com<br>📍 Eluru, Andhra Pradesh, India</div></div>
+        <div class="brand-contact">🌐 geethikadigitalworld.com<br>📞 +91 94926 86421<br>📧 geethikaphotoplanet9@gmail.com<br>📍 Bhimavaram, Andhra Pradesh, India</div></div>
         <div><div class="invoice-title">INVOICE</div><div class="invoice-num">${o.order_number}</div><div class="invoice-meta">Date: ${dateStr}</div>
         <div class="invoice-meta" style="margin-top:6px;">Payment: <span class="badge">${(o.payment_status||'').toUpperCase()}</span></div></div>
       </div>
