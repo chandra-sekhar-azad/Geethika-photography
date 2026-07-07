@@ -62,30 +62,5 @@ jobs:
             -o StrictHostKeyChecking=no \
             -o ConnectTimeout=30 \
             ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} \
-            "cat > ~/domains/geethikadigitalworld.com/nodejs/.env << 'ENVEOF'
-          PORT=5000
-          NODE_ENV=production
-          MONGODB_URI=${{ secrets.MONGODB_URI }}
-          JWT_SECRET=${{ secrets.JWT_SECRET }}
-          CLOUDINARY_CLOUD_NAME=${{ secrets.CLOUDINARY_CLOUD_NAME }}
-          CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }}
-          CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }}
-          RAZORPAY_KEY_ID=${{ secrets.RAZORPAY_KEY_ID }}
-          RAZORPAY_KEY_SECRET=${{ secrets.RAZORPAY_KEY_SECRET }}
-          FRONTEND_URL=https://geethikadigitalworld.com
-          BACKEND_URL=https://geethikadigitalworld.com
-          FRONTEND_PATH=/home/u327292494/domains/geethikadigitalworld.com/public_html
-          EMAIL_USER=${{ secrets.EMAIL_USER }}
-          EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}
-          WHATSAPP_NUMBER=919492686421
-          WHATSAPP_VERIFY_TOKEN=geethika_verify_token
-          CHATMITRA_API_KEY=${{ secrets.CHATMITRA_API_KEY }}
-          BUSINESS_NAME=Geethika Digital World
-          BUSINESS_EMAIL=geethikaphotoplanet9@gmail.com
-          BUSINESS_PHONE=919492686421
-          ADMIN_EMAIL=admin@geethikadigitalworld.com
-          ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }}
-          ENABLE_TEST_PAYMENTS=true
-          ENVEOF
-          touch ~/domains/geethikadigitalworld.com/nodejs/tmp/restart.txt && echo Done"
+            "printf '%s' '${{ secrets.BACKEND_ENV_FILE }}' > ~/domains/geethikadigitalworld.com/nodejs/.env && touch ~/domains/geethikadigitalworld.com/nodejs/tmp/restart.txt && echo Done"
         continue-on-error: true
