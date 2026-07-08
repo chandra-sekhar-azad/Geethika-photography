@@ -84,6 +84,13 @@ const Footer = () => {
             </a>
           </div>
         </div>
+
+        {/* Developer Credit */}
+        <div className="pt-4 text-center">
+          <p className="text-xs text-gray-500 font-body tracking-[0.15em]">
+            Designed &amp; Developed by <span className="font-bold text-gray-700 text-sm">Webgenixx ❤️</span>
+          </p>
+        </div>
       </div>
     </footer>
   );
