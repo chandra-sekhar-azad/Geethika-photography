@@ -111,10 +111,15 @@ else if (process.env.NODE_ENV === 'production') app.use(morgan('combined'));
 app.use('/uploads', express.static(uploadsDir));
 
 // ─── Frontend path ────────────────────────────────────────────────────────────
-// Hardcoded as primary, env var as override for flexibility
+// Priority order:
+// 1. FRONTEND_PATH env var (set in Hostinger Environment Variables panel)
+// 2. public folder inside nodejs app dir (persistent, won't get wiped)
+// 3. public_html (standard Hostinger location)
 const frontendPath = process.env.FRONTEND_PATH
   ? path.resolve(process.env.FRONTEND_PATH)
-  : path.resolve('/home/u327292494/domains/geethikadigitalworld.com/public_html');
+  : fs.existsSync(path.join(__dirname, 'public'))
+    ? path.join(__dirname, 'public')
+    : path.resolve('/home/u327292494/domains/geethikadigitalworld.com/public_html');
 
 const frontendExists = fs.existsSync(frontendPath);
 if (frontendExists) {
