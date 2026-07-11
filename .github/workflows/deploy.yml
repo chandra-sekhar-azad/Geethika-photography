@@ -64,5 +64,5 @@ jobs:
             -o StrictHostKeyChecking=no \
             -o ConnectTimeout=30 \
             ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} \
-            "printf '%s' '${{ secrets.BACKEND_ENV_FILE }}' > ~/domains/geethikadigitalworld.com/nodejs/.env && touch ~/domains/geethikadigitalworld.com/nodejs/tmp/restart.txt && echo Done"
+            "printf '%s' '${{ secrets.BACKEND_ENV_FILE }}' > ~/domains/geethikadigitalworld.com/nodejs/.env && mkdir -p ~/domains/geethikadigitalworld.com/nodejs/tmp && touch ~/domains/geethikadigitalworld.com/nodejs/tmp/restart.txt && echo Done"
         continue-on-error: true
