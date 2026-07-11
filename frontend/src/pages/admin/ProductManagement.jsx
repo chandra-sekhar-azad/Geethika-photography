@@ -11,6 +11,7 @@ const ProductManagement = () => {
   const [filterType, setFilterType] = useState('all'); // 'all', 'trending', 'regular'
   const [filterCategory, setFilterCategory] = useState('all'); // Category filter
   const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -177,19 +178,24 @@ const ProductManagement = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+
     // Check authentication before submitting
     if (!isAuthenticated() || !isAdmin()) {
       alert('Your session has expired. Please login again.');
       window.location.href = '/login';
+      setIsSubmitting(false);
       return;
     }
 
     const token = localStorage.getItem('token');
-    
+
     if (!token) {
       alert('No authentication token found. Please login again.');
       window.location.href = '/login';
+      setIsSubmitting(false);
       return;
     }
 
@@ -247,6 +253,7 @@ const ProductManagement = () => {
         alert('Authentication failed. Please login again.');
         localStorage.clear();
         window.location.href = '/login';
+        setIsSubmitting(false);
         return;
       }
 
@@ -262,6 +269,8 @@ const ProductManagement = () => {
     } catch (error) {
       console.error('Failed to save product:', error);
       alert('Failed to save product: ' + error.message);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -1181,9 +1190,10 @@ const ProductManagement = () => {
                     </button>
                     <button
                       type="submit"
-                      className="px-6 py-2 bg-valentine-red text-white rounded-lg hover:bg-valentine-darkRed"
+                      disabled={isSubmitting}
+                      className="px-6 py-2 bg-valentine-red text-white rounded-lg hover:bg-valentine-darkRed disabled:opacity-60 disabled:cursor-not-allowed"
                     >
-                      {editingProduct ? 'Update' : 'Create'} Product
+                      {isSubmitting ? 'Saving...' : (editingProduct ? 'Update' : 'Create') + ' Product'}
                     </button>
                   </div>
                 </form>
