@@ -111,22 +111,21 @@ else if (process.env.NODE_ENV === 'production') app.use(morgan('combined'));
 app.use('/uploads', express.static(uploadsDir));
 
 // ─── Frontend path ────────────────────────────────────────────────────────────
-// Priority order:
-// 1. FRONTEND_PATH env var (set in Hostinger Environment Variables panel)
-// 2. public folder inside nodejs app dir (persistent, won't get wiped)
-// 3. public_html (standard Hostinger location)
-const frontendPath = process.env.FRONTEND_PATH
-  ? path.resolve(process.env.FRONTEND_PATH)
-  : fs.existsSync(path.join(__dirname, 'public'))
-    ? path.join(__dirname, 'public')
-    : path.resolve('/home/u327292494/domains/geethikadigitalworld.com/public_html');
+// Try multiple known locations in order — first one that exists wins
+const candidatePaths = [
+  process.env.FRONTEND_PATH ? path.resolve(process.env.FRONTEND_PATH) : null,
+  path.join(__dirname, 'public'),
+  path.resolve('/home/u327292494/domains/geethikadigitalworld.com/nodejs/public'),
+  path.resolve('/home/u327292494/domains/geethikadigitalworld.com/public_html'),
+].filter(Boolean);
 
-const frontendExists = fs.existsSync(frontendPath);
-if (frontendExists) {
+const frontendPath = candidatePaths.find(p => fs.existsSync(p) && fs.existsSync(path.join(p, 'index.html')));
+
+if (frontendPath) {
   console.log(`[frontend] Serving static files from: ${frontendPath}`);
   app.use(express.static(frontendPath));
 } else {
-  console.warn(`[frontend] No static files found at: ${frontendPath}`);
+  console.warn(`[frontend] No static files found in any candidate path:`, candidatePaths);
 }
 
 // Health check
@@ -161,15 +160,14 @@ app.use('/api/products/:productId/reviews', reviewRoutes);
 
 // React catch-all — serves index.html for every non-API route so React Router works
 app.get('*', (req, res) => {
-  const indexPath = path.join(frontendPath, 'index.html');
-  if (fs.existsSync(indexPath)) {
+  const indexPath = frontendPath ? path.join(frontendPath, 'index.html') : null;
+  if (indexPath && fs.existsSync(indexPath)) {
     res.sendFile(indexPath);
   } else {
-    // Frontend not deployed yet — return a helpful API info response
-    res.json({
+    res.status(503).json({
       message: 'Geethika Digital World API',
       version: '2.0.0',
-      note: 'Frontend not found. Set FRONTEND_PATH in .env to point to public_html.',
+      note: 'Frontend is being deployed. Please refresh in a moment.',
     });
   }
 });
