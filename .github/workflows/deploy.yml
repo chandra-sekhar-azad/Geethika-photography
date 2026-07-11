@@ -63,7 +63,7 @@ jobs:
             ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:/home/u327292494/domains/geethikadigitalworld.com/nodejs/
         continue-on-error: true
 
-      - name: Write .env and restart Node app
+      - name: Restart Node app
         run: |
           sshpass -p "${{ secrets.SSH_PASSWORD }}" ssh -4 \
             -p ${{ secrets.SSH_PORT }} \
@@ -71,26 +71,5 @@ jobs:
             -o ConnectTimeout=60 \
             -o ServerAliveInterval=10 \
             ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} \
-            "cat > ~/domains/geethikadigitalworld.com/nodejs/.env << 'ENVEOF'
-NODE_ENV=production
-PORT=5000
-MONGODB_URI=${{ secrets.MONGODB_URI }}
-JWT_SECRET=${{ secrets.JWT_SECRET }}
-CLOUDINARY_CLOUD_NAME=${{ secrets.CLOUDINARY_CLOUD_NAME }}
-CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }}
-CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }}
-RAZORPAY_KEY_ID=${{ secrets.RAZORPAY_KEY_ID }}
-RAZORPAY_KEY_SECRET=${{ secrets.RAZORPAY_KEY_SECRET }}
-FRONTEND_URL=https://geethikadigitalworld.com
-BACKEND_URL=https://geethikadigitalworld.com
-FRONTEND_PATH=/home/u327292494/domains/geethikadigitalworld.com/nodejs/public
-EMAIL_USER=${{ secrets.EMAIL_USER }}
-EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}
-WHATSAPP_NUMBER=919492686421
-WHATSAPP_VERIFY_TOKEN=geethika_verify_token
-BUSINESS_NAME=Geethika Digital World
-BUSINESS_EMAIL=geethikaphotoplanet9@gmail.com
-BUSINESS_PHONE=919492686421
-ENVEOF
-mkdir -p ~/domains/geethikadigitalworld.com/nodejs/tmp && touch ~/domains/geethikadigitalworld.com/nodejs/tmp/restart.txt && echo Done"
+            "mkdir -p ~/domains/geethikadigitalworld.com/nodejs/tmp && touch ~/domains/geethikadigitalworld.com/nodejs/tmp/restart.txt && echo Done"
         continue-on-error: true
