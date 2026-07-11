@@ -38,17 +38,23 @@ jobs:
       - name: Install sshpass
         run: sudo apt-get install -y sshpass
 
+      - name: Test SSH connectivity
+        run: |
+          echo "Testing SSH connection to ${{ secrets.SSH_HOST }} on port ${{ secrets.SSH_PORT }}"
+          nc -zv -w 10 ${{ secrets.SSH_HOST }} ${{ secrets.SSH_PORT }} && echo "Port is open" || echo "Port is closed/blocked"
+        continue-on-error: true
+
       - name: Deploy frontend via sshpass + rsync
         run: |
           sshpass -p "${{ secrets.SSH_PASSWORD }}" rsync -avz --delete \
-            -e "ssh -p ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no -o ConnectTimeout=30" \
+            -e "ssh -4 -p ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no -o ConnectTimeout=60 -o ServerAliveInterval=10" \
             frontend/dist/ \
             ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:/home/u327292494/domains/geethikadigitalworld.com/nodejs/public/
 
       - name: Deploy backend files via sshpass + rsync
         run: |
           sshpass -p "${{ secrets.SSH_PASSWORD }}" rsync -avz \
-            -e "ssh -p ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no -o ConnectTimeout=30" \
+            -e "ssh -4 -p ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no -o ConnectTimeout=60 -o ServerAliveInterval=10" \
             backend/server.js \
             backend/config/ \
             backend/middleware/ \
@@ -59,10 +65,11 @@ jobs:
 
       - name: Write .env and restart Node app
         run: |
-          sshpass -p "${{ secrets.SSH_PASSWORD }}" ssh \
+          sshpass -p "${{ secrets.SSH_PASSWORD }}" ssh -4 \
             -p ${{ secrets.SSH_PORT }} \
             -o StrictHostKeyChecking=no \
-            -o ConnectTimeout=30 \
+            -o ConnectTimeout=60 \
+            -o ServerAliveInterval=10 \
             ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} \
             "printf '%s' '${{ secrets.BACKEND_ENV_FILE }}' > ~/domains/geethikadigitalworld.com/nodejs/.env && mkdir -p ~/domains/geethikadigitalworld.com/nodejs/tmp && touch ~/domains/geethikadigitalworld.com/nodejs/tmp/restart.txt && echo Done"
         continue-on-error: true
