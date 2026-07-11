@@ -112,8 +112,14 @@ app.use('/uploads', express.static(uploadsDir));
 
 // ─── Frontend path ────────────────────────────────────────────────────────────
 // Try multiple known locations in order — first one that exists wins
+// Guard against malformed FRONTEND_PATH like "FRONTEND_PATH=/some/path"
+const rawFrontendPath = process.env.FRONTEND_PATH || '';
+const cleanFrontendPath = rawFrontendPath.includes('=')
+  ? rawFrontendPath.split('=').slice(1).join('=').trim()
+  : rawFrontendPath.trim();
+
 const candidatePaths = [
-  process.env.FRONTEND_PATH ? path.resolve(process.env.FRONTEND_PATH) : null,
+  cleanFrontendPath ? path.resolve(cleanFrontendPath) : null,
   path.join(__dirname, 'public'),
   path.resolve('/home/u327292494/domains/geethikadigitalworld.com/nodejs/public'),
   path.resolve('/home/u327292494/domains/geethikadigitalworld.com/public_html'),
