@@ -153,7 +153,7 @@ router.post('/', authenticate, isAdmin, uploadProductImages,
       res.status(201).json({ message: 'Product created successfully', product });
     } catch (error) {
       console.error('Create product error:', error);
-      res.status(500).json({ error: 'Failed to create product' });
+      res.status(500).json({ error: 'Failed to create product', details: error.message });
     }
   }
 );
