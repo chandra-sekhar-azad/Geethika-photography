@@ -44,7 +44,6 @@ jobs:
           port: 21
           local-dir: frontend/dist/
           server-dir: /domains/geethikadigitalworld.com/nodejs/public/
-          dangerous-clean-slate: true
 
       - name: Deploy backend via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
