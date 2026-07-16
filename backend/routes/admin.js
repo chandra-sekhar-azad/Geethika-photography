@@ -195,13 +195,16 @@ router.post('/customers',
   [
     body('name').trim().notEmpty(),
     body('email').isEmail(),
-    body('phone').optional().isMobilePhone(),
-    body('password').optional().isLength({ min: 6 }),
+    body('phone').optional({ checkFalsy: true }),
+    body('password').optional({ checkFalsy: true }).isLength({ min: 6 }),
   ],
   async (req, res) => {
     try {
       const errors = validationResult(req);
-      if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+      if (!errors.isEmpty()) {
+        console.error('Customer validation errors:', JSON.stringify(errors.array()));
+        return res.status(400).json({ errors: errors.array() });
+      }
 
       const { name, email, phone, password } = req.body;
       const existing = await User.findOne({ email });
