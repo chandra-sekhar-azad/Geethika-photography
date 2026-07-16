@@ -53,7 +53,8 @@ const CustomerDatabase = () => {
       alert(`Customer created successfully!${data.defaultPassword ? `\n\nDefault Password: ${data.defaultPassword}\n\nPlease share this with the customer.` : ''}`);
       setShowModal(false);
       setFormData({ name: '', email: '', phone: '', password: '' });
-      fetchCustomers();
+      setLoading(true);
+      await fetchCustomers();
     } catch (error) {
       console.error('Failed to create customer:', error);
       if (error.message.includes('Authentication')) {
