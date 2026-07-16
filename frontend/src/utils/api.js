@@ -99,7 +99,12 @@ const get = async (endpoint) => {
   const response = await apiRequest(endpoint, {
     method: 'GET'
   });
-  return response.json();
+  const json = await response.json();
+  if (!response.ok) {
+    const message = json?.errors?.[0]?.msg || json?.error || json?.message || 'Request failed';
+    throw new Error(message);
+  }
+  return json;
 };
 
 const post = async (endpoint, data) => {
@@ -110,7 +115,12 @@ const post = async (endpoint, data) => {
     },
     body: JSON.stringify(data)
   });
-  return response.json();
+  const json = await response.json();
+  if (!response.ok) {
+    const message = json?.errors?.[0]?.msg || json?.error || json?.message || 'Request failed';
+    throw new Error(message);
+  }
+  return json;
 };
 
 const put = async (endpoint, data) => {
@@ -121,14 +131,24 @@ const put = async (endpoint, data) => {
     },
     body: JSON.stringify(data)
   });
-  return response.json();
+  const json = await response.json();
+  if (!response.ok) {
+    const message = json?.errors?.[0]?.msg || json?.error || json?.message || 'Request failed';
+    throw new Error(message);
+  }
+  return json;
 };
 
 const del = async (endpoint) => {
   const response = await apiRequest(endpoint, {
     method: 'DELETE'
   });
-  return response.json();
+  const json = await response.json();
+  if (!response.ok) {
+    const message = json?.errors?.[0]?.msg || json?.error || json?.message || 'Request failed';
+    throw new Error(message);
+  }
+  return json;
 };
 
 export default {
