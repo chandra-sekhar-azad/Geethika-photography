@@ -35,29 +35,27 @@ jobs:
           VITE_BUSINESS_PHONE: "919492686421"
           VITE_WHATSAPP_NUMBER: "919492686421"
 
-      - name: Deploy frontend via FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.FTP_HOST }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          port: 21
-          local-dir: frontend/dist/
-          server-dir: /domains/geethikadigitalworld.com/nodejs/public/
+      - name: Install lftp
+        run: sudo apt-get install -y lftp
 
-      - name: Deploy backend via FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.FTP_HOST }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          port: 21
-          local-dir: backend/
-          server-dir: /domains/geethikadigitalworld.com/nodejs/
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/node_modules/**
-            **/.env
-            **/uploads/**
+      - name: Deploy frontend via lftp
+        run: |
+          lftp -u "${{ secrets.FTP_USERNAME }}","${{ secrets.FTP_PASSWORD }}" "${{ secrets.FTP_HOST }}" <<EOF
+          set ftp:ssl-allow no
+          set net:timeout 30
+          set net:max-retries 3
+          mkdir -p /domains/geethikadigitalworld.com/nodejs/public
+          mirror -R --delete --no-perms frontend/dist/ /domains/geethikadigitalworld.com/nodejs/public/
+          quit
+          EOF
+
+      - name: Deploy backend via lftp
+        run: |
+          lftp -u "${{ secrets.FTP_USERNAME }}","${{ secrets.FTP_PASSWORD }}" "${{ secrets.FTP_HOST }}" <<EOF
+          set ftp:ssl-allow no
+          set net:timeout 30
+          set net:max-retries 3
+          mirror -R --no-perms --exclude node_modules/ --exclude .env --exclude uploads/ backend/ /domains/geethikadigitalworld.com/nodejs/
+          quit
+          EOF
         continue-on-error: true
