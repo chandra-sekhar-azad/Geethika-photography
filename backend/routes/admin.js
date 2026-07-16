@@ -221,7 +221,7 @@ router.post('/customers',
       });
     } catch (error) {
       console.error('Create customer error:', error);
-      res.status(500).json({ error: 'Failed to create customer' });
+      res.status(500).json({ error: 'Failed to create customer', details: error.message });
     }
   }
 );
