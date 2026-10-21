@@ -51,7 +51,30 @@ if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 if (!fs.existsSync(designsDir)) fs.mkdirSync(designsDir, { recursive: true });
 
 // Security middleware
-app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://checkout.razorpay.com"],
+        scriptSrcElem: ["'self'", "'unsafe-inline'", "https://checkout.razorpay.com"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https:", "https://fonts.googleapis.com"],
+        fontSrc: ["'self'", "https:", "data:", "https://fonts.gstatic.com"],
+        imgSrc: ["'self'", "data:", "blob:", "https:", "http:"],
+        connectSrc: ["'self'", "https://geethikadigitalworld.com", "https://www.geethikadigitalworld.com", "https://checkout.razorpay.com", "https://wg.swiftproject.in"],
+        frameSrc: ["'self'", "https://www.google.com", "https://checkout.razorpay.com"],
+        frameAncestors: ["'self'"],
+        objectSrc: ["'none'"],
+        baseUri: ["'self'"],
+        formAction: ["'self'"],
+        mediaSrc: ["'self'", "data:", "blob:", "https:"],
+        workerSrc: ["'self'", "blob:"],
+        upgradeInsecureRequests: [],
+      },
+    },
+  })
+);
 
 // Rate limiting
 const limiter = rateLimit({
