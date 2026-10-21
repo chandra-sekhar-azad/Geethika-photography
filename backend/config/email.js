@@ -1,7 +1,5 @@
 import nodemailer from 'nodemailer';
-import dotenv from 'dotenv';
-
-dotenv.config();
+import './loadEnv.js';
 
 const hasCredentials = () =>
   Boolean(String(process.env.EMAIL_USER || '').trim()) &&

@@ -128,7 +128,7 @@ const WhatsAppCampaigns = () => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">WhatsApp Campaigns</h1>
-          <p className="text-gray-600 mt-2">Send bulk messages to customers using ChatMitra templates</p>
+          <p className="text-gray-600 mt-2">Send bulk messages to customers using SwiftProject WhatsApp Gateway</p>
         </div>
         <button
           onClick={() => setShowModal(true)}
@@ -332,8 +332,8 @@ const WhatsAppCampaigns = () => {
                 
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                   <p className="text-sm text-yellow-800">
-                        <strong>Note:</strong> Campaign delivery is routed through ChatMitra in production.
-                          Make sure your ChatMitra account, WhatsApp sender, and approved templates are configured.
+                        <strong>Note:</strong> Campaign delivery is routed through SwiftProject WhatsApp Gateway.
+                        Messages are dispatched directly with daily quota tracking and automatic burst rate throttling.
                   </p>
                 </div>
                 

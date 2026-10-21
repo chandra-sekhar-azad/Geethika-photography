@@ -1,7 +1,5 @@
 import Razorpay from 'razorpay';
-import dotenv from 'dotenv';
-
-dotenv.config();
+import './loadEnv.js';
 
 let razorpay = null;
 

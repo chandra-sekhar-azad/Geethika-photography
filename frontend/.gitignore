@@ -45,9 +45,6 @@ desktop.ini
 coverage/
 .nyc_output/
 
-# Vercel
-.vercel
-
 # Misc
 .cache/
 .temp/

@@ -1,7 +1,5 @@
 import jwt from 'jsonwebtoken';
-import dotenv from 'dotenv';
-
-dotenv.config();
+import '../config/loadEnv.js';
 
 export const authenticate = (req, res, next) => {
   try {

@@ -1,16 +1,13 @@
+import './config/loadEnv.js';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
-import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
-
-// Load env first
-dotenv.config();
 
 // Import MongoDB connection
 import connectDB from './config/database.js';
@@ -44,7 +41,7 @@ const PORT = process.env.PORT || 5000;
 // Connect to MongoDB
 connectDB();
 
-// Trust proxy (Render / reverse proxies)
+// Trust proxy (reverse proxies)
 app.set('trust proxy', 1);
 
 // Create uploads directory if it doesn't exist
@@ -73,7 +70,6 @@ const allowedOrigins = [
   'http://localhost:3000',
   'https://geethikadigitalworld.com',
   'https://www.geethikadigitalworld.com',
-  'https://geethika-digital-world.onrender.com',
   process.env.FRONTEND_URL,
 ].filter(Boolean);
 

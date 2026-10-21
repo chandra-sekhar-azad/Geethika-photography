@@ -9,9 +9,10 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './src'),
     },
+    // Try to resolve packages using "main" field instead of "exports"
+    // This helps with compatibility issues on newer Node.js versions
+    extensions: ['.js', '.jsx', '.mjs', '.json'],
   },
-  server: {
-    host: true, // Expose to network
-    port: 5174,
-  },
+  // Disable minification to see if that's the issue
+  minify: false,
 })

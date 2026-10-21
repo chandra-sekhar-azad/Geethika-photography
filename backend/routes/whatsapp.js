@@ -1,5 +1,20 @@
 import express from 'express';
-import { sendWhatsAppMessage, sendWhatsAppTemplate, sendWhatsAppMedia } from '../config/whatsapp.js';
+import {
+  sendWhatsAppMessage,
+  sendWhatsAppTemplate,
+  sendWhatsAppMedia,
+  sendTextMessage,
+  sendImage,
+  sendDocument,
+  sendVideo,
+  sendAudio,
+  sendLocation,
+  sendContact,
+  sendPoll,
+  sendReaction,
+  sendReply,
+  getWhatsAppConfig
+} from '../config/whatsapp.js';
 import { authenticate, isAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -17,19 +32,19 @@ router.post('/order-confirmation', authenticate, async (req, res) => {
     }
 
     const message = `
-🎉 Order Confirmed!
+🎉 *Order Confirmed!*
 
-Hi ${customerName}!
+Hi ${customerName || 'Valued Customer'}!
 
 Your order #${orderId} has been confirmed.
 
-Order Details:
+*Order Details:*
 💰 Total: ₹${total}
 📅 Estimated Delivery: ${deliveryDate}
 
-Thank you for shopping with Geethika Digital World! 💝
+Thank you for choosing *Geethika Digital World*! 💝
 
-Track your order: ${process.env.FRONTEND_URL}/orders/${orderId}
+Track your order: ${process.env.FRONTEND_URL || 'https://geethikadigitalworld.com'}/orders/${orderId}
 
 Need help? Reply to this message or call us at +91 9492686421
     `.trim();
@@ -40,13 +55,17 @@ Need help? Reply to this message or call us at +91 9492686421
       res.json({ 
         success: true, 
         message: 'WhatsApp notification sent',
-        messageId: result.data.messages?.[0]?.id
+        messageId: result.messageId || result.data?.messageId,
+        quota: result.quota
       });
     } else {
-      res.status(500).json({ 
+      const statusCode = result.status || (result.code === 'RATE_LIMIT_EXCEEDED' || result.code === 'DAILY_LIMIT_EXCEEDED' ? 429 : 500);
+      res.status(statusCode).json({ 
         success: false, 
-        error: 'Failed to send WhatsApp message',
-        details: result.error
+        error: result.error || 'Failed to send WhatsApp message',
+        code: result.code,
+        details: result.details,
+        quota: result.headers
       });
     }
   } catch (error) {
@@ -80,14 +99,14 @@ router.post('/order-status', authenticate, isAdmin, async (req, res) => {
     };
 
     const message = `
-${statusEmojis[status]} Order Update
+${statusEmojis[status] || '📦'} *Order Update*
 
-Hi ${customerName}!
+Hi ${customerName || 'Customer'}!
 
-Order #${orderId}
-Status: ${statusMessages[status]}
+*Order #${orderId}*
+Status: ${statusMessages[status] || `Your order status is now ${status}`}
 
-View details: ${process.env.FRONTEND_URL}/orders/${orderId}
+View details: ${process.env.FRONTEND_URL || 'https://geethikadigitalworld.com'}/orders/${orderId}
 
 Questions? Call us at +91 9492686421
     `.trim();
@@ -97,12 +116,16 @@ Questions? Call us at +91 9492686421
     if (result.success) {
       res.json({ 
         success: true, 
-        message: 'Status update sent via WhatsApp'
+        message: 'Status update sent via WhatsApp',
+        messageId: result.messageId,
+        quota: result.quota
       });
     } else {
-      res.status(500).json({ 
+      const statusCode = result.status || 500;
+      res.status(statusCode).json({ 
         success: false, 
-        error: 'Failed to send status update'
+        error: result.error || 'Failed to send status update',
+        code: result.code
       });
     }
   } catch (error) {
@@ -129,17 +152,25 @@ router.post('/campaign', authenticate, isAdmin, async (req, res) => {
 
     const results = [];
     const errors = [];
+    let lastQuota = null;
 
     for (const phone of phoneNumbers) {
-      const result = await sendWhatsAppMessage(phone, message);
+      const result = await sendTextMessage(phone, message);
       
       if (result.success) {
-        results.push({ phone, success: true });
+        results.push({ phone, success: true, messageId: result.messageId });
+        if (result.quota) lastQuota = result.quota;
       } else {
-        errors.push({ phone, error: result.error });
+        errors.push({ phone, error: result.error, code: result.code });
+
+        // If daily limit exceeded, halt campaign immediately to preserve quota
+        if (result.code === 'DAILY_LIMIT_EXCEEDED') {
+          console.warn('⛔ Campaign halted: Daily WhatsApp quota limit reached.');
+          break;
+        }
       }
 
-      // Wait 1 second between messages to avoid rate limits
+      // 1-second delay between dispatches to comply with per-minute burst rate limits
       await new Promise(resolve => setTimeout(resolve, 1000));
     }
 
@@ -148,7 +179,8 @@ router.post('/campaign', authenticate, isAdmin, async (req, res) => {
       sent: results.length,
       failed: errors.length,
       results,
-      errors
+      errors,
+      quota: lastQuota
     });
   } catch (error) {
     console.error('WhatsApp campaign error:', error);
@@ -168,9 +200,8 @@ router.post('/send-image', authenticate, isAdmin, async (req, res) => {
       return res.status(400).json({ error: 'Phone number and image URL are required' });
     }
 
-    const result = await sendWhatsAppMedia(
+    const result = await sendImage(
       customerPhone,
-      'image',
       imageUrl,
       caption || 'Check out this product from Geethika Digital World! 🎁'
     );
@@ -178,17 +209,151 @@ router.post('/send-image', authenticate, isAdmin, async (req, res) => {
     if (result.success) {
       res.json({ 
         success: true, 
-        message: 'Image sent via WhatsApp'
+        message: 'Image sent via WhatsApp',
+        messageId: result.messageId,
+        quota: result.quota
       });
     } else {
-      res.status(500).json({ 
+      res.status(result.status || 500).json({ 
         success: false, 
-        error: 'Failed to send image'
+        error: result.error || 'Failed to send image'
       });
     }
   } catch (error) {
     console.error('WhatsApp image send error:', error);
     res.status(500).json({ error: 'Failed to send image' });
+  }
+});
+
+/**
+ * Send Document / PDF via WhatsApp
+ * POST /api/whatsapp/send-document
+ */
+router.post('/send-document', authenticate, isAdmin, async (req, res) => {
+  try {
+    const { customerPhone, documentUrl, fileName, caption } = req.body;
+
+    if (!customerPhone || !documentUrl || !fileName) {
+      return res.status(400).json({ error: 'Phone number, documentUrl, and fileName are required' });
+    }
+
+    const result = await sendDocument(customerPhone, documentUrl, fileName, caption);
+
+    if (result.success) {
+      res.json({
+        success: true,
+        message: 'Document sent via WhatsApp',
+        messageId: result.messageId,
+        quota: result.quota
+      });
+    } else {
+      res.status(result.status || 500).json({
+        success: false,
+        error: result.error || 'Failed to send document'
+      });
+    }
+  } catch (error) {
+    console.error('WhatsApp document send error:', error);
+    res.status(500).json({ error: 'Failed to send document' });
+  }
+});
+
+/**
+ * Send Location coordinates via WhatsApp
+ * POST /api/whatsapp/send-location
+ */
+router.post('/send-location', authenticate, isAdmin, async (req, res) => {
+  try {
+    const { customerPhone, latitude, longitude, name, address } = req.body;
+
+    if (!customerPhone || latitude === undefined || longitude === undefined) {
+      return res.status(400).json({ error: 'Phone number, latitude, and longitude are required' });
+    }
+
+    const result = await sendLocation(customerPhone, latitude, longitude, name, address);
+
+    if (result.success) {
+      res.json({
+        success: true,
+        message: 'Location sent via WhatsApp',
+        messageId: result.messageId,
+        quota: result.quota
+      });
+    } else {
+      res.status(result.status || 500).json({
+        success: false,
+        error: result.error || 'Failed to send location'
+      });
+    }
+  } catch (error) {
+    console.error('WhatsApp location send error:', error);
+    res.status(500).json({ error: 'Failed to send location' });
+  }
+});
+
+/**
+ * Send Contact Card via WhatsApp
+ * POST /api/whatsapp/send-contact
+ */
+router.post('/send-contact', authenticate, isAdmin, async (req, res) => {
+  try {
+    const { customerPhone, fullName, contactPhone } = req.body;
+
+    if (!customerPhone || !fullName || !contactPhone) {
+      return res.status(400).json({ error: 'Customer phone, fullName, and contactPhone are required' });
+    }
+
+    const result = await sendContact(customerPhone, fullName, contactPhone);
+
+    if (result.success) {
+      res.json({
+        success: true,
+        message: 'Contact sent via WhatsApp',
+        messageId: result.messageId,
+        quota: result.quota
+      });
+    } else {
+      res.status(result.status || 500).json({
+        success: false,
+        error: result.error || 'Failed to send contact'
+      });
+    }
+  } catch (error) {
+    console.error('WhatsApp contact send error:', error);
+    res.status(500).json({ error: 'Failed to send contact' });
+  }
+});
+
+/**
+ * Send Interactive Poll via WhatsApp
+ * POST /api/whatsapp/send-poll
+ */
+router.post('/send-poll', authenticate, isAdmin, async (req, res) => {
+  try {
+    const { customerPhone, question, options, selectableCount } = req.body;
+
+    if (!customerPhone || !question || !Array.isArray(options) || options.length < 2) {
+      return res.status(400).json({ error: 'Phone number, question, and at least 2 options are required' });
+    }
+
+    const result = await sendPoll(customerPhone, question, options, selectableCount || 1);
+
+    if (result.success) {
+      res.json({
+        success: true,
+        message: 'Poll sent via WhatsApp',
+        messageId: result.messageId,
+        quota: result.quota
+      });
+    } else {
+      res.status(result.status || 500).json({
+        success: false,
+        error: result.error || 'Failed to send poll'
+      });
+    }
+  } catch (error) {
+    console.error('WhatsApp poll send error:', error);
+    res.status(500).json({ error: 'Failed to send poll' });
   }
 });
 
@@ -199,26 +364,29 @@ router.post('/send-image', authenticate, isAdmin, async (req, res) => {
 router.get('/test', authenticate, isAdmin, async (req, res) => {
   try {
     const testNumber = process.env.WHATSAPP_NUMBER || '919492686421';
-    const testMessage = 'Test message from Geethika Digital World WhatsApp API. Connection is working! ✅';
+    const testMessage = 'Test message from Geethika Digital World via SwiftProject WhatsApp Gateway. Connection is working perfectly! ✅';
 
-    const result = await sendWhatsAppMessage(testNumber, testMessage);
+    const result = await sendTextMessage(testNumber, testMessage);
 
     if (result.success) {
       res.json({ 
         success: true, 
-        message: 'Test message sent successfully',
-        messageId: result.data.messages?.[0]?.id
+        message: 'Test message sent successfully via SwiftProject Gateway',
+        messageId: result.messageId,
+        to: result.to,
+        quota: result.quota
       });
     } else {
-      res.status(500).json({ 
+      res.status(result.status || 500).json({ 
         success: false, 
-        error: 'Test message failed',
-        details: result.error
+        error: result.error || 'Test message failed',
+        code: result.code,
+        details: result.details
       });
     }
   } catch (error) {
     console.error('WhatsApp test error:', error);
-    res.status(500).json({ error: 'Test failed' });
+    res.status(500).json({ error: 'Test failed: ' + error.message });
   }
 });
 

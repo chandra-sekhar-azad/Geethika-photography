@@ -3,21 +3,21 @@
 
 export const env = {
   // API Configuration
-  apiUrl: import.meta.env.VITE_API_URL || 'http://localhost:5000',
-  apiBaseUrl: import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api',
+  apiUrl: import.meta.env.VITE_API_URL || import.meta.env.BACKEND_URL || 'https://geethikadigitalworld.com',
+  apiBaseUrl: import.meta.env.VITE_API_BASE_URL || (import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api` : (import.meta.env.BACKEND_URL ? `${import.meta.env.BACKEND_URL}/api` : 'https://geethikadigitalworld.com/api')),
 
   // Razorpay
-  razorpayKeyId: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_demo',
+  razorpayKeyId: import.meta.env.VITE_RAZORPAY_KEY_ID || import.meta.env.RAZORPAY_KEY_ID || 'rzp_live_T7XULJBThPYW5o',
 
   // WhatsApp
-  whatsappNumber: import.meta.env.VITE_WHATSAPP_NUMBER || '919492686421',
+  whatsappNumber: import.meta.env.VITE_WHATSAPP_NUMBER || import.meta.env.WHATSAPP_NUMBER || '919492686421',
 
   // App
-  appName: import.meta.env.VITE_APP_NAME || 'Geethika Digital World',
-  appUrl: import.meta.env.VITE_APP_URL || 'http://localhost:5174',
+  appName: import.meta.env.VITE_APP_NAME || import.meta.env.BUSINESS_NAME || 'Geethika Digital World',
+  appUrl: import.meta.env.VITE_APP_URL || import.meta.env.FRONTEND_URL || 'https://geethikadigitalworld.com',
 
   // Feature Flags
-  enablePayment: import.meta.env.VITE_ENABLE_PAYMENT === 'true',
+  enablePayment: import.meta.env.VITE_ENABLE_PAYMENT === 'true' || import.meta.env.ENABLE_TEST_PAYMENTS === 'true',
   enableEmailVerification: import.meta.env.VITE_ENABLE_EMAIL_VERIFICATION === 'true',
   enableAnalytics: import.meta.env.VITE_ENABLE_ANALYTICS === 'true',
 
