@@ -51,11 +51,15 @@ jobs:
 
       - name: Deploy backend via lftp
         run: |
+          mkdir -p backend/tmp
+          date -u > backend/tmp/restart.txt
           lftp -u "${{ secrets.FTP_USERNAME }}","${{ secrets.FTP_PASSWORD }}" "${{ secrets.FTP_HOST }}" <<EOF
           set ftp:ssl-allow no
           set net:timeout 30
           set net:max-retries 3
           mirror -R --no-perms --exclude node_modules/ --exclude .env --exclude uploads/ backend/ /domains/geethikadigitalworld.com/nodejs/
+          mkdir -p /domains/geethikadigitalworld.com/nodejs/tmp
+          put backend/tmp/restart.txt -o /domains/geethikadigitalworld.com/nodejs/tmp/restart.txt
           quit
           EOF
         continue-on-error: true
