@@ -18,6 +18,55 @@ const generateOrderNumber = () => {
   return `ORD-${timestamp}-${random}`.toUpperCase();
 };
 
+/**
+ * Sends a detailed WhatsApp order confirmation message to the customer
+ */
+export const sendOrderPlacedWhatsApp = async (order) => {
+  try {
+    if (!order || !order.customer_phone) return;
+
+    const frontendUrl = process.env.FRONTEND_URL || 'https://geethikadigitalworld.com';
+    const customerName = order.customer_name || 'Valued Customer';
+
+    // Format items list
+    let itemsText = '';
+    if (Array.isArray(order.items) && order.items.length > 0) {
+      itemsText = order.items
+        .map((item) => `• ${item.product_name} (x${item.quantity}) - ₹${item.price * item.quantity}`)
+        .join('\n');
+    } else {
+      itemsText = '• Personalized Items';
+    }
+
+    const message = `🎉 *Order Confirmed!*
+
+Hi *${customerName}*, thank you for your order with *Geethika Digital World*! 💝
+
+📦 *Order Number:* #${order.order_number}
+💰 *Total Paid:* ₹${order.total}
+💳 *Payment Status:* Paid (${order.payment_method || 'Online'})
+
+*Items Ordered:*
+${itemsText}
+${order.shipping_address ? `\n📍 *Shipping Address:*\n${order.shipping_address}\n` : ''}
+🔗 *Track Your Order:*
+${frontendUrl}/order/${order._id || order.id}
+
+We are preparing your order with care. You will receive updates as it progresses.
+
+Need help? Reply to this message or call +91 9492686421.`;
+
+    const result = await sendWhatsAppMessage(order.customer_phone, message);
+    if (result.success) {
+      console.log(`✅ Order placed WhatsApp notification sent for #${order.order_number} to ${order.customer_phone}`);
+    } else {
+      console.error(`⚠️ Failed to send order placed WhatsApp notification for #${order.order_number}:`, result.error);
+    }
+  } catch (err) {
+    console.error('Error sending order placed WhatsApp notification:', err.message);
+  }
+};
+
 // Create Razorpay Order
 router.post('/create-razorpay-order', async (req, res) => {
   try {
@@ -81,6 +130,12 @@ router.post('/verify-razorpay-payment', async (req, res) => {
     }
 
     console.log('✅ Razorpay payment verified for order:', order.order_number);
+
+    // Send WhatsApp notification to user asynchronously
+    sendOrderPlacedWhatsApp(order).catch((err) =>
+      console.error('WhatsApp order notification error:', err)
+    );
+
     res.json({ success: true, message: 'Payment verified successfully', order });
   } catch (error) {
     console.error('Razorpay verification error:', error);
@@ -110,6 +165,12 @@ router.post('/test-payment/:orderId', async (req, res) => {
     }
 
     console.log('✅ Test payment processed for order:', order.order_number);
+
+    // Send WhatsApp notification to user asynchronously
+    sendOrderPlacedWhatsApp(order).catch((err) =>
+      console.error('WhatsApp order notification error:', err)
+    );
+
     res.json({ success: true, message: 'Test payment successful', order });
   } catch (error) {
     console.error('Test payment error:', error);
@@ -275,10 +336,15 @@ router.patch('/:id/payment', async (req, res) => {
     const { razorpay_payment_id, razorpay_signature } = req.body;
     const order = await Order.findByIdAndUpdate(
       req.params.id,
-      { razorpay_payment_id, razorpay_signature, payment_status: 'paid' },
+      { razorpay_payment_id, razorpay_signature, payment_status: 'paid', order_status: 'confirmed' },
       { new: true }
     );
     if (!order) return res.status(404).json({ error: 'Order not found' });
+
+    sendOrderPlacedWhatsApp(order).catch((err) =>
+      console.error('WhatsApp order notification error:', err)
+    );
+
     res.json({ message: 'Payment updated successfully', order });
   } catch (error) {
     console.error('Update payment error:', error);

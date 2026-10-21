@@ -1,5 +1,18 @@
-import { useState } from 'react';
-import { Send, MessageCircle, Image, Users, TestTube, FileText, Activity } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import {
+  Send,
+  MessageCircle,
+  Image,
+  Users,
+  TestTube,
+  FileText,
+  Activity,
+  Layers,
+  Sparkles,
+  ExternalLink,
+  Info,
+} from 'lucide-react';
 import api from '../../utils/api';
 
 export default function WhatsAppMessaging() {
@@ -8,10 +21,16 @@ export default function WhatsAppMessaging() {
   const [result, setResult] = useState(null);
   const [quota, setQuota] = useState(null);
 
-  // Single message state
+  // Templates
+  const [templates, setTemplates] = useState([]);
+  const [loadingTemplates, setLoadingTemplates] = useState(false);
+  const [selectedTemplateId, setSelectedTemplateId] = useState('');
+  const [templateVariables, setTemplateVariables] = useState({});
+
+  // Single / Custom message state
   const [singlePhone, setSinglePhone] = useState('');
+  const [singleCustomerName, setSingleCustomerName] = useState('');
   const [singleCustomText, setSingleCustomText] = useState('');
-  const [useCustomText, setUseCustomText] = useState(false);
 
   // Bulk message state
   const [bulkPhones, setBulkPhones] = useState('');
@@ -28,48 +47,107 @@ export default function WhatsAppMessaging() {
   const [docFileName, setDocFileName] = useState('');
   const [docCaption, setDocCaption] = useState('');
 
+  useEffect(() => {
+    fetchTemplates();
+  }, []);
+
+  const fetchTemplates = async () => {
+    try {
+      setLoadingTemplates(true);
+      const res = await api.get('/api/whatsapp/templates');
+      setTemplates(res.templates || []);
+    } catch (err) {
+      console.error('Failed to load templates:', err);
+    } finally {
+      setLoadingTemplates(false);
+    }
+  };
+
   const updateQuotaFromResponse = (resData) => {
     if (resData?.quota) {
       setQuota(resData.quota);
     }
   };
 
+  // When a template is selected from the dropdown
+  const handleTemplateSelect = (templateId) => {
+    setSelectedTemplateId(templateId);
+    if (!templateId) {
+      setTemplateVariables({});
+      return;
+    }
+
+    const tpl = templates.find((t) => t.id === templateId || t._id === templateId);
+    if (tpl) {
+      setSingleCustomText(tpl.message);
+
+      // Initialize variable inputs
+      const vars = {};
+      (tpl.variables || []).forEach((v) => {
+        vars[v] = '';
+      });
+      setTemplateVariables(vars);
+    }
+  };
+
+  // When a template variable value is edited
+  const handleVariableChange = (varName, value) => {
+    const updatedVars = { ...templateVariables, [varName]: value };
+    setTemplateVariables(updatedVars);
+
+    const tpl = templates.find((t) => t.id === selectedTemplateId || t._id === selectedTemplateId);
+    if (tpl) {
+      let populated = tpl.message;
+      Object.entries(updatedVars).forEach(([k, v]) => {
+        if (v) {
+          populated = populated.replace(new RegExp(`{{${k}}}`, 'g'), v);
+        }
+      });
+      setSingleCustomText(populated);
+    }
+  };
+
+  // Insert variable tag into message text
+  const insertVariableTag = (tag) => {
+    setSingleCustomText((prev) => `${prev} {{${tag}}}`.trim());
+  };
+
+  // Send single custom message
   const handleSendSingle = async (e) => {
     e.preventDefault();
+    if (!singlePhone.trim()) {
+      setResult({ type: 'error', message: 'Recipient phone number is required' });
+      return;
+    }
+    if (!singleCustomText.trim()) {
+      setResult({ type: 'error', message: 'Message content cannot be empty' });
+      return;
+    }
+
     setLoading(true);
     setResult(null);
 
     try {
-      let response;
-      if (useCustomText && singleCustomText.trim()) {
-        response = await api.post('/api/whatsapp/order-confirmation', {
-          orderId: 'MANUAL-' + Date.now().toString().slice(-4),
-          customerPhone: singlePhone,
-          customerName: 'Customer',
-          total: '0',
-          deliveryDate: new Date().toLocaleDateString('en-IN')
-        });
-      } else {
-        response = await api.post('/api/whatsapp/order-confirmation', {
-          orderId: 'TEST-' + Date.now().toString().slice(-4),
-          customerPhone: singlePhone,
-          customerName: 'Customer',
-          total: '999',
-          deliveryDate: new Date().toLocaleDateString('en-IN')
-        });
-      }
+      const response = await api.post('/api/whatsapp/send-custom', {
+        customerPhone: singlePhone.trim(),
+        message: singleCustomText.trim(),
+        customerName: singleCustomerName.trim() || undefined,
+      });
 
       updateQuotaFromResponse(response);
       setResult({
         type: 'success',
-        message: `Message dispatched successfully! ✅ Message ID: ${response.messageId || 'Queued'}`
+        message: `WhatsApp message dispatched successfully! ✅ Message ID: ${
+          response.messageId || 'Queued'
+        }`,
       });
-      setSinglePhone('');
       setSingleCustomText('');
+      setSelectedTemplateId('');
+      setTemplateVariables({});
     } catch (error) {
       setResult({
         type: 'error',
-        message: error.response?.data?.error || error.message || 'Failed to send message'
+        message: error.response?.data?.error || error.message || 'Failed to send message',
       });
     } finally {
       setLoading(false);
@@ -84,13 +162,13 @@ export default function WhatsAppMessaging() {
     try {
       const phoneArray = bulkPhones
         .split('\n')
-        .map(p => p.trim())
-        .filter(p => p.length > 0);
+        .map((p) => p.trim())
+        .filter((p) => p.length > 0);
 
       if (phoneArray.length === 0) {
         setResult({
           type: 'error',
-          message: 'Please enter at least one phone number'
+          message: 'Please enter at least one phone number',
         });
         setLoading(false);
         return;
@@ -98,20 +176,20 @@ export default function WhatsAppMessaging() {
 
       const response = await api.post('/api/whatsapp/campaign', {
         phoneNumbers: phoneArray,
-        message: bulkMessage
+        message: bulkMessage,
       });
 
       updateQuotaFromResponse(response);
       setResult({
         type: 'success',
-        message: `Campaign complete! ✅ Sent: ${response.sent}, Failed: ${response.failed}`
+        message: `Campaign complete! ✅ Sent: ${response.sent}, Failed: ${response.failed}`,
       });
       setBulkPhones('');
       setBulkMessage('');
     } catch (error) {
       setResult({
         type: 'error',
-        message: error.response?.data?.error || 'Failed to send campaign'
+        message: error.response?.data?.error || 'Failed to send campaign',
       });
     } finally {
       setLoading(false);
@@ -127,13 +205,13 @@ export default function WhatsAppMessaging() {
       const response = await api.post('/api/whatsapp/send-image', {
         customerPhone: imagePhone,
         imageUrl: imageUrl,
-        caption: imageCaption
+        caption: imageCaption,
       });
 
       updateQuotaFromResponse(response);
       setResult({
         type: 'success',
-        message: 'Image dispatched successfully via SwiftProject Gateway! ✅'
+        message: 'Image dispatched successfully via SwiftProject Gateway! ✅',
       });
       setImagePhone('');
       setImageUrl('');
@@ -141,7 +219,7 @@ export default function WhatsAppMessaging() {
     } catch (error) {
       setResult({
         type: 'error',
-        message: error.response?.data?.error || 'Failed to send image'
+        message: error.response?.data?.error || 'Failed to send image',
       });
     } finally {
       setLoading(false);
@@ -158,13 +236,13 @@ export default function WhatsAppMessaging() {
         customerPhone: docPhone,
         documentUrl: docUrl,
         fileName: docFileName || 'document.pdf',
-        caption: docCaption
+        caption: docCaption,
       });
 
       updateQuotaFromResponse(response);
       setResult({
         type: 'success',
-        message: 'Document dispatched successfully! ✅'
+        message: 'Document dispatched successfully! ✅',
       });
       setDocPhone('');
       setDocUrl('');
@@ -173,7 +251,7 @@ export default function WhatsAppMessaging() {
     } catch (error) {
       setResult({
         type: 'error',
-        message: error.response?.data?.error || 'Failed to send document'
+        message: error.response?.data?.error || 'Failed to send document',
       });
     } finally {
       setLoading(false);
@@ -189,12 +267,18 @@ export default function WhatsAppMessaging() {
       updateQuotaFromResponse(response);
       setResult({
         type: 'success',
-        message: `Gateway test successful! 🚀 Sent to: ${response.to || 'Admin'} (Message ID: ${response.messageId || 'OK'})`
+        message: `Gateway test successful! 🚀 Sent to: ${response.to || 'Admin'} (Message ID: ${
+          response.messageId || 'OK'
+        })`,
       });
     } catch (error) {
       setResult({
         type: 'error',
-        message: error.response?.data?.error || error.response?.data?.details?.error || error.message || 'Test connection failed'
+        message:
+          error.response?.data?.error ||
+          error.response?.data?.details?.error ||
+          error.message ||
+          'Test connection failed',
       });
     } finally {
       setLoading(false);
@@ -208,19 +292,29 @@ export default function WhatsAppMessaging() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900 tracking-tight">WhatsApp Messaging</h1>
           <p className="text-gray-600 mt-1">
-            SwiftProject WhatsApp Gateway integration for Geethika Digital World
+            Send custom messages and manage automated WhatsApp updates for Geethika Digital World
           </p>
         </div>
 
-        {/* Test Connection Button */}
-        <button
-          onClick={handleTest}
-          disabled={loading}
-          className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white font-medium rounded-lg shadow-sm hover:bg-emerald-700 transition disabled:opacity-50"
-        >
-          <TestTube className="w-4 h-4" />
-          {loading ? 'Testing...' : 'Test Gateway Connection'}
-        </button>
+        <div className="flex items-center gap-3">
+          <Link
+            to="/admin/whatsapp-templates"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 font-medium rounded-lg shadow-sm hover:bg-gray-50 transition"
+          >
+            <Layers className="w-4 h-4 text-emerald-600" />
+            Manage Templates
+          </Link>
+
+          {/* Test Connection Button */}
+          <button
+            onClick={handleTest}
+            disabled={loading}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white font-medium rounded-lg shadow-sm hover:bg-emerald-700 transition disabled:opacity-50"
+          >
+            <TestTube className="w-4 h-4" />
+            {loading ? 'Testing...' : 'Test Gateway'}
+          </button>
+        </div>
       </div>
 
       {/* Quota Widget (if available) */}
@@ -255,11 +349,13 @@ export default function WhatsAppMessaging() {
 
       {/* Result Alert */}
       {result && (
-        <div className={`p-4 rounded-xl border ${
-          result.type === 'success' 
-            ? 'bg-emerald-50 border-emerald-200 text-emerald-800' 
-            : 'bg-rose-50 border-rose-200 text-rose-800'
-        }`}>
+        <div
+          className={`p-4 rounded-xl border ${
+            result.type === 'success'
+              ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+              : 'bg-rose-50 border-rose-200 text-rose-800'
+          }`}
+        >
           <div className="font-medium">{result.message}</div>
         </div>
       )}
@@ -271,18 +367,18 @@ export default function WhatsAppMessaging() {
             onClick={() => setActiveTab('single')}
             className={`pb-3 px-4 font-medium flex items-center gap-2 border-b-2 transition ${
               activeTab === 'single'
-                ? 'border-pink-600 text-pink-600'
+                ? 'border-emerald-600 text-emerald-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
           >
             <MessageCircle className="w-4 h-4" />
-            Order / Single Message
+            Custom Message
           </button>
           <button
             onClick={() => setActiveTab('bulk')}
             className={`pb-3 px-4 font-medium flex items-center gap-2 border-b-2 transition ${
               activeTab === 'bulk'
-                ? 'border-pink-600 text-pink-600'
+                ? 'border-emerald-600 text-emerald-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -293,7 +389,7 @@ export default function WhatsAppMessaging() {
             onClick={() => setActiveTab('image')}
             className={`pb-3 px-4 font-medium flex items-center gap-2 border-b-2 transition ${
               activeTab === 'image'
-                ? 'border-pink-600 text-pink-600'
+                ? 'border-emerald-600 text-emerald-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -304,7 +400,7 @@ export default function WhatsAppMessaging() {
             onClick={() => setActiveTab('document')}
             className={`pb-3 px-4 font-medium flex items-center gap-2 border-b-2 transition ${
               activeTab === 'document'
-                ? 'border-pink-600 text-pink-600'
+                ? 'border-emerald-600 text-emerald-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -314,39 +410,190 @@ export default function WhatsAppMessaging() {
         </div>
       </div>
 
-      {/* Single Message Tab */}
+      {/* Custom Message Tab */}
       {activeTab === 'single' && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h2 className="text-xl font-semibold mb-4 text-gray-900">Send WhatsApp Notification</h2>
-          <form onSubmit={handleSendSingle} className="space-y-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Form */}
+          <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-5">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Recipient Phone Number
-              </label>
-              <input
-                type="text"
-                value={singlePhone}
-                onChange={(e) => setSinglePhone(e.target.value)}
-                placeholder="e.g. 919492686421 or 9492686421"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                required
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Format: Digits only or with country code. Auto-formatted for SwiftProject Gateway.
+              <h2 className="text-xl font-semibold text-gray-900">Compose Custom Message</h2>
+              <p className="text-sm text-gray-500 mt-1">
+                Send a personalized WhatsApp message to any customer or select an existing template
               </p>
             </div>
 
-            <div className="pt-2">
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-pink-600 text-white font-medium rounded-lg hover:bg-pink-700 transition disabled:opacity-50"
-              >
-                <Send className="w-4 h-4" />
-                {loading ? 'Dispatching...' : 'Send Order Confirmation Message'}
-              </button>
+            <form onSubmit={handleSendSingle} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Customer Phone Number *
+                  </label>
+                  <input
+                    type="text"
+                    value={singlePhone}
+                    onChange={(e) => setSinglePhone(e.target.value)}
+                    placeholder="e.g. 9492686421 or 919492686421"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                    required
+                  />
+                  <p className="text-xs text-gray-500 mt-1">10-digit Indian number or with country code</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Customer Name (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={singleCustomerName}
+                    onChange={(e) => setSingleCustomerName(e.target.value)}
+                    placeholder="e.g. Sagar Naidu"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+
+              {/* Template Picker */}
+              <div className="p-4 bg-emerald-50/50 border border-emerald-100 rounded-lg space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="block text-sm font-semibold text-emerald-900">
+                    Use a Saved Template (Optional)
+                  </label>
+                  <Link
+                    to="/admin/whatsapp-templates"
+                    className="text-xs text-emerald-700 hover:text-emerald-900 flex items-center gap-1"
+                  >
+                    Manage Templates <ExternalLink className="w-3 h-3" />
+                  </Link>
+                </div>
+
+                <select
+                  value={selectedTemplateId}
+                  onChange={(e) => handleTemplateSelect(e.target.value)}
+                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm"
+                >
+                  <option value="">-- Choose a template to auto-populate --</option>
+                  {templates.map((tpl) => (
+                    <option key={tpl.id || tpl._id} value={tpl.id || tpl._id}>
+                      [{tpl.category?.toUpperCase() || 'CUSTOM'}] {tpl.name}
+                    </option>
+                  ))}
+                </select>
+
+                {/* Variable fields if template selected */}
+                {selectedTemplateId && Object.keys(templateVariables).length > 0 && (
+                  <div className="pt-2 border-t border-emerald-200/60 space-y-2">
+                    <p className="text-xs font-semibold text-emerald-800">Fill Template Variables:</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {Object.keys(templateVariables).map((varKey) => (
+                        <div key={varKey}>
+                          <label className="block text-xs text-gray-600 mb-0.5 font-mono">
+                            {`{{${varKey}}}`}
+                          </label>
+                          <input
+                            type="text"
+                            value={templateVariables[varKey] || ''}
+                            onChange={(e) => handleVariableChange(varKey, e.target.value)}
+                            placeholder={`Value for ${varKey}`}
+                            className="w-full px-2.5 py-1.5 bg-white border border-gray-300 rounded text-xs focus:ring-1 focus:ring-emerald-500"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Message Content */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Message Content *
+                  </label>
+                  <span className="text-xs text-gray-400">
+                    {singleCustomText.length} characters
+                  </span>
+                </div>
+
+                {/* Quick variable tags */}
+                <div className="flex flex-wrap items-center gap-1.5 mb-2">
+                  <span className="text-xs text-gray-500">Insert:</span>
+                  {['name', 'order_number', 'total', 'order_url', 'discount'].map((tag) => (
+                    <button
+                      key={tag}
+                      type="button"
+                      onClick={() => insertVariableTag(tag)}
+                      className="px-2 py-0.5 bg-gray-100 hover:bg-emerald-100 text-gray-700 hover:text-emerald-800 rounded text-xs font-mono transition"
+                    >
+                      + {`{{${tag}}}`}
+                    </button>
+                  ))}
+                </div>
+
+                <textarea
+                  value={singleCustomText}
+                  onChange={(e) => setSingleCustomText(e.target.value)}
+                  placeholder="Type your WhatsApp message here... You can use WhatsApp formatting like *bold*, _italic_, or emojis! 🎉"
+                  rows={6}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent font-sans text-sm"
+                  required
+                />
+
+                <div className="flex items-center gap-2 mt-1 text-xs text-gray-400">
+                  <Info className="w-3.5 h-3.5" />
+                  <span>Formatting: *bold*, _italic_, ~strikethrough~, ```monospace```</span>
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 transition disabled:opacity-50 shadow-sm"
+                >
+                  <Send className="w-4 h-4" />
+                  {loading ? 'Dispatching Message...' : 'Send WhatsApp Message'}
+                </button>
+              </div>
+            </form>
+          </div>
+
+          {/* Live Preview Card */}
+          <div className="bg-gradient-to-b from-gray-50 to-gray-100 rounded-xl border border-gray-200 p-5 flex flex-col">
+            <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-emerald-600" /> WhatsApp Live Preview
+            </h3>
+
+            {/* Chat bubble mock */}
+            <div className="bg-[#EFEAE2] rounded-xl p-4 flex-1 flex flex-col justify-end min-h-[300px]">
+              <div className="bg-white rounded-lg rounded-tl-none p-3.5 shadow-sm max-w-[95%] border border-gray-100">
+                <div className="text-xs font-semibold text-emerald-700 mb-1">
+                  Geethika Digital World
+                </div>
+
+                {singleCustomerName && (
+                  <p className="text-xs text-gray-500 mb-1">To: {singleCustomerName}</p>
+                )}
+
+                <div className="text-sm text-gray-800 whitespace-pre-wrap font-sans leading-relaxed break-words">
+                  {singleCustomText || (
+                    <span className="text-gray-400 italic">
+                      Your message preview will appear here as you type...
+                    </span>
+                  )}
+                </div>
+
+                <div className="text-[10px] text-gray-400 text-right mt-1.5 flex items-center justify-end gap-1">
+                  <span>{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                  <span className="text-emerald-500 font-bold">✓✓</span>
+                </div>
+              </div>
             </div>
-          </form>
+
+            <p className="text-xs text-gray-500 text-center mt-3">
+              Recipients receive this message directly on their WhatsApp from your verified business gateway.
+            </p>
+          </div>
         </div>
       )}
 
@@ -364,7 +611,7 @@ export default function WhatsAppMessaging() {
                 onChange={(e) => setBulkPhones(e.target.value)}
                 placeholder="919492686421&#10;919876543210&#10;918765432109"
                 rows={5}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent font-mono text-sm"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent font-mono text-sm"
                 required
               />
             </div>
@@ -378,7 +625,7 @@ export default function WhatsAppMessaging() {
                 onChange={(e) => setBulkMessage(e.target.value)}
                 placeholder="✨ Special Offer! Get 20% off on all personalized photo frames at Geethika Digital World this week. Order online: https://geethikadigitalworld.com/shop"
                 rows={4}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                 required
               />
             </div>
@@ -386,7 +633,7 @@ export default function WhatsAppMessaging() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-pink-600 text-white font-medium rounded-lg hover:bg-pink-700 transition disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 transition disabled:opacity-50"
             >
               <Users className="w-4 h-4" />
               {loading ? 'Processing Campaign...' : 'Send Campaign'}
@@ -398,7 +645,7 @@ export default function WhatsAppMessaging() {
       {/* Send Image Tab */}
       {activeTab === 'image' && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h2 className="text-xl font-semibold mb-4 text-gray-900">Send Product Image</h2>
+          <h2 className="text-xl font-semibold mb-4 text-gray-900">Send Image Message</h2>
           <form onSubmit={handleSendImage} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -408,46 +655,44 @@ export default function WhatsAppMessaging() {
                 type="text"
                 value={imagePhone}
                 onChange={(e) => setImagePhone(e.target.value)}
-                placeholder="919492686421"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                placeholder="e.g. 919492686421"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Image URL
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
               <input
                 type="url"
                 value={imageUrl}
                 onChange={(e) => setImageUrl(e.target.value)}
-                placeholder="https://res.cloudinary.com/.../image.jpg"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                placeholder="https://res.cloudinary.com/... or public image link"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                 required
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Caption (optional)
+                Caption (Optional)
               </label>
-              <textarea
+              <input
+                type="text"
                 value={imageCaption}
                 onChange={(e) => setImageCaption(e.target.value)}
-                placeholder="Check out this personalized mug sample! 🎁"
-                rows={3}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                placeholder="Check out your personalized frame design! 🎁"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
               />
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-pink-600 text-white font-medium rounded-lg hover:bg-pink-700 transition disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 transition disabled:opacity-50"
             >
               <Image className="w-4 h-4" />
-              {loading ? 'Sending Image...' : 'Send Image'}
+              {loading ? 'Dispatching Image...' : 'Send Image via WhatsApp'}
             </button>
           </form>
         </div>
@@ -456,7 +701,7 @@ export default function WhatsAppMessaging() {
       {/* Send Document Tab */}
       {activeTab === 'document' && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h2 className="text-xl font-semibold mb-4 text-gray-900">Send Invoice / Document PDF</h2>
+          <h2 className="text-xl font-semibold mb-4 text-gray-900">Send Document / Invoice PDF</h2>
           <form onSubmit={handleSendDocument} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -466,8 +711,8 @@ export default function WhatsAppMessaging() {
                 type="text"
                 value={docPhone}
                 onChange={(e) => setDocPhone(e.target.value)}
-                placeholder="919492686421"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                placeholder="e.g. 919492686421"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                 required
               />
             </div>
@@ -480,60 +725,47 @@ export default function WhatsAppMessaging() {
                 type="url"
                 value={docUrl}
                 onChange={(e) => setDocUrl(e.target.value)}
-                placeholder="https://example.com/invoice-1001.pdf"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                placeholder="https://example.com/invoice.pdf"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                 required
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                File Name
-              </label>
-              <input
-                type="text"
-                value={docFileName}
-                onChange={(e) => setDocFileName(e.target.value)}
-                placeholder="Invoice-1001.pdf"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-              />
-            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">File Name</label>
+                <input
+                  type="text"
+                  value={docFileName}
+                  onChange={(e) => setDocFileName(e.target.value)}
+                  placeholder="invoice-1001.pdf"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                />
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Caption (optional)
-              </label>
-              <input
-                type="text"
-                value={docCaption}
-                onChange={(e) => setDocCaption(e.target.value)}
-                placeholder="Here is your tax invoice from Geethika Digital World"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-              />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Caption</label>
+                <input
+                  type="text"
+                  value={docCaption}
+                  onChange={(e) => setDocCaption(e.target.value)}
+                  placeholder="Here is your tax invoice"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                />
+              </div>
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-pink-600 text-white font-medium rounded-lg hover:bg-pink-700 transition disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 transition disabled:opacity-50"
             >
               <FileText className="w-4 h-4" />
-              {loading ? 'Sending Document...' : 'Send Document'}
+              {loading ? 'Dispatching Document...' : 'Send Document via WhatsApp'}
             </button>
           </form>
         </div>
       )}
-
-      {/* Info Box */}
-      <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-5">
-        <h3 className="font-semibold text-emerald-900 mb-2">⚡ SwiftProject WhatsApp Gateway Active</h3>
-        <ul className="text-sm text-emerald-800 space-y-1">
-          <li>• Connected to SwiftProject Gateway endpoint: <code className="bg-emerald-100 px-1 py-0.5 rounded font-mono text-xs">https://wg.swiftproject.in/api/send</code></li>
-          <li>• Session identified directly via API token. No Meta Business verification delays.</li>
-          <li>• Standard international format without '+' (e.g. 919876543210). Auto-sanitized on dispatch.</li>
-          <li>• Built-in rate limiting protection and automatic quota tracking.</li>
-        </ul>
-      </div>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Package, ShoppingCart, Users, Tag,
-  TrendingUp, LogOut, Menu, X, Shield, FileText, MessageSquare, Send, Image, Bell, Globe, ArrowUpRight
+  TrendingUp, LogOut, Menu, X, Shield, FileText, MessageSquare, MessageCircle, Send, Image, Bell, Globe, ArrowUpRight
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
@@ -28,6 +28,7 @@ const AdminLayout = ({ children }) => {
     { path: '/admin/homepage', icon: Image, label: 'Homepage' },
     { path: '/admin/sales-report', icon: TrendingUp, label: 'Sales Report' },
     { path: '/view-website', icon: Globe, label: 'View Website' },
+    { path: '/admin/whatsapp', icon: MessageCircle, label: 'WhatsApp Messaging' },
     { path: '/admin/whatsapp-templates', icon: MessageSquare, label: 'WhatsApp Templates' },
     { path: '/admin/whatsapp-campaigns', icon: Send, label: 'WhatsApp Campaigns' },
     { path: '/admin/sms-campaigns', icon: Send, label: 'SMS Campaigns' },

@@ -238,6 +238,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/super-admin', superAdminRoutes);
 app.use('/api/audit', auditRoutes);
 app.use('/api/whatsapp', whatsappRoutes);
+app.use('/whatsapp', whatsappRoutes);
 app.use('/api/sms', smsRoutes);
 app.use('/api/gallery', galleryRoutes);
 app.use('/api/homepage', homepageRoutes);

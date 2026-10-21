@@ -47,9 +47,10 @@ const WhatsAppTemplates = () => {
     
     try {
       if (editingTemplate) {
-        await api.put(`/whatsapp/templates/${editingTemplate.id}`, formData);
+        const targetId = editingTemplate.id || editingTemplate._id;
+        await api.put(`/api/whatsapp/templates/${targetId}`, formData);
       } else {
-        await api.post('/whatsapp/templates', formData);
+        await api.post('/api/whatsapp/templates', formData);
       }
       
       setShowModal(false);
@@ -57,7 +58,7 @@ const WhatsAppTemplates = () => {
       fetchTemplates();
     } catch (error) {
       console.error('Error saving template:', error);
-      alert('Failed to save template');
+      alert('Failed to save template: ' + (error.message || 'Unknown error'));
     }
   };
 
@@ -65,11 +66,11 @@ const WhatsAppTemplates = () => {
     if (!confirm('Are you sure you want to delete this template?')) return;
     
     try {
-      await api.delete(`/whatsapp/templates/${id}`);
+      await api.delete(`/api/whatsapp/templates/${id}`);
       fetchTemplates();
     } catch (error) {
       console.error('Error deleting template:', error);
-      alert('Failed to delete template');
+      alert('Failed to delete template: ' + (error.message || 'Unknown error'));
     }
   };
 
@@ -294,7 +295,7 @@ const WhatsAppTemplates = () => {
                     <Copy className="w-4 h-4" />
                   </button>
                   <button
-                    onClick={() => handleDelete(template.id)}
+                    onClick={() => handleDelete(template.id || template._id)}
                     className="flex items-center justify-center gap-1 px-3 py-2 bg-red-100 text-red-700 rounded hover:bg-red-200 text-sm"
                   >
                     <Trash2 className="w-4 h-4" />
