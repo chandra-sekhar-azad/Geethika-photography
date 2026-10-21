@@ -81,7 +81,7 @@ const WhatsAppCampaigns = () => {
   };
 
   const handleTemplateChange = (templateId) => {
-    const template = templates.find(t => t.id === parseInt(templateId));
+    const template = templates.find(t => t.id === templateId || t._id === templateId || String(t.id) === String(templateId));
     setSelectedTemplate(template);
     setFormData({ ...formData, template_id: templateId });
   };

@@ -101,6 +101,7 @@ app.use(
           "'self'",
           'https://geethikadigitalworld.com',
           'https://www.geethikadigitalworld.com',
+          'https://*.hostingersite.com',
           'https://api.razorpay.com',
           'https://checkout.razorpay.com',
           'https://lumberjack.razorpay.com',
@@ -148,7 +149,7 @@ if (process.env.NODE_ENV === 'production') {
   app.use('/api/', limiter);
 }
 
-// CORS configuration — always allow production domains + any FRONTEND_URL env var
+// CORS configuration — always allow production domains + Hostinger preview domains + any FRONTEND_URL env var
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:5174',
@@ -158,13 +159,19 @@ const allowedOrigins = [
   process.env.FRONTEND_URL,
 ].filter(Boolean);
 
+const isOriginAllowed = (origin) => {
+  if (!origin) return true;
+  if (allowedOrigins.includes(origin)) return true;
+  // Allow all Hostinger temporary preview subdomains (*.hostingersite.com)
+  if (/^https?:\/\/([a-z0-9-]+\.)?hostingersite\.com$/i.test(origin)) return true;
+  // In development allow everything
+  if (process.env.NODE_ENV !== 'production') return true;
+  return false;
+};
+
 const corsOptions = {
   origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, curl, Postman)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) return callback(null, true);
-    // In development allow everything; in production only allowed origins
-    if (process.env.NODE_ENV !== 'production') return callback(null, true);
+    if (isOriginAllowed(origin)) return callback(null, true);
     callback(new Error(`CORS blocked: ${origin}`));
   },
   credentials: true,
@@ -248,6 +255,11 @@ app.use('/api/products/:productId/reviews', reviewRoutes);
 
 // React catch-all — serves index.html for every non-API route so React Router works
 app.get('*', (req, res) => {
+  // If request is for a missing static asset (.css, .js, images, fonts), return 404 instead of index.html
+  if (req.path.startsWith('/assets/') || /\.(css|js|png|jpg|jpeg|gif|svg|ico|woff2?|ttf|eot)$/i.test(req.path)) {
+    return res.status(404).end();
+  }
+
   const indexPath = frontendPath ? path.join(frontendPath, 'index.html') : null;
   if (indexPath && fs.existsSync(indexPath)) {
     res.sendFile(indexPath);

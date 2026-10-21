@@ -1,5 +1,8 @@
 import express from 'express';
 import WhatsAppTemplate from '../models/WhatsAppTemplate.js';
+import WhatsAppCampaign from '../models/WhatsAppCampaign.js';
+import User from '../models/User.js';
+import Order from '../models/Order.js';
 import {
   sendWhatsAppMessage,
   sendWhatsAppTemplate,
@@ -135,59 +138,258 @@ Questions? Call us at +91 9492686421
   }
 });
 
+// ============================================================================
+// WHATSAPP AUDIENCE / CUSTOMERS
+// ============================================================================
+
 /**
- * Send marketing campaign (Admin only)
- * POST /api/whatsapp/campaign
+ * Get customers for WhatsApp campaigns
+ * GET /api/whatsapp/customers
  */
-router.post('/campaign', authenticate, isAdmin, async (req, res) => {
+router.get('/customers', authenticate, isAdmin, async (req, res) => {
   try {
-    const { phoneNumbers, message } = req.body;
+    const { filter } = req.query; // 'all', 'active', 'inactive', 'high_value'
 
-    if (!phoneNumbers || !Array.isArray(phoneNumbers) || phoneNumbers.length === 0) {
-      return res.status(400).json({ error: 'Phone numbers array is required' });
-    }
+    const users = await User.find({ phone: { $exists: true, $ne: '' } }).select('name email phone createdAt').lean();
+    const orders = await Order.find({ customer_phone: { $exists: true, $ne: '' } }).select('customer_name customer_email customer_phone total createdAt').lean();
 
-    if (!message) {
-      return res.status(400).json({ error: 'Message is required' });
-    }
+    const customerMap = new Map();
 
-    const results = [];
-    const errors = [];
-    let lastQuota = null;
+    users.forEach((u) => {
+      if (u.phone) {
+        customerMap.set(u.phone, {
+          id: u._id.toString(),
+          name: u.name || 'Customer',
+          phone: u.phone,
+          email: u.email || '',
+          orderCount: 0,
+          totalSpent: 0,
+        });
+      }
+    });
 
-    for (const phone of phoneNumbers) {
-      const result = await sendTextMessage(phone, message);
-      
-      if (result.success) {
-        results.push({ phone, success: true, messageId: result.messageId });
-        if (result.quota) lastQuota = result.quota;
-      } else {
-        errors.push({ phone, error: result.error, code: result.code });
-
-        // If daily limit exceeded, halt campaign immediately to preserve quota
-        if (result.code === 'DAILY_LIMIT_EXCEEDED') {
-          console.warn('⛔ Campaign halted: Daily WhatsApp quota limit reached.');
-          break;
+    orders.forEach((o) => {
+      if (o.customer_phone) {
+        const existing = customerMap.get(o.customer_phone);
+        if (existing) {
+          existing.orderCount += 1;
+          existing.totalSpent += o.total || 0;
+        } else {
+          customerMap.set(o.customer_phone, {
+            id: o._id.toString(),
+            name: o.customer_name || 'Customer',
+            phone: o.customer_phone,
+            email: o.customer_email || '',
+            orderCount: 1,
+            totalSpent: o.total || 0,
+          });
         }
       }
+    });
 
-      // 1-second delay between dispatches to comply with per-minute burst rate limits
-      await new Promise(resolve => setTimeout(resolve, 1000));
+    let customers = Array.from(customerMap.values());
+
+    if (filter === 'active') {
+      customers = customers.filter((c) => c.orderCount > 0);
+    } else if (filter === 'high_value') {
+      customers = customers.filter((c) => c.totalSpent >= 1000);
+    } else if (filter === 'inactive') {
+      customers = customers.filter((c) => c.orderCount === 0);
     }
 
     res.json({
       success: true,
-      sent: results.length,
-      failed: errors.length,
-      results,
-      errors,
-      quota: lastQuota
+      count: customers.length,
+      customers,
     });
   } catch (error) {
-    console.error('WhatsApp campaign error:', error);
-    res.status(500).json({ error: 'Failed to send campaign' });
+    console.error('Get WhatsApp customers error:', error);
+    res.status(500).json({ error: 'Failed to fetch customers: ' + error.message });
   }
 });
+
+// ============================================================================
+// WHATSAPP CAMPAIGNS (Admin Dashboard)
+// ============================================================================
+
+/**
+ * List campaigns
+ * GET /api/whatsapp/campaigns
+ */
+router.get('/campaigns', authenticate, isAdmin, async (req, res) => {
+  try {
+    const campaigns = await WhatsAppCampaign.find().sort({ createdAt: -1 }).lean();
+    res.json({
+      success: true,
+      campaigns: campaigns.map((c) => ({
+        ...c,
+        id: c._id.toString(),
+        total_recipients: c.total_recipients || 0,
+        sent_count: c.sent_count || 0,
+        failed_count: c.failed_count || 0,
+      })),
+    });
+  } catch (error) {
+    console.error('Get WhatsApp campaigns error:', error);
+    res.status(500).json({ error: 'Failed to fetch campaigns: ' + error.message });
+  }
+});
+
+/**
+ * Create & trigger campaign
+ * POST /api/whatsapp/campaigns
+ * POST /api/whatsapp/campaign
+ */
+const handleCreateCampaign = async (req, res) => {
+  try {
+    const { campaign_name, template_id, target_audience, scheduled_at, phoneNumbers, message } = req.body;
+
+    // Handle direct phone list campaign from WhatsAppMessaging bulk tab
+    if (Array.isArray(phoneNumbers) && phoneNumbers.length > 0 && message) {
+      const results = [];
+      const errors = [];
+      let lastQuota = null;
+
+      for (const phone of phoneNumbers) {
+        const result = await sendTextMessage(phone, message);
+        if (result.success) {
+          results.push({ phone, success: true, messageId: result.messageId });
+          if (result.quota) lastQuota = result.quota;
+        } else {
+          errors.push({ phone, error: result.error, code: result.code });
+          if (result.code === 'DAILY_LIMIT_EXCEEDED') {
+            console.warn('⛔ Campaign halted: Daily WhatsApp quota limit reached.');
+            break;
+          }
+        }
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+
+      // Record in WhatsAppCampaign history
+      await WhatsAppCampaign.create({
+        campaign_name: campaign_name || `Bulk Campaign - ${new Date().toLocaleDateString('en-IN')}`,
+        message,
+        target_audience: 'custom',
+        status: errors.length === phoneNumbers.length ? 'failed' : 'completed',
+        total_recipients: phoneNumbers.length,
+        sent_count: results.length,
+        failed_count: errors.length,
+        results: [...results, ...errors],
+        created_by: {
+          id: req.user?._id?.toString() || req.user?.id || '',
+          name: req.user?.name || 'Admin',
+          email: req.user?.email || '',
+        },
+      }).catch((e) => console.error('Error saving campaign history:', e));
+
+      return res.json({
+        success: true,
+        sent: results.length,
+        failed: errors.length,
+        results,
+        errors,
+        quota: lastQuota,
+      });
+    }
+
+    // Handle structured campaign from WhatsAppCampaigns tab
+    if (!campaign_name) {
+      return res.status(400).json({ error: 'Campaign name is required' });
+    }
+
+    let templateName = '';
+    let campaignMessage = message || '';
+
+    if (template_id) {
+      const template = await WhatsAppTemplate.findById(template_id);
+      if (template) {
+        templateName = template.name;
+        if (!campaignMessage) campaignMessage = template.message;
+      }
+    }
+
+    if (!campaignMessage) {
+      return res.status(400).json({ error: 'Campaign message or valid template is required' });
+    }
+
+    // Resolve target audience phone numbers
+    const users = await User.find({ phone: { $exists: true, $ne: '' } }).select('phone').lean();
+    const orders = await Order.find({ customer_phone: { $exists: true, $ne: '' } }).select('customer_phone total').lean();
+    const phoneSet = new Set();
+    users.forEach((u) => u.phone && phoneSet.add(u.phone));
+    orders.forEach((o) => o.customer_phone && phoneSet.add(o.customer_phone));
+    const targetPhones = Array.from(phoneSet);
+
+    const campaign = await WhatsAppCampaign.create({
+      campaign_name,
+      template_id: template_id || null,
+      template_name: templateName,
+      message: campaignMessage,
+      target_audience: target_audience || 'all',
+      scheduled_at: scheduled_at ? new Date(scheduled_at) : null,
+      status: targetPhones.length === 0 ? 'completed' : 'sending',
+      total_recipients: targetPhones.length,
+      sent_count: 0,
+      failed_count: 0,
+      created_by: {
+        id: req.user?._id?.toString() || req.user?.id || '',
+        name: req.user?.name || 'Admin',
+        email: req.user?.email || '',
+      },
+    });
+
+    // Run campaign dispatch asynchronously in background
+    (async () => {
+      let sent = 0;
+      let failed = 0;
+      const results = [];
+
+      for (const phone of targetPhones) {
+        try {
+          const res = await sendTextMessage(phone, campaignMessage);
+          if (res.success) {
+            sent++;
+            results.push({ phone, success: true, messageId: res.messageId });
+          } else {
+            failed++;
+            results.push({ phone, success: false, error: res.error });
+            if (res.code === 'DAILY_LIMIT_EXCEEDED') break;
+          }
+        } catch (err) {
+          failed++;
+          results.push({ phone, success: false, error: err.message });
+        }
+        await new Promise((r) => setTimeout(r, 1000));
+      }
+
+      await WhatsAppCampaign.findByIdAndUpdate(campaign._id, {
+        status: failed === targetPhones.length && targetPhones.length > 0 ? 'failed' : 'completed',
+        sent_count: sent,
+        failed_count: failed,
+        results,
+      });
+    })().catch((err) => console.error('Campaign background worker error:', err));
+
+    res.status(201).json({
+      success: true,
+      message: 'Campaign created successfully and queued for dispatch',
+      campaign: {
+        id: campaign._id.toString(),
+        _id: campaign._id,
+        campaign_name: campaign.campaign_name,
+        template_name: templateName,
+        status: 'sending',
+        total_recipients: targetPhones.length,
+      },
+    });
+  } catch (error) {
+    console.error('WhatsApp campaign dispatch error:', error);
+    res.status(500).json({ error: 'Failed to process campaign: ' + error.message });
+  }
+};
+
+router.post('/campaigns', authenticate, isAdmin, handleCreateCampaign);
+router.post('/campaign', authenticate, isAdmin, handleCreateCampaign);
 
 /**
  * Send product image via WhatsApp
