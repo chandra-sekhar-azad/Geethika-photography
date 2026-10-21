@@ -6,7 +6,9 @@ import { authenticate, isAdmin } from '../middleware/auth.js';
 import { logAdminAction, getChanges } from '../middleware/auditLog.js';
 import Notification from '../models/Notification.js';
 import User from '../models/User.js';
+import WhatsAppTemplate from '../models/WhatsAppTemplate.js';
 import { sendWhatsAppMessage } from '../config/whatsapp.js';
+import { replaceTemplatePlaceholders } from '../utils/templateParser.js';
 import razorpay from '../config/razorpay.js';
 import crypto from 'crypto';
 
@@ -38,7 +40,40 @@ export const sendOrderPlacedWhatsApp = async (order) => {
       itemsText = '• Personalized Items';
     }
 
-    const message = `🎉 *Order Confirmed!*
+    // Check if admin has created or edited an Order Confirmation template in the dashboard
+    let customTemplate = null;
+    try {
+      customTemplate = await WhatsAppTemplate.findOne({
+        $or: [
+          { name: { $regex: /order confirmation/i } },
+          { subject: { $regex: /order confirm/i } },
+          { category: 'transactional' },
+        ],
+        is_active: { $ne: false },
+      }).lean();
+    } catch (e) {
+      console.warn('Could not query WhatsAppTemplate:', e.message);
+    }
+
+    let message = '';
+    if (customTemplate && customTemplate.message) {
+      // Replace placeholders: {{name}}, {{customer_name}}, {{order_number}}, {{total}}, {{details}}, {{address}}, {{order_url}}, etc.
+      message = replaceTemplatePlaceholders(customTemplate.message, {
+        name: customerName,
+        customer_name: customerName,
+        phone: order.customer_phone,
+        email: order.customer_email || '',
+        order_number: order.order_number,
+        total: order.total,
+        details: itemsText,
+        items: itemsText,
+        address: order.shipping_address || '',
+        shipping_address: order.shipping_address || '',
+        order_url: `${frontendUrl}/order/${order._id || order.id || order.order_number}`,
+        date: new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
+      });
+    } else {
+      message = `🎉 *Order Confirmed!*
 
 Hi *${customerName}*, thank you for your order with *Geethika Digital World*! 💝
 
@@ -54,7 +89,8 @@ ${frontendUrl}/order/${order._id || order.id}
 
 We are preparing your order with care. You will receive updates as it progresses.
 
-Need help? Reply to this message or call +91 9492686421.`;
+Need help? Reply to this message or call +91 9492686421.`.trim();
+    }
 
     const result = await sendWhatsAppMessage(order.customer_phone, message);
     if (result.success) {
@@ -391,7 +427,7 @@ router.patch('/:id/status', authenticate, isAdmin, async (req, res) => {
         });
       }
 
-      // Send WhatsApp Notification
+      // Send WhatsApp Notification with dynamic placeholder replacement
       if (order.customer_phone) {
         const statusEmojis = {
           'pending': '⏳',
@@ -409,7 +445,38 @@ router.patch('/:id/status', authenticate, isAdmin, async (req, res) => {
         };
         
         const frontendUrl = process.env.FRONTEND_URL || 'https://geethikadigitalworld.com';
-        const waMessage = `${statusEmojis[order_status] || '📦'} Order Update\n\nHi ${order.customer_name}!\n\nOrder #${order.order_number}\nStatus: ${statusMessages[order_status] || `Your order status is now ${order_status}`}\n\nView details: ${frontendUrl}/order/${order._id}\n\nQuestions? Call us at +91 9492686421`;
+        
+        let statusTemplate = null;
+        try {
+          // Look for template matching current status keyword (e.g., shipped, delivered)
+          statusTemplate = await WhatsAppTemplate.findOne({
+            $or: [
+              { name: { $regex: new RegExp(order_status, 'i') } },
+              { subject: { $regex: new RegExp(order_status, 'i') } },
+            ],
+            is_active: { $ne: false },
+          }).lean();
+        } catch (e) {
+          console.warn('Could not query status WhatsAppTemplate:', e.message);
+        }
+
+        let waMessage = '';
+        if (statusTemplate && statusTemplate.message) {
+          waMessage = replaceTemplatePlaceholders(statusTemplate.message, {
+            name: order.customer_name,
+            customer_name: order.customer_name,
+            phone: order.customer_phone,
+            email: order.customer_email || '',
+            order_number: order.order_number,
+            status: order_status,
+            order_status: statusMessages[order_status] || order_status,
+            total: order.total,
+            order_url: `${frontendUrl}/order/${order._id}`,
+            date: new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
+          });
+        } else {
+          waMessage = `${statusEmojis[order_status] || '📦'} *Order Update*\n\nHi ${order.customer_name}!\n\n*Order #${order.order_number}*\nStatus: ${statusMessages[order_status] || `Your order status is now ${order_status}`}\n\nView details: ${frontendUrl}/order/${order._id}\n\nQuestions? Call us at +91 9492686421`;
+        }
         
         // Send asynchronously without awaiting
         sendWhatsAppMessage(order.customer_phone, waMessage).catch(err => console.error('Failed to send WA update:', err));

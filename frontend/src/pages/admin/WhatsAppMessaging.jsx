@@ -112,6 +112,32 @@ export default function WhatsAppMessaging() {
     setSingleCustomText((prev) => `${prev} {{${tag}}}`.trim());
   };
 
+  const getRenderedPreviewText = (text) => {
+    if (!text) return '';
+    const nameVal = singleCustomerName.trim() || 'Valued Customer';
+    const phoneVal = singlePhone.trim() || '9492686421';
+    let rendered = text
+      .replace(/{{\s*(name|customer_name|username|user_name)\s*}}/gi, nameVal)
+      .replace(/{{\s*(phone|customer_phone)\s*}}/gi, phoneVal)
+      .replace(/{{\s*(email|customer_email)\s*}}/gi, 'customer@example.com')
+      .replace(/{{\s*(order_number|orderid|order_id)\s*}}/gi, 'ORD-8921-X')
+      .replace(/{{\s*(total|amount|order_total)\s*}}/gi, '₹1,499')
+      .replace(/{{\s*(details|items|order_details)\s*}}/gi, 'Personalized Gift Item')
+      .replace(/{{\s*(date|order_date)\s*}}/gi, new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }))
+      .replace(/{{\s*discount\s*}}/gi, '20%')
+      .replace(/{{\s*coupon\s*}}/gi, 'SAVE20')
+      .replace(/{{\s*order_url\s*}}/gi, 'https://geethikadigitalworld.com/order/ORD-8921-X')
+      .replace(/{{\s*shop_url\s*}}/gi, 'https://geethikadigitalworld.com/shop');
+
+    Object.entries(templateVariables).forEach(([k, v]) => {
+      if (v) {
+        rendered = rendered.replace(new RegExp(`{{\\s*${k}\\s*}}`, 'gi'), v);
+      }
+    });
+
+    return rendered;
+  };
+
   // Send single custom message
   const handleSendSingle = async (e) => {
     e.preventDefault();
@@ -517,8 +543,8 @@ export default function WhatsAppMessaging() {
 
                 {/* Quick variable tags */}
                 <div className="flex flex-wrap items-center gap-1.5 mb-2">
-                  <span className="text-xs text-gray-500">Insert:</span>
-                  {['name', 'order_number', 'total', 'order_url', 'discount'].map((tag) => (
+                  <span className="text-xs text-gray-500">Insert Tag:</span>
+                  {['name', 'order_number', 'total', 'details', 'phone', 'email', 'order_url', 'discount', 'date'].map((tag) => (
                     <button
                       key={tag}
                       type="button"
@@ -572,11 +598,11 @@ export default function WhatsAppMessaging() {
                 </div>
 
                 {singleCustomerName && (
-                  <p className="text-xs text-gray-500 mb-1">To: {singleCustomerName}</p>
+                  <p className="text-xs text-gray-500 mb-1">To: {singleCustomerName} ({singlePhone || 'Customer'})</p>
                 )}
 
                 <div className="text-sm text-gray-800 whitespace-pre-wrap font-sans leading-relaxed break-words">
-                  {singleCustomText || (
+                  {getRenderedPreviewText(singleCustomText) || (
                     <span className="text-gray-400 italic">
                       Your message preview will appear here as you type...
                     </span>
@@ -617,17 +643,42 @@ export default function WhatsAppMessaging() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Message Content
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-sm font-medium text-gray-700">
+                  Message Content *
+                </label>
+                <span className="text-xs text-emerald-700 font-semibold">
+                  Personalized per customer ✨
+                </span>
+              </div>
+
+              {/* Quick tags */}
+              <div className="flex flex-wrap items-center gap-1.5 mb-2">
+                <span className="text-xs text-gray-500">Insert Tag:</span>
+                {['name', 'order_number', 'total', 'details', 'phone', 'discount', 'shop_url'].map((tag) => (
+                  <button
+                    key={tag}
+                    type="button"
+                    onClick={() => setBulkMessage((prev) => `${prev} {{${tag}}}`.trim())}
+                    className="px-2 py-0.5 bg-gray-100 hover:bg-emerald-100 text-gray-700 hover:text-emerald-800 rounded text-xs font-mono transition"
+                  >
+                    + {`{{${tag}}}`}
+                  </button>
+                ))}
+              </div>
+
               <textarea
                 value={bulkMessage}
                 onChange={(e) => setBulkMessage(e.target.value)}
-                placeholder="✨ Special Offer! Get 20% off on all personalized photo frames at Geethika Digital World this week. Order online: https://geethikadigitalworld.com/shop"
+                placeholder="✨ Special Offer for {{name}}! Get 20% off on your next custom photo frame. Track previous orders or shop new frames: https://geethikadigitalworld.com/shop"
                 rows={4}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent font-sans text-sm"
                 required
               />
+
+              <p className="text-xs text-gray-500 mt-1">
+                Dynamic tags like <code className="bg-gray-100 px-1 rounded text-emerald-700">{`{{name}}`}</code>, <code className="bg-gray-100 px-1 rounded text-emerald-700">{`{{order_number}}`}</code>, and <code className="bg-gray-100 px-1 rounded text-emerald-700">{`{{details}}`}</code> are automatically looked up from the database and substituted per recipient phone number!
+              </p>
             </div>
 
             <button

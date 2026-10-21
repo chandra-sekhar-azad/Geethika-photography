@@ -19,6 +19,12 @@ import {
   sendReply,
   getWhatsAppConfig
 } from '../config/whatsapp.js';
+import {
+  replaceTemplatePlaceholders,
+  getCustomerDetailsByPhone,
+  buildCustomerLookupMap,
+  getTenDigitPhone
+} from '../utils/templateParser.js';
 import { authenticate, isAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -250,13 +256,21 @@ const handleCreateCampaign = async (req, res) => {
       const errors = [];
       let lastQuota = null;
 
+      // Build customer details lookup for the recipient numbers
+      const customerMap = await buildCustomerLookupMap(phoneNumbers);
+
       for (const phone of phoneNumbers) {
-        const result = await sendTextMessage(phone, message);
+        const key = getTenDigitPhone(phone);
+        const customer = customerMap.get(key) || { phone, name: 'Valued Customer' };
+        // Dynamically replace placeholders like {{name}}, {{phone}}, {{email}}, etc. for this customer
+        const personalizedMessage = replaceTemplatePlaceholders(message, customer);
+
+        const result = await sendTextMessage(phone, personalizedMessage);
         if (result.success) {
-          results.push({ phone, success: true, messageId: result.messageId });
+          results.push({ phone, name: customer.name, success: true, messageId: result.messageId });
           if (result.quota) lastQuota = result.quota;
         } else {
-          errors.push({ phone, error: result.error, code: result.code });
+          errors.push({ phone, name: customer.name, error: result.error, code: result.code });
           if (result.code === 'DAILY_LIMIT_EXCEEDED') {
             console.warn('⛔ Campaign halted: Daily WhatsApp quota limit reached.');
             break;
@@ -312,13 +326,77 @@ const handleCreateCampaign = async (req, res) => {
       return res.status(400).json({ error: 'Campaign message or valid template is required' });
     }
 
-    // Resolve target audience phone numbers
-    const users = await User.find({ phone: { $exists: true, $ne: '' } }).select('phone').lean();
-    const orders = await Order.find({ customer_phone: { $exists: true, $ne: '' } }).select('customer_phone total').lean();
-    const phoneSet = new Set();
-    users.forEach((u) => u.phone && phoneSet.add(u.phone));
-    orders.forEach((o) => o.customer_phone && phoneSet.add(o.customer_phone));
-    const targetPhones = Array.from(phoneSet);
+    // Resolve target audience with full customer profiles
+    const users = await User.find({ phone: { $exists: true, $ne: '' } }).select('name email phone address').lean();
+    const orders = await Order.find({ customer_phone: { $exists: true, $ne: '' } })
+      .select('customer_name customer_email customer_phone order_number items total shipping_address createdAt')
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const customerMap = new Map();
+
+    users.forEach((u) => {
+      if (u.phone) {
+        const key = getTenDigitPhone(u.phone);
+        customerMap.set(key, {
+          id: u._id.toString(),
+          name: u.name || 'Valued Customer',
+          phone: u.phone,
+          email: u.email || '',
+          order_number: '',
+          total: '',
+          details: '',
+          orderCount: 0,
+          totalSpent: 0,
+        });
+      }
+    });
+
+    orders.forEach((o) => {
+      if (o.customer_phone) {
+        const key = getTenDigitPhone(o.customer_phone);
+        let itemsText = '';
+        if (o.items && Array.isArray(o.items) && o.items.length > 0) {
+          itemsText = o.items.map((i) => `${i.product_name} (x${i.quantity})`).join(', ');
+        }
+
+        const existing = customerMap.get(key);
+        if (existing) {
+          existing.orderCount += 1;
+          existing.totalSpent += o.total || 0;
+          if (!existing.order_number) {
+            existing.order_number = o.order_number || '';
+            existing.total = o.total ? `₹${o.total}` : '';
+            existing.details = itemsText;
+            existing.address = o.shipping_address || existing.address;
+          }
+        } else {
+          customerMap.set(key, {
+            id: o._id.toString(),
+            name: o.customer_name || 'Valued Customer',
+            phone: o.customer_phone,
+            email: o.customer_email || '',
+            order_number: o.order_number || '',
+            total: o.total ? `₹${o.total}` : '',
+            details: itemsText,
+            address: o.shipping_address || '',
+            orderCount: 1,
+            totalSpent: o.total || 0,
+          });
+        }
+      }
+    });
+
+    let targetCustomers = Array.from(customerMap.values());
+    if (target_audience === 'active') {
+      targetCustomers = targetCustomers.filter((c) => c.orderCount > 0);
+    } else if (target_audience === 'high_value') {
+      targetCustomers = targetCustomers.filter((c) => c.totalSpent >= 1000);
+    } else if (target_audience === 'inactive') {
+      targetCustomers = targetCustomers.filter((c) => c.orderCount === 0);
+    }
+
+    const targetPhones = targetCustomers.map((c) => c.phone).filter(Boolean);
 
     const campaign = await WhatsAppCampaign.create({
       campaign_name,
@@ -327,8 +405,8 @@ const handleCreateCampaign = async (req, res) => {
       message: campaignMessage,
       target_audience: target_audience || 'all',
       scheduled_at: scheduled_at ? new Date(scheduled_at) : null,
-      status: targetPhones.length === 0 ? 'completed' : 'sending',
-      total_recipients: targetPhones.length,
+      status: targetCustomers.length === 0 ? 'completed' : 'sending',
+      total_recipients: targetCustomers.length,
       sent_count: 0,
       failed_count: 0,
       created_by: {
@@ -338,32 +416,34 @@ const handleCreateCampaign = async (req, res) => {
       },
     });
 
-    // Run campaign dispatch asynchronously in background
+    // Run campaign dispatch asynchronously in background with per-recipient placeholder replacement
     (async () => {
       let sent = 0;
       let failed = 0;
       const results = [];
 
-      for (const phone of targetPhones) {
+      for (const customer of targetCustomers) {
         try {
-          const res = await sendTextMessage(phone, campaignMessage);
+          // Replace {{name}}, {{phone}}, {{email}}, {{details}}, {{order_number}} for this specific recipient
+          const personalizedMessage = replaceTemplatePlaceholders(campaignMessage, customer);
+          const res = await sendTextMessage(customer.phone, personalizedMessage);
           if (res.success) {
             sent++;
-            results.push({ phone, success: true, messageId: res.messageId });
+            results.push({ phone: customer.phone, name: customer.name, success: true, messageId: res.messageId });
           } else {
             failed++;
-            results.push({ phone, success: false, error: res.error });
+            results.push({ phone: customer.phone, name: customer.name, success: false, error: res.error });
             if (res.code === 'DAILY_LIMIT_EXCEEDED') break;
           }
         } catch (err) {
           failed++;
-          results.push({ phone, success: false, error: err.message });
+          results.push({ phone: customer.phone, name: customer.name, success: false, error: err.message });
         }
         await new Promise((r) => setTimeout(r, 1000));
       }
 
       await WhatsAppCampaign.findByIdAndUpdate(campaign._id, {
-        status: failed === targetPhones.length && targetPhones.length > 0 ? 'failed' : 'completed',
+        status: failed === targetCustomers.length && targetCustomers.length > 0 ? 'failed' : 'completed',
         sent_count: sent,
         failed_count: failed,
         results,
@@ -372,14 +452,14 @@ const handleCreateCampaign = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: 'Campaign created successfully and queued for dispatch',
+      message: 'Campaign created successfully and queued for dispatch with personalized customer details',
       campaign: {
         id: campaign._id.toString(),
         _id: campaign._id,
         campaign_name: campaign.campaign_name,
         template_name: templateName,
         status: 'sending',
-        total_recipients: targetPhones.length,
+        total_recipients: targetCustomers.length,
       },
     });
   } catch (error) {
@@ -611,28 +691,43 @@ const handleSendCustomMessage = async (req, res) => {
       return res.status(400).json({ error: 'Recipient phone number is required' });
     }
 
-    let finalMessage = (message || '').trim();
+    // Lookup customer profile and order history by recipient phone number
+    const customerDetails = await getCustomerDetailsByPhone(targetPhone);
 
-    // If templateId is provided and message is empty, populate from template
-    if (templateId && !finalMessage) {
+    // If an explicit customerName is passed from the admin form, prioritize it
+    if (customerName && customerName.trim()) {
+      customerDetails.name = customerName.trim();
+    }
+
+    // Attach custom variables if provided
+    if (variables && typeof variables === 'object') {
+      customerDetails.variables = variables;
+    }
+
+    let rawMessage = (message || '').trim();
+
+    // If templateId is provided and message is empty, fetch template text
+    if (templateId && !rawMessage) {
       const template = await WhatsAppTemplate.findById(templateId);
       if (template) {
-        finalMessage = template.message;
-        if (variables && typeof variables === 'object') {
-          Object.entries(variables).forEach(([key, val]) => {
-            const regex = new RegExp(`{{${key}}}`, 'g');
-            finalMessage = finalMessage.replace(regex, val);
-          });
-        }
+        rawMessage = template.message;
       }
     }
 
-    if (!finalMessage) {
+    if (!rawMessage) {
       return res.status(400).json({ error: 'Message content is required' });
     }
 
-    // Optionally prepend customer greeting if name provided and not already in message
-    if (customerName && !finalMessage.toLowerCase().includes(customerName.toLowerCase())) {
+    // Dynamically replace {{name}}, {{customer_name}}, {{phone}}, {{email}}, {{order_number}}, {{total}}, {{details}}, etc.
+    let finalMessage = replaceTemplatePlaceholders(rawMessage, customerDetails);
+
+    // If customerName is explicitly provided but the template did NOT have any {{name}} placeholder,
+    // ensure polite salutation if not already addressed
+    if (
+      customerName &&
+      !rawMessage.match(/{{\s*(name|customer_name|customername|username|user_name)\s*}}/i) &&
+      !finalMessage.toLowerCase().includes(customerName.toLowerCase())
+    ) {
       finalMessage = `Hi ${customerName}!\n\n${finalMessage}`;
     }
 

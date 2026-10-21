@@ -285,11 +285,38 @@ const WhatsAppCampaigns = () => {
                 </div>
                 
                 {selectedTemplate && (
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                    <p className="text-sm font-medium text-gray-700 mb-2">Template Preview:</p>
-                    <pre className="whitespace-pre-wrap font-sans text-sm text-gray-800">
-                      {selectedTemplate.message}
-                    </pre>
+                  <div className="space-y-2">
+                    <div className="bg-[#EFEAE2] border border-gray-200 rounded-xl p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider flex items-center gap-1">
+                          📱 Recipient Preview (Sample Customer: Sagar Naidu)
+                        </span>
+                        <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-semibold">
+                          Personalized on Dispatch
+                        </span>
+                      </div>
+                      <div className="bg-white rounded-lg rounded-tl-none p-3 shadow-sm border border-gray-100">
+                        <p className="text-[11px] font-bold text-emerald-700 mb-0.5">Geethika Digital World</p>
+                        <p className="text-xs text-gray-800 whitespace-pre-wrap leading-relaxed font-sans">
+                          {selectedTemplate.message
+                            .replace(/{{\s*(name|customer_name|username|user_name)\s*}}/gi, 'Sagar Naidu')
+                            .replace(/{{\s*(order_number|orderid|order_id)\s*}}/gi, 'ORD-8921-X')
+                            .replace(/{{\s*(total|amount)\s*}}/gi, '₹1,499')
+                            .replace(/{{\s*(details|items|order_details)\s*}}/gi, 'Personalized Photo Frame')
+                            .replace(/{{\s*(phone|customer_phone)\s*}}/gi, '+91 9492686421')
+                            .replace(/{{\s*(email|customer_email)\s*}}/gi, 'sagar@geethika.com')
+                            .replace(/{{\s*(date|order_date)\s*}}/gi, new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }))
+                            .replace(/{{\s*discount\s*}}/gi, '25%')
+                            .replace(/{{\s*coupon\s*}}/gi, 'SAVE25')
+                            .replace(/{{\s*order_url\s*}}/gi, 'https://geethikadigitalworld.com/order/ORD-8921-X')
+                            .replace(/{{\s*shop_url\s*}}/gi, 'https://geethikadigitalworld.com/shop')}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-xs text-emerald-800">
+                      <strong>✨ Dynamic Personalization Enabled:</strong> Every customer in the audience will receive this message with their actual Name, Phone, and Details automatically substituted.
+                    </div>
                   </div>
                 )}
                 
