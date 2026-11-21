@@ -3,8 +3,11 @@
  * Handles authentication and API requests with automatic token management
  */
 
-// API Base URL - automatically uses environment variable or falls back to localhost
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+// Use an explicit Vite URL when supplied. Otherwise, Vite development talks to
+// the local backend and the production bundle talks to its Hostinger origin.
+export const API_BASE_URL = import.meta.env.VITE_API_URL || (
+  import.meta.env.DEV ? 'http://localhost:5000' : window.location.origin
+);
 
 /**
  * Get authentication headers

@@ -104,39 +104,70 @@ Need help? Reply to this message or call +91 9492686421.`.trim();
 };
 
 // Create Razorpay Order
-router.post('/create-razorpay-order', async (req, res) => {
+router.post('/create-razorpay-order', authenticate, async (req, res) => {
   try {
     if (!razorpay) {
       return res.status(503).json({ error: 'Razorpay is not configured on the server.' });
     }
 
-    const { amount, orderId } = req.body;
+    const { orderId } = req.body;
+    if (!orderId || !/^[a-f\d]{24}$/i.test(orderId)) {
+      return res.status(400).json({ error: 'A valid order ID is required.' });
+    }
+
+    // Never trust an amount sent by the browser. Charge the total on the pending
+    // order that belongs to the authenticated customer instead.
+    const order = await Order.findOne({
+      _id: orderId,
+      customer_email: req.user.email,
+      payment_status: 'pending',
+    });
+    if (!order) {
+      return res.status(404).json({ error: 'Pending order not found.' });
+    }
+
+    const amount = Math.round(Number(order.total) * 100);
+    if (!Number.isSafeInteger(amount) || amount < 100) {
+      return res.status(400).json({ error: 'Order amount must be at least ₹1.00.' });
+    }
 
     const options = {
-      amount: Math.round(amount * 100), // paise
+      amount, // paise
       currency: 'INR',
-      receipt: orderId,
+      receipt: order.order_number.slice(0, 40),
     };
 
     const razorpayOrder = await razorpay.orders.create(options);
+    order.razorpay_order_id = razorpayOrder.id;
+    await order.save();
 
     res.json({
       success: true,
-      razorpayOrderId: razorpayOrder.id,
+      order_id: razorpayOrder.id,
       amount: razorpayOrder.amount,
       currency: razorpayOrder.currency,
       keyId: process.env.RAZORPAY_KEY_ID,
     });
   } catch (error) {
     console.error('Razorpay order creation error:', error);
+    if (error.statusCode === 401) {
+      return res.status(401).json({ error: 'Razorpay authentication failed. Check server credentials.' });
+    }
     res.status(500).json({ error: 'Failed to create Razorpay order' });
   }
 });
 
 // Verify Razorpay Payment
-router.post('/verify-razorpay-payment', async (req, res) => {
+router.post('/verify-razorpay-payment', authenticate, async (req, res) => {
   try {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature, orderId } = req.body;
+
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature || !orderId) {
+      return res.status(400).json({ error: 'Payment verification fields are required.' });
+    }
+    if (!process.env.RAZORPAY_KEY_SECRET) {
+      return res.status(503).json({ error: 'Razorpay is not configured on the server.' });
+    }
 
     const body = razorpay_order_id + '|' + razorpay_payment_id;
     const expectedSignature = crypto
@@ -144,13 +175,23 @@ router.post('/verify-razorpay-payment', async (req, res) => {
       .update(body)
       .digest('hex');
 
-    if (expectedSignature !== razorpay_signature) {
+    const receivedSignature = Buffer.from(razorpay_signature, 'utf8');
+    const expectedSignatureBuffer = Buffer.from(expectedSignature, 'utf8');
+    if (
+      receivedSignature.length !== expectedSignatureBuffer.length ||
+      !crypto.timingSafeEqual(expectedSignatureBuffer, receivedSignature)
+    ) {
       return res.status(400).json({ error: 'Payment verification failed. Invalid signature.' });
     }
 
-    // Update order as paid
-    const order = await Order.findByIdAndUpdate(
-      orderId,
+    // Mark only the authenticated customer's matching pending order as paid.
+    const order = await Order.findOneAndUpdate(
+      {
+        _id: orderId,
+        customer_email: req.user.email,
+        payment_status: 'pending',
+        razorpay_order_id,
+      },
       {
         payment_status: 'paid',
         order_status: 'confirmed',
@@ -162,7 +203,7 @@ router.post('/verify-razorpay-payment', async (req, res) => {
     );
 
     if (!order) {
-      return res.status(404).json({ error: 'Order not found' });
+      return res.status(404).json({ error: 'Pending order not found' });
     }
 
     console.log('✅ Razorpay payment verified for order:', order.order_number);

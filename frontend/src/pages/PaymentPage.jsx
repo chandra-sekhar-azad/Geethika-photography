@@ -21,7 +21,6 @@ const PaymentPage = () => {
 
   const [step, setStep] = useState(1); // 1: Details, 2: Payment
   const [loading, setLoading] = useState(false);
-  const [useTestMode, setUseTestMode] = useState(true);
 
   const [formData, setFormData] = useState({
     name: user?.name || '',
@@ -79,30 +78,11 @@ const PaymentPage = () => {
     window.scrollTo(0, 0);
   };
 
-  const handleTestPayment = async (createdOrder) => {
-    try {
-      const testResponse = await fetch(`${API_BASE_URL}/api/orders/test-payment/${createdOrder.id}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      const testData = await testResponse.json();
-      if (testResponse.ok && testData.success) {
-        clearCart();
-        navigate('/my-orders', { replace: true });
-      } else {
-        alert('Test payment failed: ' + testData.error);
-        setLoading(false);
-      }
-    } catch (error) {
-      console.error('Test payment error:', error);
-      alert('Test payment error: ' + error.message);
-      setLoading(false);
-    }
-  };
-
   const handleRazorpayPayment = async (createdOrder) => {
     try {
       const token = localStorage.getItem('token');
+      if (!token) throw new Error('Please sign in again before making a payment.');
+      if (!window.Razorpay) throw new Error('Payment checkout could not be loaded. Please refresh and try again.');
 
       // 1. Create Razorpay order on backend
       const rzpResponse = await fetch(`${API_BASE_URL}/api/orders/create-razorpay-order`, {
@@ -111,14 +91,12 @@ const PaymentPage = () => {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          amount: getFinalTotal(formData.state),
-          orderId: createdOrder.id,
-        }),
+        body: JSON.stringify({ orderId: createdOrder.id }),
       });
 
       const rzpData = await rzpResponse.json();
       if (!rzpResponse.ok) throw new Error(rzpData.error || 'Failed to create Razorpay order');
+      if (!rzpData.order_id || !rzpData.keyId) throw new Error('Payment checkout could not be initialized.');
 
       // 2. Open Razorpay checkout
       const options = {
@@ -127,8 +105,7 @@ const PaymentPage = () => {
         currency: rzpData.currency,
         name: 'Geethika Digital World',
         description: `Order #${createdOrder.order_number}`,
-        image: '/logo.png',
-        order_id: rzpData.razorpayOrderId,
+        order_id: rzpData.order_id,
         handler: async (response) => {
           try {
             // 3. Verify payment on backend
@@ -230,13 +207,7 @@ const PaymentPage = () => {
       if (!orderResponse.ok) throw new Error(orderData.error || 'Failed to create order');
 
       const { order: createdOrder } = orderData;
-
-      // 2. Process payment
-      if (useTestMode) {
-        await handleTestPayment(createdOrder);
-      } else {
-        await handleRazorpayPayment(createdOrder);
-      }
+      await handleRazorpayPayment(createdOrder);
     } catch (error) {
       console.error('Payment initialization failed:', error);
       alert(error.message);
@@ -373,18 +344,6 @@ const PaymentPage = () => {
                     </div>
                   </div>
                 </div>
-
-                {(import.meta.env.DEV || true) && (
-                  <div className="mb-8 p-4 bg-yellow-50 border-2 border-yellow-200 rounded-2xl">
-                    <label className="flex items-center gap-3 cursor-pointer">
-                      <input type="checkbox" checked={useTestMode} onChange={(e) => setUseTestMode(e.target.checked)} className="w-5 h-5 rounded" />
-                      <span className="text-xs font-body font-bold text-yellow-700 uppercase tracking-widest">
-                        🧪 Test Mode — Skip Payment Gateway
-                      </span>
-                    </label>
-                    <p className="text-xs text-yellow-600 mt-2 ml-8">Order will be marked as paid immediately for testing purposes</p>
-                  </div>
-                )}
 
                 <button
                   onClick={handleProcessPayment}

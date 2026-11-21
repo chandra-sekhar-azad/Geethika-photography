@@ -139,16 +139,6 @@ app.use(
   })
 );
 
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: process.env.NODE_ENV === 'production' ? 100 : 1000,
-  message: 'Too many requests from this IP, please try again later.',
-});
-if (process.env.NODE_ENV === 'production') {
-  app.use('/api/', limiter);
-}
-
 // CORS configuration — always allow production domains + Hostinger preview domains + any FRONTEND_URL env var
 const allowedOrigins = [
   'http://localhost:5173',
@@ -183,6 +173,18 @@ const corsOptions = {
 app.use(cors(corsOptions));
 // Handle pre-flight requests for all routes
 app.options('*', cors(corsOptions));
+
+// Rate limiting must run after CORS so browsers can read a 429 response. OPTIONS
+// requests are CORS preflights and must not consume a customer's API quota.
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: process.env.NODE_ENV === 'production' ? 100 : 1000,
+  message: 'Too many requests from this IP, please try again later.',
+  skip: (req) => req.method === 'OPTIONS',
+});
+if (process.env.NODE_ENV === 'production') {
+  app.use('/api/', limiter);
+}
 
 // Body parsing
 app.use(express.json({ limit: '10mb' }));

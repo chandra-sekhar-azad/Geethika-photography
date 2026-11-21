@@ -7,7 +7,7 @@ export const env = {
   apiBaseUrl: import.meta.env.VITE_API_BASE_URL || (import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api` : (import.meta.env.BACKEND_URL ? `${import.meta.env.BACKEND_URL}/api` : 'https://geethikadigitalworld.com/api')),
 
   // Razorpay
-  razorpayKeyId: import.meta.env.VITE_RAZORPAY_KEY_ID || import.meta.env.RAZORPAY_KEY_ID || 'rzp_live_T7XULJBThPYW5o',
+  razorpayKeyId: import.meta.env.VITE_RAZORPAY_KEY_ID || '',
 
   // WhatsApp
   whatsappNumber: import.meta.env.VITE_WHATSAPP_NUMBER || import.meta.env.WHATSAPP_NUMBER || '919492686421',
