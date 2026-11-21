@@ -1,19 +1,17 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Trash2, Plus, Minus, ArrowLeft, MessageCircle, ShieldCheck, AlertCircle, X } from 'lucide-react';
-import { useCart } from '../context/CartContext';
+import { useCart, getCartItemKey } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 
 const CartPage = () => {
   const navigate = useNavigate();
-  const { cart, removeFromCart, updateQuantity, getCartSubtotal, getFinalTotal } = useCart();
+  const { cart, removeFromCart, updateQuantity, getCartSubtotal } = useCart();
   const { isAuthenticated } = useAuth();
   const [missingImageItems, setMissingImageItems] = useState([]);
 
   const subtotal = getCartSubtotal();
-  const shipping = 99;
-  const tax = Math.round(subtotal * 0.18);
-  const grandTotal = subtotal + shipping + tax;
+  const getItemTotal = (item) => (Number(item.finalPrice ?? item.price) || 0) * (Number(item.quantity) || 1);
 
   const getCustomizationText = (item) => {
     const customization = item.customization || {};
@@ -77,7 +75,7 @@ const CartPage = () => {
           <div className="space-y-6">
             <div className="bg-white rounded-[40px] shadow-sm border border-gray-100 p-8 md:p-12 space-y-12">
               {cart.map((item, idx) => (
-                <div key={item.id} className={`flex flex-col md:flex-row gap-8 pb-12 ${idx !== cart.length - 1 ? 'border-b border-gray-50' : ''}`}>
+                <div key={getCartItemKey(item)} className={`flex flex-col md:flex-row gap-8 pb-12 ${idx !== cart.length - 1 ? 'border-b border-gray-50' : ''}`}>
                   {/* Image */}
                   <div className="w-full md:w-48 h-48 rounded-[30px] overflow-hidden bg-gray-100 flex-shrink-0">
                     <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
@@ -115,14 +113,14 @@ const CartPage = () => {
                     <div className="flex items-center justify-between mt-8 md:mt-0">
                       <div className="flex items-center bg-gray-100 rounded-full px-4 py-2 gap-6">
                         <button 
-                          onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1))}
+                          onClick={() => updateQuantity(item, Math.max(1, item.quantity - 1))}
                           className="text-gray-400 hover:text-gray-900 transition-colors"
                         >
                           <Minus className="w-4 h-4" />
                         </button>
                         <span className="font-body font-bold text-gray-900">{item.quantity}</span>
                         <button 
-                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                          onClick={() => updateQuantity(item, item.quantity + 1)}
                           className="text-gray-400 hover:text-gray-900 transition-colors"
                         >
                           <Plus className="w-4 h-4" />
@@ -130,10 +128,10 @@ const CartPage = () => {
                       </div>
 
                       <div className="flex items-center gap-8">
-                        <span className="text-2xl font-display font-bold text-gray-900">₹{(item.finalPrice * item.quantity).toLocaleString()}</span>
+                        <span className="text-2xl font-display font-bold text-gray-900">₹{getItemTotal(item).toLocaleString()}</span>
                         <button 
-                          onClick={() => removeFromCart(item.id)}
-                          className="text-gray-300 hover:text-red-500 transition-colors"
+                          onClick={() => removeFromCart(item)}
+                          className="text-black hover:text-red-500 transition-colors"
                         >
                           <Trash2 className="w-5 h-5" />
                         </button>
@@ -167,24 +165,11 @@ const CartPage = () => {
             <div className="bg-white rounded-[40px] shadow-sm border border-gray-100 p-10">
               <h2 className="text-3xl font-display font-bold text-gray-900 mb-10">Order Summary</h2>
               
-              <div className="space-y-6 mb-10 pb-10 border-b border-gray-50">
+              <div className="pb-10 border-b border-gray-50">
                 <div className="flex justify-between font-body text-gray-500">
-                  <span>Subtotal</span>
+                  <span>Total Price</span>
                   <span className="text-gray-900 font-bold">₹{subtotal.toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between font-body text-gray-500">
-                  <span>Shipping</span>
-                  <span className="text-gray-900 font-bold">₹{shipping}</span>
-                </div>
-                <div className="flex justify-between font-body text-gray-500">
-                  <span>Tax (GST 18%)</span>
-                  <span className="text-gray-900 font-bold">₹{tax.toLocaleString()}</span>
-                </div>
-              </div>
-
-              <div className="mb-10">
-                <p className="text-[10px] font-body font-bold text-gray-400 uppercase tracking-[0.3em] mb-2">GRAND TOTAL</p>
-                <p className="text-6xl font-display font-bold text-[var(--color-primary)]">₹{grandTotal.toLocaleString()}</p>
               </div>
 
               <button 

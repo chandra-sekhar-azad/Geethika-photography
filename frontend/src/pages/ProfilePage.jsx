@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { fullUrl } from '../lib/utils';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { User, Mail, Lock, Save, ArrowLeft, Camera, ShieldCheck, ShoppingBag, Heart, Package, Trash2, Plus, Minus, MessageCircle, ChevronRight, Clock, CheckCircle, XCircle, Eye, LogOut } from 'lucide-react';
+import { User, Mail, Lock, Save, ArrowLeft, ShieldCheck, ShoppingBag, Heart, Package, Trash2, Plus, Minus, MessageCircle, ChevronRight, Clock, CheckCircle, XCircle, Eye } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { useCart } from '../context/CartContext';
+import { useCart, getCartItemKey } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { API_BASE_URL } from '../utils/api';
 import PhoneInput from '../components/PhoneInput';
@@ -11,7 +11,7 @@ import PhoneInput from '../components/PhoneInput';
 const ProfilePage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, isAuthenticated, login, logout } = useAuth();
+  const { user, isAuthenticated, login } = useAuth();
   const { cart, removeFromCart, updateQuantity, getCartSubtotal } = useCart();
   const { wishlist, removeFromWishlist } = useWishlist();
   
@@ -134,9 +134,6 @@ const ProfilePage = () => {
   ];
 
   const subtotal = getCartSubtotal();
-  const shipping = 99;
-  const tax = Math.round(subtotal * 0.18);
-  const grandTotal = subtotal + shipping + tax;
 
   return (
     <div className="min-h-screen bg-gray-50/50 pt-12 pb-24">
@@ -155,23 +152,13 @@ const ProfilePage = () => {
               </div>
             </div>
           </div>
-          
-          <div className="flex items-center gap-6">
-            <div className="hidden sm:flex items-center gap-4 bg-white p-3 pr-8 rounded-full shadow-sm border border-gray-100">
-              <div className="w-12 h-12 bg-purple-50 rounded-full flex items-center justify-center text-[var(--color-primary)]">
-                <Camera className="w-6 h-6" />
-              </div>
-              <div>
-                <p className="text-[10px] font-body font-bold text-gray-400 uppercase tracking-widest">MEMBER SINCE</p>
-                <p className="font-body font-bold text-gray-900">
-                  {user?.created_at ? new Date(user.created_at).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' }) : '2024'}
-                </p>
-              </div>
+          {activeTab === 'cart' && (
+            <div className="bg-white px-8 py-4 rounded-full shadow-sm border border-gray-100 text-right">
+              <p className="text-[10px] font-body font-bold text-gray-400 uppercase tracking-widest">Total Cost</p>
+              <p className="font-display font-bold text-2xl text-[var(--color-primary)]">₹{subtotal.toLocaleString()}</p>
             </div>
-            <button onClick={logout} className="p-4 bg-white border border-gray-100 rounded-full text-gray-400 hover:text-red-500 transition-colors shadow-sm">
-              <LogOut className="w-5 h-5" />
-            </button>
-          </div>
+          )}
+
         </div>
 
         {/* Tab Navigation */}
@@ -340,7 +327,7 @@ const ProfilePage = () => {
                   <div className="space-y-6">
                     <div className="bg-white rounded-[40px] shadow-sm border border-gray-100 p-8 md:p-12">
                       {cart.map((item, idx) => (
-                        <div key={item.id} className={`flex gap-8 pb-10 mb-10 ${idx !== cart.length - 1 ? 'border-b border-gray-50' : ''}`}>
+                        <div key={getCartItemKey(item)} className={`flex gap-8 pb-10 mb-10 ${idx !== cart.length - 1 ? 'border-b border-gray-50' : ''}`}>
                           <img src={item.image} className="w-32 h-32 rounded-3xl object-cover bg-gray-50" alt={item.name} />
                           <div className="flex-1 flex flex-col justify-between">
                             <div className="flex justify-between">
@@ -348,15 +335,15 @@ const ProfilePage = () => {
                                 <h4 className="text-xl font-display font-bold text-gray-900 mb-2">{item.name}</h4>
                                 <p className="text-xs text-gray-400 font-body">Custom Handmade Gift</p>
                               </div>
-                              <span className="text-xl font-display font-bold text-gray-900">₹{(item.price || 0) * (item.quantity || 1)}</span>
+                              <span className="text-xl font-display font-bold text-gray-900">₹{((Number(item.finalPrice ?? item.price) || 0) * (Number(item.quantity) || 1)).toLocaleString()}</span>
                             </div>
                             <div className="flex items-center justify-between">
                               <div className="flex items-center bg-gray-50 rounded-full px-4 py-1.5 gap-4">
-                                <button onClick={() => updateQuantity(item.id, Math.max(1, (item.quantity || 1) - 1))}><Minus className="w-3 h-3 text-gray-400" /></button>
+                                <button onClick={() => updateQuantity(item, Math.max(1, (item.quantity || 1) - 1))}><Minus className="w-3 h-3 text-gray-400" /></button>
                                 <span className="font-body font-bold text-sm text-gray-900">{item.quantity || 1}</span>
-                                <button onClick={() => updateQuantity(item.id, (item.quantity || 1) + 1)}><Plus className="w-3 h-3 text-gray-400" /></button>
+                                <button onClick={() => updateQuantity(item, (item.quantity || 1) + 1)}><Plus className="w-3 h-3 text-gray-400" /></button>
                               </div>
-                              <button onClick={() => removeFromCart(item.id)} className="text-gray-300 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                              <button onClick={() => removeFromCart(item)} className="text-gray-300 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
                             </div>
                           </div>
                         </div>
@@ -365,13 +352,8 @@ const ProfilePage = () => {
                   </div>
                   <div className="bg-white rounded-[40px] border border-gray-100 p-10 h-fit sticky top-32">
                     <h3 className="text-2xl font-display font-bold text-gray-900 mb-8">Summary</h3>
-                    <div className="space-y-4 mb-8">
-                      <div className="flex justify-between text-sm font-body text-gray-500"><span>Subtotal</span><span className="text-gray-900 font-bold">₹{subtotal}</span></div>
-                      <div className="flex justify-between text-sm font-body text-gray-500"><span>Estimated Tax</span><span className="text-gray-900 font-bold">₹{tax}</span></div>
-                    </div>
-                    <div className="pt-6 border-t border-gray-50 mb-8">
-                      <p className="text-[10px] font-body font-bold text-gray-400 uppercase tracking-widest mb-1">TOTAL TO PAY</p>
-                      <p className="text-4xl font-display font-bold text-[var(--color-primary)]">₹{grandTotal}</p>
+                    <div className="mb-8">
+                      <div className="flex justify-between text-sm font-body text-gray-500"><span>Total Price</span><span className="text-gray-900 font-bold">₹{subtotal}</span></div>
                     </div>
                     <button onClick={() => navigate('/payment')} className="w-full py-5 bg-[var(--color-primary)] text-white rounded-2xl font-body font-bold text-sm uppercase tracking-widest hover:shadow-xl transition-all">Proceed to Checkout</button>
                   </div>

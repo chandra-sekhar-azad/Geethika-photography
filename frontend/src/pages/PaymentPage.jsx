@@ -6,9 +6,17 @@ import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL } from '../utils/api';
 import PhoneInput from '../components/PhoneInput';
 
+const INDIAN_STATES = [
+  'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Goa', 'Gujarat',
+  'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka', 'Kerala', 'Madhya Pradesh',
+  'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab',
+  'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand',
+  'West Bengal',
+];
+
 const PaymentPage = () => {
   const navigate = useNavigate();
-  const { cart, getCartSubtotal, getServiceCharge, getFinalTotal, clearCart } = useCart();
+  const { cart, getCartSubtotal, getServiceCharge, getShippingCost, getFinalTotal, clearCart } = useCart();
   const { user } = useAuth();
 
   const [step, setStep] = useState(1); // 1: Details, 2: Payment
@@ -104,7 +112,7 @@ const PaymentPage = () => {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          amount: getFinalTotal(),
+          amount: getFinalTotal(formData.state),
           orderId: createdOrder.id,
         }),
       });
@@ -204,8 +212,9 @@ const PaymentPage = () => {
           shipping_address: `${formData.address}, ${formData.landmark ? formData.landmark + ', ' : ''}${formData.city}${formData.state ? `, ${formData.state}` : ''} - ${formData.pincode}`,
           items: cart,
           subtotal: getCartSubtotal(),
+          shipping_cost: getShippingCost(formData.state),
           service_charge: getServiceCharge(),
-          total: getFinalTotal(),
+          total: getFinalTotal(formData.state),
           payment_method: 'razorpay',
           shipping_info: {
             address: formData.address,
@@ -325,12 +334,14 @@ const PaymentPage = () => {
 
                   <div className="space-y-3">
                     <label className="text-[10px] font-body font-bold text-gray-400 uppercase tracking-widest ml-1">State</label>
-                    <input
-                      type="text" required value={formData.state}
+                    <select
+                      required value={formData.state}
                       onChange={(e) => setFormData({ ...formData, state: e.target.value })}
                       className="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl font-body text-sm text-gray-900 focus:ring-2 focus:ring-purple-100 outline-none transition-all"
-                      placeholder="State"
-                    />
+                    >
+                      <option value="" disabled>Select your state</option>
+                      {INDIAN_STATES.map((state) => <option key={state} value={state}>{state}</option>)}
+                    </select>
                   </div>
 
                   <button type="submit" className="w-full py-5 bg-gray-900 text-white rounded-2xl font-body font-bold text-sm uppercase tracking-widest hover:bg-[var(--color-primary)] transition-all flex items-center justify-center gap-3 group">
@@ -385,7 +396,7 @@ const PaymentPage = () => {
                   ) : (
                     <>
                       <CheckCircle2 className="w-6 h-6" />
-                      <span>Pay ₹{getFinalTotal()} Securely</span>
+                      <span>Pay ₹{getFinalTotal(formData.state)} Securely</span>
                     </>
                   )}
                 </button>
@@ -434,16 +445,18 @@ const PaymentPage = () => {
                   <span className="text-gray-900 font-bold">₹{getCartSubtotal()}</span>
                 </div>
                 <div className="flex justify-between text-xs font-body text-gray-400 uppercase tracking-widest">
-                  <span>Service Fee</span>
+                  <span>Handling &amp; Platform Charges</span>
                   <span className="text-gray-900 font-bold">₹{getServiceCharge()}</span>
                 </div>
                 <div className="flex justify-between text-xs font-body text-gray-400 uppercase tracking-widest">
                   <span>Shipping</span>
-                  <span className="text-green-600 font-bold">FREE</span>
+                  <span className={getShippingCost(formData.state) === 0 ? 'text-green-600 font-bold' : 'text-gray-900 font-bold'}>
+                    {getShippingCost(formData.state) === 0 ? 'FREE' : `₹${getShippingCost(formData.state)}`}
+                  </span>
                 </div>
                 <div className="pt-8 flex flex-col">
                   <span className="text-[10px] font-body font-bold text-gray-400 uppercase tracking-[0.3em] mb-2 text-center">GRAND TOTAL</span>
-                  <span className="text-5xl font-display font-bold text-[var(--color-primary)] text-center tracking-tight">₹{getFinalTotal()}</span>
+                  <span className="text-5xl font-display font-bold text-[var(--color-primary)] text-center tracking-tight">₹{getFinalTotal(formData.state)}</span>
                 </div>
               </div>
             </div>

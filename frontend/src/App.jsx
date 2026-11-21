@@ -3,7 +3,6 @@ import { useEffect } from 'react';
 import { useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
-import WhatsAppFloat from './components/WhatsAppFloat';
 import PageTransition from './components/PageTransition';
 import AdminLayout from './components/AdminLayout';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -135,7 +134,6 @@ function App() {
                     </PageTransition>
                   </main>
                   <Footer />
-                  <WhatsAppFloat />
                 </div>
               } />
             </Routes>

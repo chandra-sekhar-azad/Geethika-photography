@@ -3,8 +3,39 @@ import { useAuth } from './AuthContext';
 
 const CartContext = createContext();
 
-// Service charge constant
-export const SERVICE_CHARGE = 2;
+// Checkout charges
+export const HANDLING_AND_PLATFORM_CHARGE = 20;
+export const OUTSIDE_ANDHRA_PRADESH_SHIPPING = 70;
+
+const stableStringify = (value) => {
+  if (value === undefined) return undefined;
+  if (value === null || typeof value !== 'object') return JSON.stringify(value);
+  if (Array.isArray(value)) return `[${value.map((item) => stableStringify(item) ?? 'null').join(',')}]`;
+  return `{${Object.keys(value)
+    .sort()
+    .filter((key) => value[key] !== undefined)
+    .map((key) => `${JSON.stringify(key)}:${stableStringify(value[key])}`)
+    .join(',')}}`;
+};
+
+export const getCartItemKey = (item) => [
+  String(item.id),
+  item.size || '',
+  stableStringify(item.customization || null),
+].join('|');
+
+const mergeCartItems = (items) => items.reduce((merged, item) => {
+  const key = getCartItemKey(item);
+  const existingItem = merged.find((candidate) => getCartItemKey(candidate) === key);
+  const quantity = Number(item.quantity) || 1;
+
+  if (existingItem) {
+    existingItem.quantity += quantity;
+  } else {
+    merged.push({ ...item, quantity });
+  }
+  return merged;
+}, []);
 
 export const useCart = () => {
   const context = useContext(CartContext);
@@ -23,7 +54,11 @@ export const CartProvider = ({ children }) => {
     if (isAuthenticated() && user) {
       const userCartKey = `cart_${user.id || user.email}`;
       const savedCart = localStorage.getItem(userCartKey);
-      setCart(savedCart ? JSON.parse(savedCart) : []);
+      try {
+        setCart(savedCart ? mergeCartItems(JSON.parse(savedCart)) : []);
+      } catch {
+        setCart([]);
+      }
     } else {
       // Clear cart if not authenticated
       setCart([]);
@@ -44,40 +79,40 @@ export const CartProvider = ({ children }) => {
     }
 
     setCart(prevCart => {
-      const existingItem = prevCart.find(item => 
-        item.id === product.id && 
-        JSON.stringify(item.customization) === JSON.stringify(product.customization)
-      );
+      const productKey = getCartItemKey(product);
+      const existingItem = prevCart.find((item) => getCartItemKey(item) === productKey);
 
       if (existingItem) {
         return prevCart.map(item =>
-          item.id === product.id && 
-          JSON.stringify(item.customization) === JSON.stringify(product.customization)
-            ? { ...item, quantity: item.quantity + product.quantity }
+          getCartItemKey(item) === productKey
+            ? { ...item, quantity: (Number(item.quantity) || 1) + (Number(product.quantity) || 1) }
             : item
         );
       }
 
-      return [...prevCart, product];
+      return [...prevCart, { ...product, quantity: Number(product.quantity) || 1 }];
     });
     return true; // Return true if successfully added
   };
 
-  const removeFromCart = (productId) => {
+  const removeFromCart = (itemToRemove) => {
+    const itemKey = typeof itemToRemove === 'object' ? getCartItemKey(itemToRemove) : itemToRemove;
     setCart(prevCart => 
-      prevCart.filter(item => item.id !== productId)
+      prevCart.filter(item => (typeof itemToRemove === 'object' ? getCartItemKey(item) !== itemKey : item.id !== itemKey))
     );
   };
 
-  const updateQuantity = (productId, quantity) => {
+  const updateQuantity = (itemToUpdate, quantity) => {
     if (quantity <= 0) {
-      removeFromCart(productId);
+      removeFromCart(itemToUpdate);
       return;
     }
 
+    const itemKey = typeof itemToUpdate === 'object' ? getCartItemKey(itemToUpdate) : itemToUpdate;
+
     setCart(prevCart =>
       prevCart.map(item =>
-        item.id === productId
+        (typeof itemToUpdate === 'object' ? getCartItemKey(item) === itemKey : item.id === itemKey)
           ? { ...item, quantity }
           : item
       )
@@ -93,19 +128,24 @@ export const CartProvider = ({ children }) => {
   };
 
   const getCartTotal = () => {
-    return cart.reduce((total, item) => total + ((item.finalPrice || item.price || 0) * item.quantity), 0);
+    return cart.reduce((total, item) => total + ((Number(item.finalPrice ?? item.price) || 0) * (Number(item.quantity) || 1)), 0);
   };
 
   const getCartSubtotal = () => {
-    return cart.reduce((total, item) => total + ((item.finalPrice || item.price || 0) * item.quantity), 0);
+    return cart.reduce((total, item) => total + ((Number(item.finalPrice ?? item.price) || 0) * (Number(item.quantity) || 1)), 0);
   };
 
   const getServiceCharge = () => {
-    return cart.length > 0 ? SERVICE_CHARGE : 0;
+    return cart.length > 0 ? HANDLING_AND_PLATFORM_CHARGE : 0;
   };
 
-  const getFinalTotal = () => {
-    return getCartSubtotal() + getServiceCharge();
+  const getShippingCost = (state) => {
+    if (cart.length === 0 || !state) return 0;
+    return state.trim().toLowerCase() === 'andhra pradesh' ? 0 : OUTSIDE_ANDHRA_PRADESH_SHIPPING;
+  };
+
+  const getFinalTotal = (state) => {
+    return getCartSubtotal() + getServiceCharge() + getShippingCost(state);
   };
 
   const getCartCount = () => {
@@ -122,6 +162,7 @@ export const CartProvider = ({ children }) => {
       getCartTotal,
       getCartSubtotal,
       getServiceCharge,
+      getShippingCost,
       getFinalTotal,
       getCartCount
     }}>

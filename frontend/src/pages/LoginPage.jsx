@@ -76,12 +76,6 @@ const LoginPage = () => {
           alt="Studio Background"
         />
         <div className="relative z-10 p-20 flex flex-col justify-between w-full">
-          <div className="flex items-center gap-3">
-            <Link to="/" className="w-full">
-              <img src="/logo.png" className="h-12 w-auto invert brightness-0" alt="Logo" />
-            </Link>
-          </div>
-          
           <div>
             <h2 className="text-6xl font-display font-bold text-white mb-8 leading-tight">
               Capture <span className="italic font-serif font-medium text-purple-300">Moments</span>,<br />
